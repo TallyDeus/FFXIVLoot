@@ -1,5 +1,4 @@
 import React, { useId } from 'react';
-import { Tooltip } from 'react-tooltip';
 import { MemberRole, SpecType, ItemType, PermissionRole } from '../types/member';
 import { GearSlotTooltip } from './GearSlotTooltip';
 import './Tag.css';

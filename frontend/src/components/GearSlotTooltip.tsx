@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import './GearSlotTooltip.css';
 
@@ -22,11 +22,11 @@ export const GearSlotTooltip: React.FC<GearSlotTooltipProps> = ({
   const triggerRef = useRef<HTMLElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
 
-  const updatePosition = () => {
+  const updatePosition = useCallback(() => {
     if (triggerRef.current && tooltipRef.current) {
       const rect = triggerRef.current.getBoundingClientRect();
       const tooltipRect = tooltipRef.current.getBoundingClientRect();
-      const offset = 8; // Gap between trigger and tooltip
+      const offset = 8;
 
       let top = 0;
       let left = 0;
@@ -51,7 +51,6 @@ export const GearSlotTooltip: React.FC<GearSlotTooltipProps> = ({
           break;
       }
 
-      // Keep tooltip within viewport
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
 
@@ -70,7 +69,7 @@ export const GearSlotTooltip: React.FC<GearSlotTooltipProps> = ({
 
       setPosition({ top, left });
     }
-  };
+  }, [place]);
 
   useEffect(() => {
     if (isVisible) {
@@ -90,7 +89,7 @@ export const GearSlotTooltip: React.FC<GearSlotTooltipProps> = ({
         clearTimeout(timeout);
       };
     }
-  }, [isVisible, place]);
+  }, [isVisible, place, updatePosition]);
 
   const handleMouseEnter = () => {
     setIsVisible(true);
