@@ -3,6 +3,7 @@ import { Member, MemberRole, PermissionRole } from '../types/member';
 import { RoleTag, PermissionRoleTag } from './Tag';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from './Button';
+import { ProfileImageTooltip } from './ProfileImageTooltip';
 import './MemberList.css';
 
 interface MemberListProps {
@@ -62,26 +63,31 @@ export const MemberList: React.FC<MemberListProps> = ({ members, onEdit, onDelet
             </tr>
           </thead>
           <tbody>
-            {sortedMembers.map((member) => (
-              <tr key={member.id}>
-                <td>
-                  <div className="member-name-cell">
-                    <img 
-                      src={member.profileImageUrl 
-                        ? `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${member.profileImageUrl}`
-                        : `${process.env.PUBLIC_URL}/ffxiv-logo.png`}
-                      alt={member.name}
-                      className="member-profile-image"
-                      onError={(e) => {
-                        // Fallback to default if custom image fails to load
-                        if (member.profileImageUrl) {
-                          (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/ffxiv-logo.png`;
-                        }
-                      }}
-                    />
-                    <span>{member.name}</span>
-                  </div>
-                </td>
+            {sortedMembers.map((member) => {
+              const imageUrl = member.profileImageUrl 
+                ? `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${member.profileImageUrl}`
+                : `${process.env.PUBLIC_URL}/ffxiv-logo.png`;
+              
+              return (
+                <tr key={member.id}>
+                  <td>
+                    <div className="member-name-cell">
+                      <ProfileImageTooltip imageUrl={imageUrl} alt={member.name} place="right">
+                        <img 
+                          src={imageUrl}
+                          alt={member.name}
+                          className="member-profile-image"
+                          onError={(e) => {
+                            // Fallback to default if custom image fails to load
+                            if (member.profileImageUrl) {
+                              (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/ffxiv-logo.png`;
+                            }
+                          }}
+                        />
+                      </ProfileImageTooltip>
+                      <span>{member.name}</span>
+                    </div>
+                  </td>
                 <td>
                   <RoleTag role={member.role} />
                 </td>
@@ -146,8 +152,9 @@ export const MemberList: React.FC<MemberListProps> = ({ members, onEdit, onDelet
                     )}
                   </div>
                 </td>
-              </tr>
-            ))}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       )}

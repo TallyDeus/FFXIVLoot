@@ -10,6 +10,9 @@
   background-color: var(--tc-bg-card);
   box-shadow: 0 1px 3px var(--tc-shadow);
   overflow: hidden;
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
 }
 
 .bis-matrix-table {
@@ -18,14 +21,15 @@
   background-color: transparent;
   table-layout: fixed;
   position: relative;
+  z-index: 0;
 }
 
 .bis-matrix-table th {
   background-color: var(--tc-bg-surface);
-  padding: 12px 10px; /* Increased further */
+  padding: 12px 10px;
   text-align: center;
   font-weight: 600;
-  font-size: 15px; /* Increased further from 13px */
+  font-size: 15px;
   border-bottom: 1px solid var(--tc-border);
   position: sticky;
   top: 0;
@@ -33,29 +37,61 @@
   color: var(--tc-text-main);
 }
 
+.bis-matrix-table th .profile-image-tooltip-wrapper {
+  position: relative;
+  z-index: 999999;
+  isolation: isolate;
+}
+
+/* Ensure tooltip appears above all table cells */
+.bis-matrix-table th.member-header {
+  z-index: 100;
+  position: relative;
+}
+
+/* When hovering over profile image, ensure header is above adjacent cells */
+.bis-matrix-table th.member-header:hover {
+  z-index: 1000;
+}
+
+.bis-matrix-table th.member-header .profile-image-tooltip-wrapper:hover {
+  z-index: 1000;
+}
+
 .bis-matrix-table th.sticky-row {
   position: sticky;
   left: 0;
   z-index: 20;
   background-color: var(--tc-bg-surface);
-  width: 140px; /* Increased from 120px */
+  width: 140px;
   text-align: left;
-  padding: 10px 10px; /* Increased from 8px 8px */
+  padding: 10px 10px;
 }
 
 /* Ensure tooltips appear above all table elements */
 .bis-matrix-table td .tag-tooltip-text {
-  z-index: 99999;
+  z-index: 999998;
+}
+
+/* Ensure react-tooltip tooltips appear above table cells */
+.bis-matrix-table-wrapper [data-tooltip-id] + *,
+.bis-matrix-table-wrapper [id^="react-tooltip"] {
+  z-index: 999998 !important;
+}
+
+/* Global react-tooltip container should be above everything */
+[id^="react-tooltip"] {
+  z-index: 999998 !important;
 }
 
 .slot-header {
-  font-size: 17px; /* Increased by 4px from 13px */
+  font-size: 17px;
   font-weight: 600;
 }
 
 .member-header {
-  width: 80px; /* Increased from 70px */
-  padding: 10px 4px; /* Increased from 8px 2px */
+  width: 80px;
+  padding: 10px 4px;
 }
 
 
@@ -75,11 +111,47 @@
   background-color: var(--tc-bg-surface);
   flex-shrink: 0;
   margin-bottom: 2px;
+  cursor: pointer;
+}
+
+.profile-image-tooltip-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.profile-image-tooltip {
+  padding: 0 !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  z-index: 999999 !important;
+}
+
+.profile-image-tooltip-wrapper {
+  z-index: 999999;
+  position: relative;
+  isolation: isolate;
+}
+
+.bis-matrix-table th .profile-image-tooltip-wrapper {
+  z-index: 999999;
+  position: relative;
+  isolation: isolate;
+}
+
+.profile-image-tooltip-content {
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
 }
 
 .member-header .member-name {
   font-weight: 500;
-  font-size: 18px !important; /* Increased by 4px from 18px */
+  font-size: 18px !important;
   color: var(--tc-text-main);
   word-break: break-word;
   line-height: 1.2;
@@ -104,13 +176,20 @@
 }
 
 .bis-matrix-table td {
-  padding: 8px 6px; /* Increased further */
+  padding: 8px 6px;
   text-align: center;
   border: 1px solid var(--tc-border-light);
   vertical-align: middle;
   background-color: var(--tc-bg-card);
-  width: 80px; /* Increased from 70px */
+  width: 80px;
   overflow: visible;
+  position: relative;
+  z-index: 0;
+}
+
+/* Ensure table cells don't overlap tooltips */
+.bis-matrix-table td:not(.sticky-row) {
+  z-index: 0;
 }
 
 .bis-matrix-table td.sticky-row {
@@ -138,13 +217,14 @@
 
 .slot-name-cell .slot-name-text {
   font-weight: 500;
-  font-size: 16px !important; /* Increased by 4px from 19px */
+  font-size: 16px !important;
 }
 
 .slot-cell {
-  width: 80px; /* Increased from 70px */
+  width: 80px;
   position: relative;
   overflow: visible;
+  isolation: isolate; /* Create new stacking context for tooltips */
 }
 
 .slot-cell.empty {
@@ -162,6 +242,8 @@
   align-items: center;
   justify-content: center;
   gap: 4px;
+  position: relative;
+  z-index: 1; /* Ensure content is above cell background */
 }
 
 .item-type-badge {

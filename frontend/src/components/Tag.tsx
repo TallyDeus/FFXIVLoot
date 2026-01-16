@@ -1,6 +1,7 @@
 import React, { useId } from 'react';
 import { Tooltip } from 'react-tooltip';
 import { MemberRole, SpecType, ItemType, PermissionRole } from '../types/member';
+import { GearSlotTooltip } from './GearSlotTooltip';
 import './Tag.css';
 
 /**
@@ -196,34 +197,27 @@ export const Tag: React.FC<TagProps> = ({
   };
 
   if (finalVariant === 'button') {
-    return (
-      <>
-        <button
-          {...baseProps}
-          onClick={onClick}
-          type="button"
-        >
-          {displayLabel}
-          {acquired && <span className="tag-checkmark">✓</span>}
-        </button>
-        {tooltipId && (
-          <Tooltip
-            id={tooltipId}
-            place="bottom"
-            style={{
-              backgroundColor: 'var(--tc-bg-surface)',
-              color: 'var(--tc-text-main)',
-              border: '1px solid var(--tc-border)',
-              borderRadius: '4px',
-              padding: '6px 10px',
-              fontSize: '12px',
-              fontWeight: 500,
-              zIndex: 99999,
-            }}
-          />
-        )}
-      </>
+    const buttonElement = (
+      <button
+        {...baseProps}
+        onClick={onClick}
+        type="button"
+      >
+        {displayLabel}
+        {acquired && <span className="tag-checkmark">✓</span>}
+      </button>
     );
+
+    // Use custom portal-based tooltip for gear slots in tables
+    if (tooltip) {
+      return (
+        <GearSlotTooltip tooltip={tooltip} place="bottom">
+          {buttonElement}
+        </GearSlotTooltip>
+      );
+    }
+
+    return buttonElement;
   }
 
   if (finalVariant === 'text') {

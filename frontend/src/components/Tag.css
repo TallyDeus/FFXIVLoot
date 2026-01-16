@@ -13,7 +13,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 4px;
-  font-size: 11px; /* Increased from 9px */
+  font-size: 11px;
   font-weight: 600;
   font-family: inherit;
   text-transform: uppercase;
@@ -28,7 +28,7 @@
 .tag-spec,
 .tag-status,
 .tag-permission {
-  padding: 4px 8px; /* Increased from 2px 6px */
+  padding: 4px 8px;
 }
 
 /* Item tags keep their own padding */
@@ -82,12 +82,12 @@
 
 /* Item type tags (as buttons) */
 .tag-item {
-  min-width: 30px; /* Increased further from 28px */
-  height: 30px; /* Increased further from 28px */
+  min-width: 30px;
+  height: 30px;
   padding: 0;
   border: none;
   border-radius: 4px;
-  font-size: 14px; /* Increased further from 13px */
+  font-size: 14px;
   font-weight: 600;
   font-family: inherit;
   text-transform: uppercase;
@@ -152,7 +152,7 @@
   transform: translate(-50%, -50%);
   color: #00ff00;
   font-weight: 700;
-  font-size: 14px; /* Increased from 12px */
+  font-size: 14px;
   text-shadow: 
     0 0 4px #00ff00,
     0 0 8px #00ff00,
@@ -226,7 +226,7 @@
   border-radius: 4px;
   border: 1px solid var(--tc-border);
   position: fixed;
-  z-index: 99999;
+  z-index: 999998;
   white-space: nowrap;
   font-size: 12px;
   font-weight: 500;
@@ -238,16 +238,16 @@
 
 /* Ensure tooltip works even when tag is acquired */
 .tag-acquired .tag-tooltip-text {
-  z-index: 99999;
+  z-index: 999998;
 }
 
 /* Ensure tooltip appears above sticky table headers and all table elements */
 .bis-matrix-table .tag-tooltip-text {
-  z-index: 99999;
+  z-index: 999998;
 }
 
 .bis-matrix-table-wrapper .tag-tooltip-text {
-  z-index: 99999;
+  z-index: 999998;
 }
 
 /* Tooltip visibility is now controlled by JavaScript for button variants with fixed positioning */

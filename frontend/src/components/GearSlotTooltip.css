@@ -1,0 +1,25 @@
+.gear-slot-tooltip-portal {
+  background-color: var(--tc-bg-surface);
+  color: var(--tc-text-main);
+  border: 1px solid var(--tc-border);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px var(--tc-shadow);
+  pointer-events: none;
+  z-index: 999999;
+  position: fixed;
+}
+
+.gear-slot-tooltip-portal::after {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-bottom-color: var(--tc-bg-surface);
+}
+

@@ -136,5 +136,33 @@
   border: 1px solid var(--tc-border);
   background-color: var(--tc-bg-surface);
   flex-shrink: 0;
+  cursor: pointer;
+}
+
+.profile-image-tooltip-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.profile-image-tooltip {
+  padding: 0 !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  z-index: 999999 !important;
+}
+
+.profile-image-tooltip-wrapper {
+  z-index: 999999;
+}
+
+.profile-image-tooltip-content {
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
 }
 

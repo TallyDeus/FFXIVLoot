@@ -24,7 +24,7 @@
 }
 
 html {
-  font-size: 18px; /* Increased from default 16px for better readability */
+  font-size: 18px;
 }
 
 body {
@@ -47,5 +47,21 @@ code {
 
 * {
   box-sizing: border-box;
+}
+
+/* Ensure react-tooltip tooltips appear above all elements */
+[id^="react-tooltip"] {
+  z-index: 999999 !important;
+  position: fixed !important;
+}
+
+/* Ensure react-tooltip wrapper/container is above everything */
+body > [id^="react-tooltip"] {
+  z-index: 999999 !important;
+}
+
+/* Specific class for gear slot tooltips */
+.gear-slot-tooltip {
+  z-index: 999999 !important;
 }
 

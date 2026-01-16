@@ -6,6 +6,7 @@ import { useToast } from '../hooks/useToast';
 import { useAuth } from '../contexts/AuthContext';
 import { getBisItems } from '../utils/specHelpers';
 import { RoleTag, ItemTypeTag, UpgradeMaterialTag } from './Tag';
+import { ProfileImageTooltip } from './ProfileImageTooltip';
 import './BiSMatrix.css';
 
 interface BiSMatrixProps {
@@ -130,19 +131,26 @@ export const BiSMatrix: React.FC<BiSMatrixProps> = ({ members, onUpdate, specTyp
                   className="member-header"
                 >
                   <div className="member-header-content">
-                    <img 
-                      src={member.profileImageUrl 
+                    {(() => {
+                      const imageUrl = member.profileImageUrl 
                         ? `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${member.profileImageUrl}`
-                        : `${process.env.PUBLIC_URL}/ffxiv-logo.png`}
-                      alt={member.name}
-                      className="member-profile-image"
-                      onError={(e) => {
-                        // Fallback to default if custom image fails to load
-                        if (member.profileImageUrl) {
-                          (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/ffxiv-logo.png`;
-                        }
-                      }}
-                    />
+                        : `${process.env.PUBLIC_URL}/ffxiv-logo.png`;
+                      return (
+                        <ProfileImageTooltip imageUrl={imageUrl} alt={member.name} place="bottom">
+                          <img 
+                            src={imageUrl}
+                            alt={member.name}
+                            className="member-profile-image"
+                            onError={(e) => {
+                              // Fallback to default if custom image fails to load
+                              if (member.profileImageUrl) {
+                                (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/ffxiv-logo.png`;
+                              }
+                            }}
+                          />
+                        </ProfileImageTooltip>
+                      );
+                    })()}
                     <span className="member-name">{member.name}</span>
                     {specType === 'main' && (
                       <RoleTag role={member.role} />
