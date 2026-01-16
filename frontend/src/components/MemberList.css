@@ -128,6 +128,25 @@
   gap: 10px;
 }
 
+.member-name-cell .profile-image-tooltip-wrapper {
+  display: inline-flex;
+  align-items: center;
+  line-height: 0;
+}
+
+.member-name-cell .member-profile-image {
+  display: block;
+  margin: 0;
+  padding: 0;
+  vertical-align: middle;
+}
+
+.member-name-cell span {
+  line-height: 38px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
 .member-profile-image {
   width: 38px;
   height: 38px;

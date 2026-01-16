@@ -87,7 +87,7 @@ export const ProfileImageTooltip: React.FC<ProfileImageTooltipProps> = ({
         ref={triggerRef}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        style={{ display: 'inline-block' }}
+        style={{ display: 'inline-flex', alignItems: 'center' }}
       >
         {children}
       </div>
