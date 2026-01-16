@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { WeekAssignmentHistory, GearSlot, GearSlotNames, FloorNumber, Member, MemberRoleNames, MemberRole, SpecType, ItemType, PermissionRole } from '../types/member';
+import React, { useState, useEffect, useCallback } from 'react';
+import { WeekAssignmentHistory, GearSlot, GearSlotNames, SpecType, ItemType, PermissionRole } from '../types/member';
 import { lootHistoryService } from '../services/api/lootHistoryService';
 import { memberService } from '../services/api/memberService';
 import { weekService } from '../services/api/weekService';
@@ -16,7 +16,6 @@ import './LootHistoryPage.css';
  */
 export const LootHistoryPage: React.FC = () => {
   const [history, setHistory] = useState<WeekAssignmentHistory[]>([]);
-  const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set());
   const { toasts, showToast, removeToast } = useToast();
@@ -33,19 +32,11 @@ export const LootHistoryPage: React.FC = () => {
   const canCreateWeek = hasPermission(PermissionRole.Manager);
   const canDeleteWeek = hasPermission(PermissionRole.Administrator);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const [historyData, membersData] = await Promise.all([
-        lootHistoryService.getAllHistory(),
-        memberService.getAllMembers(),
-      ]);
+      const historyData = await lootHistoryService.getAllHistory();
       setHistory(historyData);
-      setMembers(membersData);
       // Expand current week by default
       const currentWeek = historyData.find(w => w.isCurrentWeek);
       if (currentWeek) {
@@ -56,7 +47,11 @@ export const LootHistoryPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
 
   const toggleWeek = (weekNumber: number) => {

@@ -16,7 +16,7 @@ interface MemberFormProps {
  * Component for adding or editing a raid member
  */
 export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel, isOpen, onValidationError }) => {
-  const { user, canEditPermissionRole } = useAuth();
+  const { user } = useAuth();
   const [name, setName] = useState(member?.name || '');
   const [role, setRole] = useState(member?.role ?? 0);
   const [permissionRole, setPermissionRole] = useState<PermissionRole>(member?.permissionRole ?? PermissionRole.User);

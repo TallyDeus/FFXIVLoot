@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Member, SpecType, PermissionRole } from '../types/member';
 import { memberService } from '../services/api/memberService';
 import { bisService } from '../services/api/bisService';
@@ -27,13 +27,9 @@ export const MembersPage: React.FC = () => {
     onConfirm: () => void;
   } | null>(null);
   const { toasts, showToast, removeToast } = useToast();
-  const { currentUser, hasPermission, isSelf } = useAuth();
+  const { hasPermission } = useAuth();
 
-  useEffect(() => {
-    loadMembers();
-  }, []);
-
-  const loadMembers = async () => {
+  const loadMembers = useCallback(async () => {
     try {
       setLoading(true);
       const data = await memberService.getAllMembers();
@@ -43,7 +39,11 @@ export const MembersPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
+
+  useEffect(() => {
+    loadMembers();
+  }, [loadMembers]);
 
   /**
    * Imports BiS lists for a member if links are provided

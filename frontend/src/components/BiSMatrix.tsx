@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Member, GearSlot, GearSlotNames, ItemType, MemberRole, MemberRoleNames, PermissionRole } from '../types/member';
+import { Member, GearSlot, GearSlotNames, ItemType, MemberRole, PermissionRole } from '../types/member';
 import { bisService } from '../services/api/bisService';
 import { ToastContainer } from './Toast';
 import { useToast } from '../hooks/useToast';

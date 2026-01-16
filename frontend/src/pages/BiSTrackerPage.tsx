@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Member, SpecType } from '../types/member';
 import { memberService } from '../services/api/memberService';
 import { BiSMatrix } from '../components/BiSMatrix';
@@ -15,11 +15,7 @@ export const BiSTrackerPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const { toasts, showToast, removeToast } = useToast();
 
-  useEffect(() => {
-    loadMembers();
-  }, []);
-
-  const loadMembers = async () => {
+  const loadMembers = useCallback(async () => {
     try {
       setLoading(true);
       const data = await memberService.getAllMembers();
@@ -29,7 +25,11 @@ export const BiSTrackerPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
+
+  useEffect(() => {
+    loadMembers();
+  }, [loadMembers]);
 
   if (loading) {
     return <div className="loading">Loading members...</div>;

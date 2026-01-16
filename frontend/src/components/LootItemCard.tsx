@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AvailableLoot, Member, GearSlotNames, GearSlot, MemberRole, MemberRoleNames, SpecType } from '../types/member';
+import { AvailableLoot, Member, GearSlotNames, GearSlot, MemberRole, SpecType } from '../types/member';
 import { RoleTag, SpecTag, Tag, TagType } from './Tag';
 import { Button } from './Button';
 import { lootService } from '../services/api/lootService';

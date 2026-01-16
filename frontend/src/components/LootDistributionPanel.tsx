@@ -106,7 +106,6 @@ export const LootDistributionPanel: React.FC<LootDistributionPanelProps> = ({
 
     const memberName = members.find(m => m.id === memberId)?.name;
     const specText = specType === SpecType.OffSpec ? ' (Off Spec)' : '';
-    const slotName = slot !== null ? slot.toString() : 'item';
     
     setConfirmDialog({
       isOpen: true,

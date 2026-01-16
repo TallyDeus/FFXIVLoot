@@ -1,4 +1,4 @@
-import { handleApiError, handleNetworkError, ApiError } from './errorHandler';
+import { handleApiError, handleNetworkError } from './errorHandler';
 
 /**
  * Base API client configuration

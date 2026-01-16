@@ -20,7 +20,6 @@ export const LootDistributionPage: React.FC = () => {
   const [currentWeek, setCurrentWeek] = useState<Week | null>(null);
   const [allWeeks, setAllWeeks] = useState<Week[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingLoot, setLoadingLoot] = useState(false);
   const [lootCache, setLootCache] = useState<Map<FloorNumber, AvailableLoot[]>>(new Map());
   const [members, setMembers] = useState<Member[]>([]);
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -116,7 +115,6 @@ export const LootDistributionPage: React.FC = () => {
     if (!currentWeek) return;
     
     try {
-      setLoadingLoot(true);
       const weekNumber = currentWeek.weekNumber;
       const allFloors = [
         FloorNumber.Floor1,
@@ -143,8 +141,6 @@ export const LootDistributionPage: React.FC = () => {
       setMembers(membersData);
     } catch (error) {
       showToast('Failed to load loot data. Please try again.', 'error');
-    } finally {
-      setLoadingLoot(false);
     }
   };
 
