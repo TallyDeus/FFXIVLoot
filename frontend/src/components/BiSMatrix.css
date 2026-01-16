@@ -22,10 +22,10 @@
 
 .bis-matrix-table th {
   background-color: var(--tc-bg-surface);
-  padding: 10px 8px; /* Increased from 8px 6px */
+  padding: 12px 10px; /* Increased further */
   text-align: center;
   font-weight: 600;
-  font-size: 13px; /* Increased from 11px */
+  font-size: 15px; /* Increased further from 13px */
   border-bottom: 1px solid var(--tc-border);
   position: sticky;
   top: 0;
@@ -68,7 +68,7 @@
 
 .member-name {
   font-weight: 500;
-  font-size: 12px; /* Increased from 10px */
+  font-size: 14px; /* Increased further from 12px */
   color: var(--tc-text-main);
   word-break: break-word;
   line-height: 1.2;
@@ -93,7 +93,7 @@
 }
 
 .bis-matrix-table td {
-  padding: 6px 4px; /* Increased from 4px 2px */
+  padding: 8px 6px; /* Increased further */
   text-align: center;
   border: 1px solid var(--tc-border-light);
   vertical-align: middle;
@@ -109,7 +109,7 @@
   background-color: var(--tc-bg-surface);
   font-weight: 500;
   text-align: left;
-  padding: 8px 12px; /* Increased from 6px 10px */
+  padding: 10px 14px; /* Increased further */
   color: var(--tc-text-main);
 }
 
@@ -127,7 +127,7 @@
 
 .slot-name-text {
   font-weight: 500;
-  font-size: 13px; /* Increased from 11px */
+  font-size: 15px; /* Increased further from 13px */
 }
 
 .slot-cell {

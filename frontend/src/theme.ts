@@ -84,7 +84,6 @@ export const theme = createTheme({
     button: {
       textTransform: 'none', // Keep button text as-is, don't uppercase
       fontWeight: 500,
-      fontSize: '1rem', // ~18px
     },
   },
   components: {
@@ -92,8 +91,8 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: '4px',
-          padding: '10px 20px', // Increased from 8px 16px
-          fontSize: '1rem', // ~18px, increased from 14px
+          padding: '8px 16px', // Reverted to original
+          fontSize: '14px', // Reverted to original
           fontWeight: 500,
           boxShadow: 'none',
           '&:hover': {
