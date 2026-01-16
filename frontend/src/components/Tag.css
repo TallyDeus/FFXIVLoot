@@ -13,7 +13,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 4px;
-  font-size: 9px;
+  font-size: 11px; /* Increased from 9px */
   font-weight: 600;
   font-family: inherit;
   text-transform: uppercase;
@@ -28,7 +28,7 @@
 .tag-spec,
 .tag-status,
 .tag-permission {
-  padding: 2px 6px;
+  padding: 4px 8px; /* Increased from 2px 6px */
 }
 
 /* Item tags keep their own padding */
@@ -82,12 +82,12 @@
 
 /* Item type tags (as buttons) */
 .tag-item {
-  min-width: 24px;
-  height: 24px;
+  min-width: 28px; /* Increased from 24px */
+  height: 28px; /* Increased from 24px */
   padding: 0;
   border: none;
   border-radius: 4px;
-  font-size: 11px;
+  font-size: 13px; /* Increased from 11px */
   font-weight: 600;
   font-family: inherit;
   text-transform: uppercase;
@@ -152,7 +152,7 @@
   transform: translate(-50%, -50%);
   color: #00ff00;
   font-weight: 700;
-  font-size: 12px;
+  font-size: 14px; /* Increased from 12px */
   text-shadow: 
     0 0 4px #00ff00,
     0 0 8px #00ff00,

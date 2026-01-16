@@ -61,7 +61,7 @@
 }
 
 .floor-description {
-  font-size: 12px;
+  font-size: 14px; /* Increased from 12px */
   opacity: 0.8;
   color: var(--tc-text-muted);
 }

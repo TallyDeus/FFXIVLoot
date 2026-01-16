@@ -23,6 +23,10 @@
   --tc-shadow-hover: rgba(111, 141, 174, 0.2);
 }
 
+html {
+  font-size: 18px; /* Increased from default 16px for better readability */
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Inter', 'Oxygen',
@@ -33,6 +37,7 @@ body {
   background-color: var(--tc-bg-dark);
   color: var(--tc-text-main);
   min-height: 100vh;
+  font-size: 1rem; /* Use rem for consistency */
 }
 
 code {

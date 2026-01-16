@@ -22,10 +22,10 @@
 
 .bis-matrix-table th {
   background-color: var(--tc-bg-surface);
-  padding: 8px 6px;
+  padding: 10px 8px; /* Increased from 8px 6px */
   text-align: center;
   font-weight: 600;
-  font-size: 11px;
+  font-size: 13px; /* Increased from 11px */
   border-bottom: 1px solid var(--tc-border);
   position: sticky;
   top: 0;
@@ -38,9 +38,9 @@
   left: 0;
   z-index: 20;
   background-color: var(--tc-bg-surface);
-  width: 120px;
+  width: 140px; /* Increased from 120px */
   text-align: left;
-  padding: 8px 8px;
+  padding: 10px 10px; /* Increased from 8px 8px */
 }
 
 /* Ensure tooltips appear above all table elements */
@@ -49,13 +49,13 @@
 }
 
 .slot-header {
-  font-size: 11px;
+  font-size: 13px; /* Increased from 11px */
   font-weight: 600;
 }
 
 .member-header {
-  width: 70px;
-  padding: 8px 2px;
+  width: 80px; /* Increased from 70px */
+  padding: 10px 4px; /* Increased from 8px 2px */
 }
 
 
@@ -68,7 +68,7 @@
 
 .member-name {
   font-weight: 500;
-  font-size: 10px;
+  font-size: 12px; /* Increased from 10px */
   color: var(--tc-text-main);
   word-break: break-word;
   line-height: 1.2;
@@ -93,12 +93,12 @@
 }
 
 .bis-matrix-table td {
-  padding: 4px 2px;
+  padding: 6px 4px; /* Increased from 4px 2px */
   text-align: center;
   border: 1px solid var(--tc-border-light);
   vertical-align: middle;
   background-color: var(--tc-bg-card);
-  width: 70px;
+  width: 80px; /* Increased from 70px */
   overflow: visible;
 }
 
@@ -109,7 +109,7 @@
   background-color: var(--tc-bg-surface);
   font-weight: 500;
   text-align: left;
-  padding: 6px 10px;
+  padding: 8px 12px; /* Increased from 6px 10px */
   color: var(--tc-text-main);
 }
 
@@ -127,11 +127,11 @@
 
 .slot-name-text {
   font-weight: 500;
-  font-size: 11px;
+  font-size: 13px; /* Increased from 11px */
 }
 
 .slot-cell {
-  width: 70px;
+  width: 80px; /* Increased from 70px */
   position: relative;
   overflow: visible;
 }

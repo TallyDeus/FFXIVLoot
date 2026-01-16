@@ -46,10 +46,10 @@
 
 .extra-loot-matrix-table th {
   background-color: var(--tc-bg-surface);
-  padding: 8px 6px;
+  padding: 10px 8px; /* Increased from 8px 6px */
   text-align: center;
   font-weight: 600;
-  font-size: 11px;
+  font-size: 13px; /* Increased from 11px */
   border-bottom: 1px solid var(--tc-border);
   position: sticky;
   top: 0;
@@ -62,9 +62,9 @@
   left: 0;
   z-index: 20;
   background-color: var(--tc-bg-surface);
-  width: 120px;
+  width: 140px; /* Increased from 120px */
   text-align: left;
-  padding: 8px 8px;
+  padding: 10px 10px; /* Increased from 8px 8px */
 }
 
 .slot-header {
@@ -73,25 +73,25 @@
 }
 
 .member-header {
-  width: 70px;
-  padding: 8px 2px;
+  width: 80px; /* Increased from 70px */
+  padding: 10px 4px; /* Increased from 8px 2px */
 }
 
 .member-name {
   font-weight: 500;
-  font-size: 10px;
+  font-size: 12px; /* Increased from 10px */
   color: var(--tc-text-main);
   word-break: break-word;
   line-height: 1.2;
 }
 
 .extra-loot-matrix-table td {
-  padding: 8px 4px;
+  padding: 10px 6px; /* Increased from 8px 4px */
   text-align: center;
   border: 1px solid var(--tc-border-light);
   vertical-align: middle;
   background-color: var(--tc-bg-card);
-  width: 70px;
+  width: 80px; /* Increased from 70px */
 }
 
 .extra-loot-matrix-table td.sticky-row {
@@ -119,17 +119,17 @@
 
 .slot-name-text {
   font-weight: 500;
-  font-size: 11px;
+  font-size: 13px; /* Increased from 11px */
 }
 
 .slot-cell {
-  width: 70px;
+  width: 80px; /* Increased from 70px */
   position: relative;
 }
 
 .count-display {
   font-weight: 600;
-  font-size: 13px;
+  font-size: 15px; /* Increased from 13px */
   color: var(--tc-text-muted);
 }
 
