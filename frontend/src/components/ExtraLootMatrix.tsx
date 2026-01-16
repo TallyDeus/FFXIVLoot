@@ -96,18 +96,18 @@ export const ExtraLootMatrix: React.FC<ExtraLootMatrixProps> = ({ members }) => 
     
     // Sort slots in a logical order
     const slotOrder = [
+      GearSlot.Weapon.toString(),
+      GearSlot.Head.toString(),
+      GearSlot.Body.toString(),
+      GearSlot.Hand.toString(),
+      GearSlot.Legs.toString(),
+      GearSlot.Feet.toString(),
       GearSlot.Ears.toString(),
       GearSlot.Neck.toString(),
       GearSlot.Wrist.toString(),
       'ring',
-      GearSlot.Head.toString(),
-      GearSlot.Hand.toString(),
-      GearSlot.Feet.toString(),
       'accessory-upgrade',
-      GearSlot.Body.toString(),
-      GearSlot.Legs.toString(),
       'armor-upgrade',
-      GearSlot.Weapon.toString(),
     ];
     
     return slotOrder.filter(slot => slotSet.has(slot));
@@ -135,7 +135,10 @@ export const ExtraLootMatrix: React.FC<ExtraLootMatrixProps> = ({ members }) => 
     if (slotKey === 'armor-upgrade') return 'Armor Upgrade';
     const slotNum = parseInt(slotKey);
     if (!isNaN(slotNum) && slotNum in GearSlotNames) {
-      return GearSlotNames[slotNum as GearSlot];
+      const name = GearSlotNames[slotNum as GearSlot];
+      // Special case: Ears should display as "Earring"
+      if (slotNum === GearSlot.Ears) return 'Earring';
+      return name;
     }
     return slotKey;
   };
