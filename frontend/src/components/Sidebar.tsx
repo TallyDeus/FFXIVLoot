@@ -112,7 +112,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage }) => {
       <div className="sidebar-header">
         <div className="sidebar-logo">
           <img 
-            src="/pp-icon.jpg"
+            src={`${process.env.PUBLIC_URL}/pp-icon.jpg`}
             alt="App Icon" 
             className="app-icon"
             onError={(e) => {
