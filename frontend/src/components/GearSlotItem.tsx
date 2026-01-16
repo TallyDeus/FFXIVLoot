@@ -34,7 +34,7 @@ export const GearSlotItem: React.FC<GearSlotItemProps> = ({
         <ItemTypeTag 
           itemType={item.itemType} 
           variant="text"
-          children={item.itemType === ItemType.Raid ? 'Raid' : 'Aug Tome'}
+          children={item.itemType === ItemType.Raid ? 'Raid' : 'Tomestone'}
         />
       </div>
       

@@ -134,7 +134,7 @@ export const BiSMatrix: React.FC<BiSMatrixProps> = ({ members, onUpdate, specTyp
               {sortedMembers.map((member, index) => (
                 <th 
                   key={member.id}
-                  className={`member-header ${index === supportStartIndex && supportStartIndex > 0 && specType === 'main' ? 'role-separator-start' : ''}`}
+                  className="member-header"
                 >
                   <div className="member-header-content">
                     <span className="member-name">{member.name}</span>
@@ -154,13 +154,12 @@ export const BiSMatrix: React.FC<BiSMatrixProps> = ({ members, onUpdate, specTyp
                 </td>
                 {sortedMembers.map((member, index) => {
                   const item = getItemForSlot(member, slot);
-                  const isRoleSeparator = index === supportStartIndex && supportStartIndex > 0 && specType === 'main';
                   
                   if (!item) {
                     return (
                       <td 
                         key={member.id}
-                        className={`slot-cell empty ${isRoleSeparator ? 'role-separator-start' : ''}`}
+                        className="slot-cell empty"
                       >
                         <span className="empty-slot">-</span>
                       </td>
@@ -170,7 +169,7 @@ export const BiSMatrix: React.FC<BiSMatrixProps> = ({ members, onUpdate, specTyp
                   return (
                     <td 
                       key={member.id}
-                      className={`slot-cell ${item.isAcquired ? 'acquired' : ''} ${isRoleSeparator ? 'role-separator-start' : ''}`}
+                      className={`slot-cell ${item.isAcquired ? 'acquired' : ''}`}
                     >
                       <div className="slot-content">
                         <ItemTypeTag

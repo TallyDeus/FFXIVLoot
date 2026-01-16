@@ -2,10 +2,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Member, SpecType } from '../types/member';
 import { memberService } from '../services/api/memberService';
 import { BiSMatrix } from '../components/BiSMatrix';
+import { ExtraLootMatrix } from '../components/ExtraLootMatrix';
 import { ToastContainer } from '../components/Toast';
 import { useToast } from '../hooks/useToast';
 import { SpecTag, Tag, TagType } from '../components/Tag';
 import './BiSTrackerPage.css';
+
+type ViewType = 'main' | 'off' | 'extra';
 
 /**
  * Page for tracking best-in-slot progress for all members
@@ -13,6 +16,7 @@ import './BiSTrackerPage.css';
 export const BiSTrackerPage: React.FC = () => {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeView, setActiveView] = useState<ViewType>('main');
   const { toasts, showToast, removeToast } = useToast();
 
   const loadMembers = useCallback(async () => {
@@ -44,34 +48,51 @@ export const BiSTrackerPage: React.FC = () => {
 
       {members.length > 0 ? (
         <>
-          <div className="bis-matrix-legend">
-            <div className="legend-item">
-              <Tag type={TagType.ItemRaid} variant="badge" />
-              <span>Raid</span>
-            </div>
-            <div className="legend-item">
-              <Tag type={TagType.ItemAugTome} variant="badge" />
-              <span>Aug Tome</span>
-            </div>
-            <div className="legend-item">
-              <Tag type={TagType.ItemUpgradeMaterial} variant="badge" />
-              <span>Upgrade Material</span>
-            </div>
+          <div className="view-selector">
+            <button
+              className={`view-button ${activeView === 'main' ? 'active' : ''}`}
+              onClick={() => setActiveView('main')}
+            >
+              <SpecTag specType={SpecType.MainSpec} />
+            </button>
+            <button
+              className={`view-button ${activeView === 'off' ? 'active' : ''}`}
+              onClick={() => setActiveView('off')}
+            >
+              <SpecTag specType={SpecType.OffSpec} />
+            </button>
+            <button
+              className={`view-button ${activeView === 'extra' ? 'active' : ''}`}
+              onClick={() => setActiveView('extra')}
+            >
+              <SpecTag specType={SpecType.Extra} />
+            </button>
           </div>
 
-          <div className="spec-section">
-            <h2 className="spec-header">
-              <SpecTag specType={SpecType.MainSpec} />
-            </h2>
-            <BiSMatrix members={members} onUpdate={loadMembers} specType="main" />
-          </div>
-          
-          <div className="spec-section">
-            <h2 className="spec-header">
-              <SpecTag specType={SpecType.OffSpec} />
-            </h2>
-            <BiSMatrix members={members} onUpdate={loadMembers} specType="off" />
-          </div>
+          {activeView === 'extra' ? (
+            <ExtraLootMatrix members={members} />
+          ) : (
+            <>
+              <div className="bis-matrix-legend">
+                <div className="legend-item">
+                  <Tag type={TagType.ItemRaid} variant="badge" />
+                  <span>Raid</span>
+                </div>
+                <div className="legend-item">
+                  <Tag type={TagType.ItemAugTome} variant="badge" />
+                  <span>Tomestone</span>
+                </div>
+                <div className="legend-item">
+                  <Tag type={TagType.ItemUpgradeMaterial} variant="badge" />
+                  <span>Upgrade Material</span>
+                </div>
+              </div>
+
+              <div className="spec-section">
+                <BiSMatrix members={members} onUpdate={loadMembers} specType={activeView} />
+              </div>
+            </>
+          )}
         </>
       ) : (
         <div className="no-members">

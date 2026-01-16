@@ -17,25 +17,41 @@
 .floor-button {
   padding: 20px;
   background-color: var(--tc-bg-card);
-  border: 1px solid var(--tc-border);
+  border: 2px solid var(--tc-border);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: left;
   color: var(--tc-text-main);
   box-shadow: 0 1px 3px var(--tc-shadow);
+  position: relative;
 }
 
 .floor-button:hover {
   border-color: var(--tc-accent-primary);
   background-color: var(--tc-bg-surface);
   box-shadow: 0 2px 6px var(--tc-shadow);
+  transform: translateY(-1px);
 }
 
 .floor-button.active {
-  background-color: var(--tc-accent-primary);
-  color: white;
+  background-color: var(--tc-bg-surface);
   border-color: var(--tc-accent-primary);
+  border-width: 2px;
+  box-shadow: 
+    0 0 0 2px rgba(111, 141, 174, 0.15),
+    0 2px 8px var(--tc-shadow);
+}
+
+.floor-button.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--tc-accent-primary), transparent);
+  border-radius: 8px 8px 0 0;
 }
 
 .floor-number {
@@ -51,7 +67,12 @@
 }
 
 .floor-button.active .floor-description {
-  opacity: 0.9;
-  color: rgba(255, 255, 255, 0.9);
+  opacity: 0.85;
+  color: var(--tc-text-main);
+}
+
+.floor-button.active .floor-number {
+  color: var(--tc-accent-primary);
+  font-weight: 700;
 }
 

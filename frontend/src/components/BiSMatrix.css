@@ -58,15 +58,6 @@
   padding: 8px 2px;
 }
 
-/* Visual separator for role groups - applied to first Support member column */
-.member-header.role-separator-start {
-  border-left: 3px solid var(--tc-accent-primary);
-  padding-left: 4px;
-}
-
-.bis-matrix-table td.role-separator-start {
-  border-left: 3px solid var(--tc-accent-primary);
-}
 
 .member-header-content {
   display: flex;
@@ -145,10 +136,6 @@
   overflow: visible;
 }
 
-.slot-cell.acquired {
-  background-color: rgba(111, 141, 174, 0.15);
-}
-
 .slot-cell.empty {
   background-color: var(--tc-bg-card);
 }
@@ -207,10 +194,14 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  color: #4CAF50;
+  color: #00ffaa;
   font-weight: bold;
   font-size: 14px;
-  text-shadow: 0 0 2px rgba(255, 255, 255, 0.8);
+  text-shadow: 
+    0 0 4px #00ffaa,
+    0 0 8px #00ffaa,
+    0 0 12px #00ffaa,
+    0 0 2px rgba(255, 255, 255, 0.8);
   pointer-events: none;
   z-index: 1;
 }

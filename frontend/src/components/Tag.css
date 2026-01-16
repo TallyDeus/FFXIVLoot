@@ -12,15 +12,28 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 4px 8px;
   border-radius: 4px;
   font-size: 9px;
-  font-weight: 700;
+  font-weight: 600;
   font-family: inherit;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
   white-space: nowrap;
   transition: all 0.2s ease;
+  opacity: 0.9;
+}
+
+/* Padding for non-item tags (role, spec, status, permission) */
+.tag-role,
+.tag-spec,
+.tag-status,
+.tag-permission {
+  padding: 2px 6px;
+}
+
+/* Item tags keep their own padding */
+.tag-item {
+  padding: 0;
 }
 
 /* Role tags */
@@ -33,11 +46,13 @@
 .tag-role-dps {
   background-color: var(--tc-role-dps);
   color: white;
+  opacity: 0.85;
 }
 
 .tag-role-support {
   background-color: var(--tc-role-support);
   color: white;
+  opacity: 0.85;
 }
 
 /* Spec tags */
@@ -50,16 +65,19 @@
 .tag-spec-main {
   background-color: var(--tc-spec-main);
   color: white;
+  opacity: 0.85;
 }
 
 .tag-spec-off {
   background-color: var(--tc-spec-off);
   color: white;
+  opacity: 0.85;
 }
 
 .tag-spec-extra {
   background-color: #1e3a5f;
   color: white;
+  opacity: 0.85;
 }
 
 /* Item type tags (as buttons) */
@@ -70,20 +88,22 @@
   border: none;
   border-radius: 4px;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   font-family: inherit;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
   color: white;
   cursor: pointer;
   position: relative;
   transition: all 0.2s ease;
   overflow: visible;
+  opacity: 0.9;
 }
 
 .tag-item:hover:not(:disabled) {
-  transform: scale(1.1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transform: scale(1.05);
+  opacity: 1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 .tag-item:disabled {
@@ -93,20 +113,23 @@
 
 .tag-item-raid {
   background-color: var(--tc-raid);
+  opacity: 0.85;
 }
 
 .tag-item-aug-tome {
   background-color: var(--tc-aug-tome);
+  opacity: 0.85;
 }
 
 .tag-item-upgrade {
   background-color: var(--tc-upgrade);
+  opacity: 0.85;
 }
 
 /* Acquired state */
 .tag-acquired {
   position: relative;
-  opacity: 0.6;
+  opacity: 0.75;
 }
 
 .tag-acquired::before {
@@ -116,7 +139,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(76, 175, 80, 0.4);
+  background-color: rgba(0, 0, 0, 0.3);
   border-radius: 4px;
   z-index: 0;
   pointer-events: none;
@@ -127,10 +150,15 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  color: #4CAF50;
+  color: #00ff00;
   font-weight: 700;
   font-size: 12px;
-  text-shadow: 0 0 2px rgba(255, 255, 255, 0.8);
+  text-shadow: 
+    0 0 4px #00ff00,
+    0 0 8px #00ff00,
+    0 0 12px #00ff00,
+    0 0 16px #00ff00,
+    0 0 2px rgba(255, 255, 255, 0.8);
   pointer-events: none;
   z-index: 1;
 }
@@ -145,11 +173,13 @@
 .tag-status-assigned {
   background-color: var(--tc-status-assigned, #7D3C98);
   color: white;
+  opacity: 0.85;
 }
 
 .tag-status-current {
   background-color: var(--tc-status-current, #27AE60);
   color: white;
+  opacity: 0.85;
 }
 
 /* Permission role tags */
@@ -163,18 +193,21 @@
   background-color: #E74C3C; /* Red */
   color: white;
   border-color: #E74C3C;
+  opacity: 0.85;
 }
 
 .tag-permission-manager {
   background-color: #F39C12; /* Orange */
   color: white;
   border-color: #F39C12;
+  opacity: 0.85;
 }
 
 .tag-permission-user {
   background-color: #3498DB; /* Blue */
   color: white;
   border-color: #3498DB;
+  opacity: 0.85;
 }
 
 /* Tooltip support */
