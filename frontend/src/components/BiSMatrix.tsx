@@ -49,13 +49,6 @@ export const BiSMatrix: React.FC<BiSMatrixProps> = ({ members, onUpdate, specTyp
     return [...dpsMembers, ...supportMembers];
   }, [members, specType]);
 
-  // Find where Support members start (for visual separator) - only for main spec
-  const supportStartIndex = React.useMemo(() => {
-    if (specType === 'off') return -1; // No separator for off spec
-    return sortedMembers.findIndex(m => m.role === MemberRole.Support);
-  }, [sortedMembers, specType]);
-
-
   // Get all unique gear slots from all members' BiS lists (main or off spec), sorted
   const allSlots = Array.from(
     new Set(
