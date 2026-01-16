@@ -1,0 +1,232 @@
+/**
+ * Unified Tag System Styles
+ * Replaces role-badge, spec-badge, item-type-badge, etc.
+ */
+
+/* Base tag styles - unified font, size, and uppercase */
+.tag-role,
+.tag-spec,
+.tag-item,
+.tag-status,
+.tag-permission {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+/* Role tags */
+.tag-role {
+  background-color: var(--tc-bg-surface);
+  border: 1px solid var(--tc-border);
+  color: var(--tc-text-main);
+}
+
+.tag-role-dps {
+  background-color: var(--tc-role-dps);
+  color: white;
+}
+
+.tag-role-support {
+  background-color: var(--tc-role-support);
+  color: white;
+}
+
+/* Spec tags */
+.tag-spec {
+  background-color: var(--tc-bg-surface);
+  border: 1px solid var(--tc-border);
+  color: var(--tc-text-main);
+}
+
+.tag-spec-main {
+  background-color: var(--tc-spec-main);
+  color: white;
+}
+
+.tag-spec-off {
+  background-color: var(--tc-spec-off);
+  color: white;
+}
+
+.tag-spec-extra {
+  background-color: #1e3a5f;
+  color: white;
+}
+
+/* Item type tags (as buttons) */
+.tag-item {
+  min-width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: white;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  overflow: visible;
+}
+
+.tag-item:hover:not(:disabled) {
+  transform: scale(1.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.tag-item:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.tag-item-raid {
+  background-color: var(--tc-raid);
+}
+
+.tag-item-aug-tome {
+  background-color: var(--tc-aug-tome);
+}
+
+.tag-item-upgrade {
+  background-color: var(--tc-upgrade);
+}
+
+/* Acquired state */
+.tag-acquired {
+  position: relative;
+  opacity: 0.6;
+}
+
+.tag-acquired::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(76, 175, 80, 0.4);
+  border-radius: 4px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.tag-checkmark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #4CAF50;
+  font-weight: 700;
+  font-size: 12px;
+  text-shadow: 0 0 2px rgba(255, 255, 255, 0.8);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Status tags */
+.tag-status {
+  background-color: var(--tc-bg-surface);
+  border: 1px solid var(--tc-border);
+  color: var(--tc-text-main);
+}
+
+.tag-status-assigned {
+  background-color: var(--tc-status-assigned, #7D3C98);
+  color: white;
+}
+
+.tag-status-current {
+  background-color: var(--tc-status-current, #27AE60);
+  color: white;
+}
+
+/* Permission role tags */
+.tag-permission {
+  background-color: var(--tc-bg-surface);
+  border: 1px solid var(--tc-border);
+  color: var(--tc-text-main);
+}
+
+.tag-permission-administrator {
+  background-color: #E74C3C; /* Red */
+  color: white;
+  border-color: #E74C3C;
+}
+
+.tag-permission-manager {
+  background-color: #F39C12; /* Orange */
+  color: white;
+  border-color: #F39C12;
+}
+
+.tag-permission-user {
+  background-color: #3498DB; /* Blue */
+  color: white;
+  border-color: #3498DB;
+}
+
+/* Tooltip support */
+.tag-tooltip {
+  position: relative;
+  z-index: 1;
+}
+
+.tag-tooltip-text {
+  visibility: hidden;
+  opacity: 0;
+  background-color: var(--tc-bg-surface);
+  color: var(--tc-text-main);
+  text-align: center;
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--tc-border);
+  position: fixed;
+  z-index: 99999;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 500;
+  box-shadow: 0 2px 8px var(--tc-shadow);
+  pointer-events: none;
+  transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Ensure tooltip works even when tag is acquired */
+.tag-acquired .tag-tooltip-text {
+  z-index: 99999;
+}
+
+/* Ensure tooltip appears above sticky table headers and all table elements */
+.bis-matrix-table .tag-tooltip-text {
+  z-index: 99999;
+}
+
+.bis-matrix-table-wrapper .tag-tooltip-text {
+  z-index: 99999;
+}
+
+/* Tooltip visibility is now controlled by JavaScript for button variants with fixed positioning */
+/* CSS hover states are disabled for tooltips with inline styles to avoid conflicts */
+
+.tag-tooltip-text::after {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-bottom-color: var(--tc-bg-surface);
+}
+

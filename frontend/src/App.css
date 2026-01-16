@@ -1,0 +1,13 @@
+.App {
+  min-height: 100vh;
+  background-color: var(--tc-bg-dark);
+  display: flex;
+}
+
+.App-main {
+  flex: 1;
+  margin-left: 260px;
+  min-height: 100vh;
+  padding: 0;
+  background-color: var(--tc-bg-dark);
+}

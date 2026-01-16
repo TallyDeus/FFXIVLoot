@@ -1,0 +1,46 @@
+:root {
+  /* FFXIV Teamcraft-inspired Color Palette */
+  --tc-bg-dark: #1B1F27;
+  --tc-bg-surface: #2A2F38;
+  --tc-bg-card: #2A2F38;
+  --tc-accent-primary: #6F8DAE;
+  --tc-accent-secondary: #A2885B;
+  --tc-text-main: #EDEDED;
+  --tc-text-muted: #A0A8B8;
+  --tc-border: #3A3F4A;
+  --tc-border-light: rgba(58, 63, 74, 0.5);
+  --tc-role-dps: #C74A3D;
+  --tc-role-support: #8BB17C;
+  --tc-role-tank: #6F8DAE;
+  --tc-raid: #9B59B6;
+  --tc-aug-tome: #5DADE2;
+  --tc-upgrade: #A2885B;
+  --tc-spec-main: #16A085;
+  --tc-spec-off: #E67E22;
+  --tc-status-assigned: #7D3C98;
+  --tc-status-current: #27AE60;
+  --tc-shadow: rgba(0, 0, 0, 0.3);
+  --tc-shadow-hover: rgba(111, 141, 174, 0.2);
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Inter', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--tc-bg-dark);
+  color: var(--tc-text-main);
+  min-height: 100vh;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+

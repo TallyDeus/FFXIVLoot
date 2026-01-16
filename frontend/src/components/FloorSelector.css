@@ -1,0 +1,57 @@
+.floor-selector {
+  margin: 20px 0;
+}
+
+.floor-selector h2 {
+  margin-bottom: 15px;
+  color: var(--tc-text-main);
+  font-weight: 600;
+}
+
+.floor-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.floor-button {
+  padding: 20px;
+  background-color: var(--tc-bg-card);
+  border: 1px solid var(--tc-border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  color: var(--tc-text-main);
+  box-shadow: 0 1px 3px var(--tc-shadow);
+}
+
+.floor-button:hover {
+  border-color: var(--tc-accent-primary);
+  background-color: var(--tc-bg-surface);
+  box-shadow: 0 2px 6px var(--tc-shadow);
+}
+
+.floor-button.active {
+  background-color: var(--tc-accent-primary);
+  color: white;
+  border-color: var(--tc-accent-primary);
+}
+
+.floor-number {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.floor-description {
+  font-size: 12px;
+  opacity: 0.8;
+  color: var(--tc-text-muted);
+}
+
+.floor-button.active .floor-description {
+  opacity: 0.9;
+  color: rgba(255, 255, 255, 0.9);
+}
+

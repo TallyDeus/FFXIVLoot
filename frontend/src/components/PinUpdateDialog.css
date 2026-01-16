@@ -1,0 +1,115 @@
+.pin-update-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.pin-update-container {
+  background: var(--tc-bg-surface);
+  border: 1px solid var(--tc-border);
+  border-radius: 8px;
+  padding: 24px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 4px 12px var(--tc-shadow);
+}
+
+.pin-update-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.pin-update-form h3 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--tc-text-main);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--tc-text-main);
+}
+
+.form-group input {
+  padding: 12px;
+  border: 1px solid var(--tc-border);
+  border-radius: 4px;
+  font-size: 16px;
+  background: var(--tc-bg-main);
+  color: var(--tc-text-main);
+  transition: border-color 0.2s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--tc-accent-primary);
+}
+
+.form-group input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.btn-cancel,
+.btn-submit {
+  padding: 10px 20px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid;
+}
+
+.btn-cancel {
+  background-color: var(--tc-bg-main);
+  color: var(--tc-text-main);
+  border-color: var(--tc-border);
+}
+
+.btn-cancel:hover:not(:disabled) {
+  background-color: var(--tc-bg-surface);
+  border-color: var(--tc-accent-primary);
+}
+
+.btn-submit {
+  background-color: var(--tc-accent-primary);
+  color: white;
+  border-color: var(--tc-accent-primary);
+}
+
+.btn-submit:hover:not(:disabled) {
+  background-color: var(--tc-accent-secondary);
+  border-color: var(--tc-accent-secondary);
+}
+
+.btn-cancel:disabled,
+.btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+

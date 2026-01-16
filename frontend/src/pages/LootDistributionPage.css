@@ -1,0 +1,94 @@
+.loot-distribution-page {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 30px;
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.page-header h1 {
+  margin: 0 0 10px 0;
+  color: var(--tc-text-main);
+  font-weight: 600;
+}
+
+.page-header p {
+  margin: 0;
+  color: var(--tc-text-muted);
+  font-size: 14px;
+}
+
+.week-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.week-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.week-selector label {
+  color: var(--tc-text-main);
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.week-select {
+  padding: 8px 12px;
+  border: 1px solid var(--tc-border);
+  border-radius: 4px;
+  background-color: var(--tc-bg-surface);
+  color: var(--tc-text-main);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.week-select:focus {
+  outline: none;
+  border-color: var(--tc-accent-primary);
+  box-shadow: 0 0 0 2px var(--tc-shadow-hover);
+}
+
+.btn-new-week {
+  padding: 8px 16px;
+  background-color: var(--tc-accent-primary);
+  color: white;
+  border: 1px solid var(--tc-accent-primary);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-new-week:hover {
+  background-color: var(--tc-accent-secondary);
+  border-color: var(--tc-accent-secondary);
+}
+
+.select-floor-prompt {
+  text-align: center;
+  padding: 40px;
+  color: var(--tc-text-muted);
+  background-color: var(--tc-bg-card);
+  border: 1px solid var(--tc-border);
+  border-radius: 8px;
+  margin-top: 20px;
+  box-shadow: 0 1px 3px var(--tc-shadow);
+}
+

@@ -1,0 +1,124 @@
+.member-list {
+  margin: 20px 0;
+}
+
+.member-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  background-color: var(--tc-bg-card);
+  border: 1px solid var(--tc-border);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px var(--tc-shadow);
+  table-layout: fixed;
+}
+
+.member-table th,
+.member-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--tc-border);
+  color: var(--tc-text-main);
+  width: calc(100% / 6);
+}
+
+.member-table th:first-child,
+.member-table td:first-child {
+  padding-left: 20px;
+}
+
+.member-table th:last-child,
+.member-table td:last-child {
+  padding-right: 20px;
+}
+
+.member-table th {
+  background-color: var(--tc-bg-surface);
+  font-weight: 600;
+  color: var(--tc-text-main);
+}
+
+.member-table tr:hover {
+  background-color: var(--tc-bg-dark);
+}
+
+.member-table td {
+  vertical-align: middle;
+}
+
+.no-link {
+  color: var(--tc-text-muted);
+  font-style: italic;
+}
+
+.btn-view-bis {
+  padding: 6px 12px;
+  background-color: var(--tc-accent-primary);
+  color: white;
+  border: 1px solid var(--tc-accent-primary);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.2s ease;
+}
+
+.btn-view-bis:hover {
+  background-color: var(--tc-accent-secondary);
+  border-color: var(--tc-accent-secondary);
+}
+
+.btn-edit,
+.btn-delete {
+  padding: 6px 12px;
+  margin: 0 4px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.btn-edit {
+  background-color: var(--tc-accent-primary);
+  color: white;
+  border: 1px solid var(--tc-accent-primary);
+}
+
+.btn-edit:hover {
+  background-color: var(--tc-accent-secondary);
+  border-color: var(--tc-accent-secondary);
+}
+
+.btn-delete {
+  background-color: var(--tc-role-dps);
+  color: white;
+  border: 1px solid var(--tc-role-dps);
+}
+
+.btn-delete:hover {
+  opacity: 0.9;
+}
+
+.role-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.role-badge.dps {
+  background-color: var(--tc-role-dps);
+  color: white;
+}
+
+.role-badge.support {
+  background-color: var(--tc-role-support);
+  color: white;
+}
+

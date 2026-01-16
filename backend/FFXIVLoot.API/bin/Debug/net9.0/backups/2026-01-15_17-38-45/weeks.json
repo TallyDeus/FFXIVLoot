@@ -1,0 +1,15 @@
+{
+  "weeks": [
+    {
+      "weekNumber": 1,
+      "startedAt": "2026-01-15T13:28:50.380683Z",
+      "isCurrent": false
+    },
+    {
+      "weekNumber": 2,
+      "startedAt": "2026-01-15T13:28:50.4208341Z",
+      "isCurrent": true
+    }
+  ],
+  "currentWeekNumber": 2
+}

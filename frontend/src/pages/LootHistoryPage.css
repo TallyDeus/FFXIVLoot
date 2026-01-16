@@ -1,0 +1,392 @@
+.loot-history-page {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.page-header > div {
+  flex: 1;
+}
+
+.page-header h1 {
+  margin: 0 0 10px 0;
+  color: var(--tc-text-main);
+  font-weight: 600;
+}
+
+.page-header p {
+  margin: 0;
+  color: var(--tc-text-muted);
+  font-size: 14px;
+}
+
+.no-history {
+  text-align: center;
+  padding: 40px;
+  color: var(--tc-text-muted);
+  background-color: var(--tc-bg-card);
+  border: 1px solid var(--tc-border);
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.week-card {
+  background-color: var(--tc-bg-card);
+  border: 1px solid var(--tc-border);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px var(--tc-shadow);
+  overflow: hidden;
+}
+
+.week-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  user-select: none;
+}
+
+.week-header:hover {
+  background-color: var(--tc-bg-surface);
+}
+
+.week-header-left h2 {
+  margin: 0 0 4px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--tc-text-main);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.current-badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  background-color: var(--tc-accent-primary);
+  color: white;
+  text-transform: uppercase;
+}
+
+.week-date {
+  margin: 0;
+  font-size: 12px;
+  color: var(--tc-text-muted);
+}
+
+.week-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.assignment-count {
+  font-size: 14px;
+  color: var(--tc-text-muted);
+  font-weight: 500;
+}
+
+.expand-icon {
+  font-size: 12px;
+  color: var(--tc-text-muted);
+  transition: transform 0.2s ease;
+}
+
+.expand-icon.expanded {
+  transform: rotate(180deg);
+}
+
+.week-content {
+  padding: 12px 20px 16px 20px;
+  border-top: 1px solid var(--tc-border);
+  background-color: var(--tc-bg-dark);
+}
+
+.floor-section {
+  margin-top: 16px;
+}
+
+.floor-section:first-child {
+  margin-top: 0;
+}
+
+.floor-header {
+  margin: 0 0 10px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--tc-text-main);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--tc-border);
+}
+
+.assignments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.assignment-item {
+  padding: 8px 12px;
+  background-color: var(--tc-bg-surface);
+  border: 1px solid var(--tc-border);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.assignment-item:hover {
+  background-color: var(--tc-bg-card);
+  border-color: var(--tc-accent-primary);
+}
+
+.assignment-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.item-name {
+  font-weight: 500;
+  color: var(--tc-text-main);
+}
+
+.badge {
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.badge.raid {
+  background-color: var(--tc-raid);
+  color: white;
+}
+
+.badge.upgrade-material {
+  background-color: var(--tc-upgrade);
+  color: white;
+}
+
+.assignment-separator {
+  color: var(--tc-text-muted);
+  margin: 0 2px;
+}
+
+.assignment-acquired {
+  color: var(--tc-text-muted);
+}
+
+.member-name {
+  font-weight: 600;
+  color: var(--tc-text-main);
+  font-size: 13px;
+}
+
+.role-badge {
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.role-badge.dps {
+  background-color: var(--tc-role-dps);
+  color: white;
+}
+
+.role-badge.support {
+  background-color: var(--tc-role-support);
+  color: white;
+}
+
+.spec-badge {
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.spec-badge.main-spec {
+  background-color: var(--tc-spec-main);
+  color: white;
+}
+
+.spec-badge.off-spec {
+  background-color: var(--tc-spec-off);
+  color: white;
+}
+
+.btn-delete-week {
+  padding: 6px 12px;
+  background-color: var(--tc-role-dps);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  margin-left: 12px;
+}
+
+.btn-delete-week:hover {
+  background-color: #a03a2e;
+  opacity: 0.9;
+}
+
+.btn-create-week {
+  padding: 10px 20px;
+  background-color: var(--tc-accent-primary);
+  color: white;
+  border: 1px solid var(--tc-accent-primary);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-create-week:hover {
+  background-color: var(--tc-accent-secondary);
+  border-color: var(--tc-accent-secondary);
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.create-week-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.2s ease;
+}
+
+.create-week-dialog {
+  background-color: var(--tc-bg-card);
+  border: 1px solid var(--tc-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px var(--tc-shadow);
+  min-width: 400px;
+  max-width: 500px;
+  padding: 24px;
+  animation: slideUp 0.2s ease;
+}
+
+.create-week-dialog h3 {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--tc-text-main);
+}
+
+.create-week-dialog .form-group {
+  margin-bottom: 20px;
+}
+
+.create-week-dialog .form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--tc-text-main);
+}
+
+.create-week-dialog .form-group input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--tc-border);
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: var(--tc-bg-surface);
+  color: var(--tc-text-main);
+}
+
+.create-week-dialog .form-group input:focus {
+  outline: none;
+  border-color: var(--tc-accent-primary);
+  box-shadow: 0 0 0 2px var(--tc-shadow-hover);
+}
+
+.dialog-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.dialog-actions .btn-cancel,
+.dialog-actions .btn-confirm {
+  padding: 8px 20px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.dialog-actions .btn-cancel {
+  background-color: var(--tc-bg-surface);
+  color: var(--tc-text-main);
+  border-color: var(--tc-border);
+}
+
+.dialog-actions .btn-cancel:hover {
+  background-color: var(--tc-bg-dark);
+  border-color: var(--tc-border-light);
+}
+
+.dialog-actions .btn-confirm {
+  background-color: var(--tc-accent-primary);
+  color: white;
+  border-color: var(--tc-accent-primary);
+}
+
+.dialog-actions .btn-confirm:hover {
+  background-color: var(--tc-accent-secondary);
+  border-color: var(--tc-accent-secondary);
+}
+
+.assignment-date {
+  color: var(--tc-text-muted);
+  font-size: 12px;
+}
+

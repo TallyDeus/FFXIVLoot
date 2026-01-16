@@ -1,0 +1,15 @@
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Application\bin\Debug\net9.0\FFXIVLoot.Application.deps.json
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Application\bin\Debug\net9.0\FFXIVLoot.Application.dll
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Application\bin\Debug\net9.0\FFXIVLoot.Application.pdb
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Application\bin\Debug\net9.0\FFXIVLoot.Domain.dll
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Application\bin\Debug\net9.0\FFXIVLoot.Domain.pdb
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Application\obj\Debug\net9.0\FFXIVLoot.Application.csproj.AssemblyReference.cache
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Application\obj\Debug\net9.0\FFXIVLoot.Application.GeneratedMSBuildEditorConfig.editorconfig
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Application\obj\Debug\net9.0\FFXIVLoot.Application.AssemblyInfoInputs.cache
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Application\obj\Debug\net9.0\FFXIVLoot.Application.AssemblyInfo.cs
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Application\obj\Debug\net9.0\FFXIVLoot.Application.csproj.CoreCompileInputs.cache
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Application\obj\Debug\net9.0\FFXIVLoo.8468CCCA.Up2Date
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Application\obj\Debug\net9.0\FFXIVLoot.Application.dll
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Application\obj\Debug\net9.0\refint\FFXIVLoot.Application.dll
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Application\obj\Debug\net9.0\FFXIVLoot.Application.pdb
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Application\obj\Debug\net9.0\ref\FFXIVLoot.Application.dll

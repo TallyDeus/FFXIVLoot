@@ -1,0 +1,30 @@
+.loot-distribution-panel {
+  margin: 20px 0;
+}
+
+.loot-distribution-panel h2 {
+  margin-bottom: 20px;
+  color: var(--tc-text-main);
+  font-weight: 600;
+}
+
+.loot-items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 15px;
+}
+
+.loading,
+.no-loot {
+  text-align: center;
+  padding: 40px;
+  color: var(--tc-text-main);
+}
+
+.no-loot {
+  background-color: var(--tc-bg-card);
+  border: 1px solid var(--tc-border);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px var(--tc-shadow);
+}
+

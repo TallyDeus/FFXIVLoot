@@ -1,0 +1,41 @@
+.bis-list {
+  margin: 20px 0;
+}
+
+.bis-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--tc-border);
+}
+
+.bis-list-header h3 {
+  margin: 0;
+  font-size: 20px;
+  color: var(--tc-text-main);
+  font-weight: 600;
+}
+
+.bis-stats {
+  font-size: 14px;
+  color: var(--tc-text-muted);
+}
+
+.bis-items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 15px;
+}
+
+.bis-list-empty {
+  padding: 40px;
+  text-align: center;
+  color: var(--tc-text-muted);
+  background-color: var(--tc-bg-card);
+  border: 1px solid var(--tc-border);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px var(--tc-shadow);
+}
+

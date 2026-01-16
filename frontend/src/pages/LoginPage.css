@@ -1,0 +1,121 @@
+.login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--tc-bg-main);
+  padding: 20px;
+}
+
+.login-container {
+  background: var(--tc-bg-surface);
+  border: 1px solid var(--tc-border);
+  border-radius: 8px;
+  padding: 40px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 4px 12px var(--tc-shadow);
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.login-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  object-fit: cover;
+}
+
+.login-header h1 {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--tc-text-main);
+}
+
+.login-header p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--tc-text-secondary);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--tc-text-main);
+}
+
+.form-group input {
+  padding: 12px;
+  border: 1px solid var(--tc-border);
+  border-radius: 4px;
+  font-size: 16px;
+  background: var(--tc-bg-main);
+  color: var(--tc-text-main);
+  transition: border-color 0.2s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--tc-primary);
+}
+
+.form-group input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.login-button {
+  padding: 10px 20px;
+  background-color: var(--tc-accent-primary);
+  color: white;
+  border: 1px solid var(--tc-accent-primary);
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 8px;
+  width: 100%;
+}
+
+.login-button:hover:not(:disabled) {
+  background-color: var(--tc-accent-secondary);
+  border-color: var(--tc-accent-secondary);
+}
+
+.login-button:disabled {
+  background-color: var(--tc-bg-surface);
+  border-color: var(--tc-border);
+  color: var(--tc-text-muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.login-footer {
+  margin-top: 24px;
+  text-align: center;
+}
+
+.login-footer p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--tc-text-secondary);
+}
+

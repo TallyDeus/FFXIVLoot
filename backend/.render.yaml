@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: ffxivloot-api
+    env: dotnet
+    buildCommand: dotnet publish -c Release -o ./publish
+    startCommand: dotnet ./publish/FFXIVLoot.API.dll
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: CORS_ORIGINS
+        sync: false  # Set this manually in Render dashboard
+    disk:
+      name: ffxivloot-data
+      mountPath: /opt/render/project/src/backend/FFXIVLoot.API/data
+      sizeGB: 1
+

@@ -1,0 +1,83 @@
+.members-page {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.page-header h1 {
+  margin: 0;
+  color: var(--tc-text-main);
+  font-weight: 600;
+}
+
+.btn-add {
+  padding: 10px 20px;
+  background-color: var(--tc-accent-primary);
+  color: white;
+  border: 1px solid var(--tc-accent-primary);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-add:hover {
+  background-color: var(--tc-accent-secondary);
+  border-color: var(--tc-accent-secondary);
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 18px;
+  color: var(--tc-text-main);
+}
+
+.importing-bis-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(27, 31, 39, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+}
+
+.importing-bis-message {
+  background-color: var(--tc-bg-card);
+  padding: 30px 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 16px;
+  color: var(--tc-text-main);
+  border: 1px solid var(--tc-border);
+  box-shadow: 0 4px 12px var(--tc-shadow);
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--tc-border);
+  border-top: 3px solid var(--tc-accent-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+

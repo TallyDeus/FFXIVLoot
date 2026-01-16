@@ -1,0 +1,17 @@
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Infrastructure\bin\Debug\net9.0\FFXIVLoot.Infrastructure.deps.json
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Infrastructure\bin\Debug\net9.0\FFXIVLoot.Infrastructure.dll
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Infrastructure\bin\Debug\net9.0\FFXIVLoot.Infrastructure.pdb
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Infrastructure\bin\Debug\net9.0\FFXIVLoot.Application.dll
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Infrastructure\bin\Debug\net9.0\FFXIVLoot.Domain.dll
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Infrastructure\bin\Debug\net9.0\FFXIVLoot.Domain.pdb
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Infrastructure\bin\Debug\net9.0\FFXIVLoot.Application.pdb
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Infrastructure\obj\Debug\net9.0\FFXIVLoot.Infrastructure.csproj.AssemblyReference.cache
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Infrastructure\obj\Debug\net9.0\FFXIVLoot.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Infrastructure\obj\Debug\net9.0\FFXIVLoot.Infrastructure.AssemblyInfoInputs.cache
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Infrastructure\obj\Debug\net9.0\FFXIVLoot.Infrastructure.AssemblyInfo.cs
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Infrastructure\obj\Debug\net9.0\FFXIVLoot.Infrastructure.csproj.CoreCompileInputs.cache
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Infrastructure\obj\Debug\net9.0\FFXIVLoo.8742241B.Up2Date
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Infrastructure\obj\Debug\net9.0\FFXIVLoot.Infrastructure.dll
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Infrastructure\obj\Debug\net9.0\refint\FFXIVLoot.Infrastructure.dll
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Infrastructure\obj\Debug\net9.0\FFXIVLoot.Infrastructure.pdb
+F:\Personal projects\FFXIVLoot\backend\FFXIVLoot.Infrastructure\obj\Debug\net9.0\ref\FFXIVLoot.Infrastructure.dll

@@ -1,0 +1,216 @@
+.loot-item-card {
+  border: 1px solid var(--tc-border);
+  border-radius: 8px;
+  padding: 16px;
+  background-color: var(--tc-bg-card);
+  margin-bottom: 15px;
+  box-shadow: 0 1px 3px var(--tc-shadow);
+  transition: all 0.2s ease;
+}
+
+.loot-item-card:hover {
+  box-shadow: 0 2px 6px var(--tc-shadow);
+  border-color: var(--tc-border-light);
+}
+
+.loot-item-header {
+  margin-bottom: 15px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--tc-border);
+}
+
+.loot-item-header h3 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--tc-text-main);
+}
+
+.loot-item-info {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.item-name {
+  font-size: 14px;
+  color: var(--tc-text-muted);
+}
+
+.item-type {
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.item-type.raid {
+  background-color: var(--tc-raid);
+  color: white;
+}
+
+.item-type.aug-tome {
+  background-color: var(--tc-aug-tome);
+  color: white;
+}
+
+.item-type.upgrade-material {
+  background-color: var(--tc-upgrade);
+  color: white;
+}
+
+.eligible-members {
+  margin-top: 10px;
+}
+
+.eligible-count {
+  font-size: 12px;
+  color: var(--tc-text-muted);
+  margin-bottom: 10px;
+}
+
+.member-list-grouped {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.member-column {
+  flex: 1;
+  min-width: 150px;
+}
+
+.member-column-header {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--tc-border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.role-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.role-badge.dps {
+  background-color: var(--tc-role-dps);
+  color: white;
+}
+
+.role-badge.support {
+  background-color: var(--tc-role-support);
+  color: white;
+}
+
+.spec-badge {
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.spec-badge.main-spec {
+  background-color: var(--tc-spec-main);
+  color: white;
+}
+
+.spec-badge.off-spec {
+  background-color: var(--tc-spec-off);
+  color: white;
+}
+
+.member-list {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.member-assign-button {
+  padding: 8px 16px;
+  background-color: var(--tc-accent-primary);
+  color: white;
+  border: 1px solid var(--tc-accent-primary);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.member-assign-button:hover {
+  background-color: var(--tc-accent-secondary);
+  border-color: var(--tc-accent-secondary);
+}
+
+.assigned-badge {
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  background-color: var(--tc-accent-primary);
+  color: white;
+}
+
+.assigned-info {
+  margin-top: 10px;
+  padding: 12px;
+  background-color: var(--tc-bg-surface);
+  border-radius: 4px;
+  border: 1px solid var(--tc-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.assigned-member-info {
+  color: var(--tc-text-main);
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.assigned-member-info:not(:last-child) {
+  margin-bottom: 0;
+}
+
+.assigned-member-info p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.btn-undo {
+  padding: 8px 16px;
+  background-color: var(--tc-role-dps);
+  color: white;
+  border: 1px solid var(--tc-role-dps);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.btn-undo:hover {
+  opacity: 0.9;
+  background-color: var(--tc-role-dps);
+}
+
