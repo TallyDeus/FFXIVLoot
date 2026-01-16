@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { WeekAssignmentHistory, GearSlot, GearSlotNames, SpecType, ItemType, PermissionRole } from '../types/member';
 import { lootHistoryService } from '../services/api/lootHistoryService';
-import { memberService } from '../services/api/memberService';
 import { weekService } from '../services/api/weekService';
 import { ToastContainer } from '../components/Toast';
 import { ConfirmDialog } from '../components/ConfirmDialog';
