@@ -47,7 +47,7 @@ export const LoginPage: React.FC = () => {
       <div className="login-container">
         <div className="login-header">
           <img 
-            src="/pp-icon.jpg"
+            src={`${process.env.PUBLIC_URL}/pp-icon.jpg`}
             alt="App Icon" 
             className="login-icon"
             onError={(e) => {
