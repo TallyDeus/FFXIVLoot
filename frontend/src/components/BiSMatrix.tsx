@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { Member, GearSlot, GearSlotNames, ItemType, MemberRole, PermissionRole } from '../types/member';
+import { Member, GearSlot, GearSlotNames, ItemType, PermissionRole } from '../types/member';
 import { bisService } from '../services/api/bisService';
 import { ToastContainer } from './Toast';
 import { useToast } from '../hooks/useToast';
 import { useAuth } from '../contexts/AuthContext';
 import { getBisItems } from '../utils/specHelpers';
-import { RoleTag, ItemTypeTag, UpgradeMaterialTag } from './Tag';
+import { ItemTypeTag, UpgradeMaterialTag } from './Tag';
 import { ProfileImageTooltip } from './ProfileImageTooltip';
 import './BiSMatrix.css';
 
@@ -31,24 +31,10 @@ export const BiSMatrix: React.FC<BiSMatrixProps> = ({ members, onUpdate, specTyp
     return isSelf(member.id);
   };
 
-  // Sort and group members by role for main spec, alphabetically for off spec
+  // Sort members alphabetically
   const sortedMembers = React.useMemo(() => {
-    if (specType === 'off') {
-      // Off spec: just sort alphabetically, no role grouping
-      return [...members].sort((a, b) => a.name.localeCompare(b.name));
-    }
-    
-    // Main spec: group by role, then alphabetically within each role
-    const dpsMembers = members
-      .filter(m => m.role === MemberRole.DPS)
-      .sort((a, b) => a.name.localeCompare(b.name));
-    
-    const supportMembers = members
-      .filter(m => m.role === MemberRole.Support)
-      .sort((a, b) => a.name.localeCompare(b.name));
-    
-    return [...dpsMembers, ...supportMembers];
-  }, [members, specType]);
+    return [...members].sort((a, b) => a.name.localeCompare(b.name));
+  }, [members]);
 
   // Get all unique gear slots from all members' BiS lists (main or off spec), sorted
   const allSlots = Array.from(
@@ -152,9 +138,6 @@ export const BiSMatrix: React.FC<BiSMatrixProps> = ({ members, onUpdate, specTyp
                       );
                     })()}
                     <span className="member-name">{member.name}</span>
-                    {specType === 'main' && (
-                      <RoleTag role={member.role} />
-                    )}
                   </div>
                 </th>
               ))}
