@@ -158,7 +158,8 @@ public class MemberService : IMemberService
             BisItems = member.BisItems.Select(MapGearItemToDto).ToList(),
             OffSpecXivGearLink = member.OffSpecXivGearLink,
             OffSpecBisItems = member.OffSpecBisItems.Select(MapGearItemToDto).ToList(),
-            PermissionRole = member.PermissionRole
+            PermissionRole = member.PermissionRole,
+            ProfileImageUrl = member.ProfileImageUrl
         };
     }
 
@@ -173,7 +174,8 @@ public class MemberService : IMemberService
             BisItems = dto.BisItems.Select(MapGearItemToEntity).ToList(),
             OffSpecXivGearLink = dto.OffSpecXivGearLink,
             OffSpecBisItems = dto.OffSpecBisItems.Select(MapGearItemToEntity).ToList(),
-            PermissionRole = dto.PermissionRole
+            PermissionRole = dto.PermissionRole,
+            ProfileImageUrl = dto.ProfileImageUrl
         };
     }
 

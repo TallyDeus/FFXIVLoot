@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Member, MemberRole, PermissionRole } from '../types/member';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from './Button';
+import { memberService } from '../services/api/memberService';
 import './MemberForm.css';
 
 interface MemberFormProps {
@@ -22,6 +23,9 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
   const [permissionRole, setPermissionRole] = useState<PermissionRole>(member?.permissionRole ?? PermissionRole.User);
   const [xivGearLink, setXivGearLink] = useState(member?.xivGearLink || '');
   const [offSpecXivGearLink, setOffSpecXivGearLink] = useState(member?.offSpecXivGearLink || '');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(member?.profileImageUrl || null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (member) {
@@ -30,13 +34,16 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
       setPermissionRole(member.permissionRole ?? PermissionRole.User);
       setXivGearLink(member.xivGearLink || '');
       setOffSpecXivGearLink(member.offSpecXivGearLink || '');
+      setImagePreview(member.profileImageUrl || null);
     } else {
       setName('');
       setRole(0);
       setPermissionRole(PermissionRole.User);
       setXivGearLink('');
       setOffSpecXivGearLink('');
+      setImagePreview(null);
     }
+    setSelectedFile(null);
   }, [member]);
 
   const validateXivGearLink = (link: string): boolean => {
@@ -44,7 +51,64 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
     return link.trim().startsWith('https://xivgear.app/?page=sl|');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      setSelectedFile(null);
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    const maxSize = 2 * 1024 * 1024; // 2MB
+    if (file.size > maxSize) {
+      if (onValidationError) {
+        onValidationError('Image file size must be less than 2MB');
+      }
+      e.target.value = '';
+      return;
+    }
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      if (onValidationError) {
+        onValidationError('Invalid file type. Only JPG, PNG, GIF, and WebP images are allowed.');
+      }
+      e.target.value = '';
+      return;
+    }
+
+    setSelectedFile(file);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleDeleteImage = async () => {
+    if (!member?.id) return;
+    
+    try {
+      setUploading(true);
+      await memberService.deleteProfileImage(member.id);
+      setImagePreview(null);
+      setSelectedFile(null);
+      if (member) {
+        member.profileImageUrl = undefined;
+      }
+    } catch (error) {
+      if (onValidationError) {
+        onValidationError('Failed to delete profile image');
+      }
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!name.trim()) {
@@ -91,6 +155,30 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
           offSpecXivGearLink: offSpecXivGearLink.trim() || undefined
         };
 
+    // Note: Image upload for existing members is handled here
+    // For new members, image upload should be done after member creation
+    // We'll pass the file reference through memberData for handling in MembersPage
+    if (selectedFile && member?.id) {
+      try {
+        setUploading(true);
+        const result = await memberService.uploadProfileImage(member.id, selectedFile);
+        memberData.profileImageUrl = result.imageUrl;
+      } catch (error) {
+        if (onValidationError) {
+          onValidationError(error instanceof Error ? error.message : 'Failed to upload profile image');
+        }
+        setUploading(false);
+        return;
+      } finally {
+        setUploading(false);
+      }
+    }
+
+    // Store selected file in memberData for new members (will be handled after creation)
+    if (selectedFile && !member) {
+      (memberData as any).__pendingImageFile = selectedFile;
+    }
+
     onSave(memberData);
   };
 
@@ -112,6 +200,56 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
               required
               placeholder="Enter member name"
             />
+          </div>
+
+          <div className="form-group">
+            <label>Profile Image</label>
+            <div className="profile-image-upload">
+              {imagePreview && (
+                <div className="profile-image-preview">
+                  <img 
+                    src={imagePreview.startsWith('data:') ? imagePreview : `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${imagePreview}`}
+                    alt="Profile preview"
+                    className="profile-image-circle"
+                  />
+                  {member && (
+                    <button
+                      type="button"
+                      onClick={handleDeleteImage}
+                      disabled={uploading}
+                      className="btn-delete-image"
+                    >
+                      Remove
+                    </button>
+                  )}
+                  {!member && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedFile(null);
+                        setImagePreview(null);
+                      }}
+                      disabled={uploading}
+                      className="btn-delete-image"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              )}
+              <input
+                type="file"
+                id="profileImage"
+                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                onChange={handleFileChange}
+                disabled={uploading}
+                className="file-input"
+              />
+              <label htmlFor="profileImage" className="file-input-label">
+                {imagePreview ? 'Change Image' : 'Upload Image'}
+              </label>
+              <small>Max 2MB. Supported formats: JPG, PNG, GIF, WebP</small>
+            </div>
           </div>
 
           <div className="form-group">

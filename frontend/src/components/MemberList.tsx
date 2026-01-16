@@ -64,7 +64,24 @@ export const MemberList: React.FC<MemberListProps> = ({ members, onEdit, onDelet
           <tbody>
             {sortedMembers.map((member) => (
               <tr key={member.id}>
-                <td>{member.name}</td>
+                <td>
+                  <div className="member-name-cell">
+                    <img 
+                      src={member.profileImageUrl 
+                        ? `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${member.profileImageUrl}`
+                        : `${process.env.PUBLIC_URL}/ffxiv-logo.png`}
+                      alt={member.name}
+                      className="member-profile-image"
+                      onError={(e) => {
+                        // Fallback to default if custom image fails to load
+                        if (member.profileImageUrl) {
+                          (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/ffxiv-logo.png`;
+                        }
+                      }}
+                    />
+                    <span>{member.name}</span>
+                  </div>
+                </td>
                 <td>
                   <RoleTag role={member.role} />
                 </td>

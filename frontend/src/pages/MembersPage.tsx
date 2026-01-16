@@ -119,6 +119,19 @@ export const MembersPage: React.FC = () => {
         // Create new member
         savedMember = await memberService.createMember(memberData);
         
+        // Upload profile image if one was selected for new member
+        const pendingImageFile = (memberData as any).__pendingImageFile;
+        if (pendingImageFile) {
+          try {
+            const result = await memberService.uploadProfileImage(savedMember.id, pendingImageFile);
+            savedMember.profileImageUrl = result.imageUrl;
+            await memberService.updateMember(savedMember);
+          } catch (error) {
+            // Image upload failed, but member was created - log error but don't fail
+            console.error('Failed to upload profile image for new member:', error);
+          }
+        }
+        
         // Import BiS lists if links are provided
         await importBiSLists(savedMember.id, xivGearLink, offSpecXivGearLink, false);
       }

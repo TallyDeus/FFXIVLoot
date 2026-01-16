@@ -83,6 +83,7 @@ export interface Member {
   offSpecXivGearLink?: string;
   offSpecBisItems: GearItem[];
   permissionRole?: PermissionRole;
+  profileImageUrl?: string;
 }
 
 /**

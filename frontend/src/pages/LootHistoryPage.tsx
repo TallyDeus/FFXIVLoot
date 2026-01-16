@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { WeekAssignmentHistory, GearSlot, GearSlotNames, SpecType, ItemType, PermissionRole } from '../types/member';
+import { WeekAssignmentHistory, GearSlot, GearSlotNames, SpecType, ItemType, PermissionRole, Member } from '../types/member';
 import { lootHistoryService } from '../services/api/lootHistoryService';
 import { weekService } from '../services/api/weekService';
+import { memberService } from '../services/api/memberService';
 import { ToastContainer } from '../components/Toast';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { useToast } from '../hooks/useToast';
@@ -15,6 +16,7 @@ import './LootHistoryPage.css';
  */
 export const LootHistoryPage: React.FC = () => {
   const [history, setHistory] = useState<WeekAssignmentHistory[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set());
   const { toasts, showToast, removeToast } = useToast();
@@ -34,8 +36,12 @@ export const LootHistoryPage: React.FC = () => {
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const historyData = await lootHistoryService.getAllHistory();
+      const [historyData, membersData] = await Promise.all([
+        lootHistoryService.getAllHistory(),
+        memberService.getAllMembers()
+      ]);
       setHistory(historyData);
+      setMembers(membersData);
       // Expand current week by default
       const currentWeek = historyData.find(w => w.isCurrentWeek);
       if (currentWeek) {
@@ -316,7 +322,28 @@ export const LootHistoryPage: React.FC = () => {
                                     <Tag type={tagType} variant="badge" />
                                     <span className="assignment-separator">-</span>
                                     <span className="assignment-acquired">Acquired by</span>
-                                    <span className="member-name">{assignment.memberName}</span>
+                                    {(() => {
+                                      const member = members.find(m => m.id === assignment.memberId);
+                                      const imageUrl = member?.profileImageUrl 
+                                        ? `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${member.profileImageUrl}`
+                                        : `${process.env.PUBLIC_URL}/ffxiv-logo.png`;
+                                      return (
+                                        <span className="member-name-with-image">
+                                          <img 
+                                            src={imageUrl}
+                                            alt={assignment.memberName}
+                                            className="member-profile-image-small"
+                                            onError={(e) => {
+                                              // Fallback to default if custom image fails to load
+                                              if (member?.profileImageUrl) {
+                                                (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/ffxiv-logo.png`;
+                                              }
+                                            }}
+                                          />
+                                          <span className="member-name">{assignment.memberName}</span>
+                                        </span>
+                                      );
+                                    })()}
                                     <SpecTag specType={specType} />
                                     <span className="assignment-separator">-</span>
                                     <span className="assignment-date">{formatDate(assignment.assignedAt)}</span>

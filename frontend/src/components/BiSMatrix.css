@@ -49,7 +49,7 @@
 }
 
 .slot-header {
-  font-size: 13px; /* Increased from 11px */
+  font-size: 17px; /* Increased by 4px from 13px */
   font-weight: 600;
 }
 
@@ -66,9 +66,20 @@
   gap: 3px;
 }
 
-.member-name {
+.member-profile-image {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--tc-border);
+  background-color: var(--tc-bg-surface);
+  flex-shrink: 0;
+  margin-bottom: 2px;
+}
+
+.member-header .member-name {
   font-weight: 500;
-  font-size: 14px; /* Increased further from 12px */
+  font-size: 18px !important; /* Increased by 4px from 18px */
   color: var(--tc-text-main);
   word-break: break-word;
   line-height: 1.2;
@@ -125,9 +136,9 @@
   padding: 6px 10px;
 }
 
-.slot-name-text {
+.slot-name-cell .slot-name-text {
   font-weight: 500;
-  font-size: 15px; /* Increased further from 13px */
+  font-size: 16px !important; /* Increased by 4px from 19px */
 }
 
 .slot-cell {

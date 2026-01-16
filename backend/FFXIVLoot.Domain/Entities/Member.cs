@@ -61,5 +61,10 @@ public class Member
     /// 4-digit PIN code for authentication (stored as hash)
     /// </summary>
     public string? PinHash { get; set; }
+
+    /// <summary>
+    /// URL path to the member's profile image
+    /// </summary>
+    public string? ProfileImageUrl { get; set; }
 }
 

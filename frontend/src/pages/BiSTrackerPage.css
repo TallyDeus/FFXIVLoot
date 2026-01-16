@@ -230,3 +230,24 @@
     0 2px 4px var(--tc-shadow);
 }
 
+.view-content-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.view-content {
+  width: 100%;
+}
+
+/* Ensure consistent container widths */
+.view-content .bis-matrix-container,
+.view-content .extra-loot-matrix-container {
+  width: 100%;
+  margin: 20px 0;
+}
+
+/* Keep legend in layout to prevent shifts */
+.bis-matrix-legend {
+  transition: opacity 0.15s ease-out;
+}
+

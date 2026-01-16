@@ -122,3 +122,19 @@
   color: white;
 }
 
+.member-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.member-profile-image {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--tc-border);
+  background-color: var(--tc-bg-surface);
+  flex-shrink: 0;
+}
+

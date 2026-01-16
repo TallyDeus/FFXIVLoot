@@ -81,6 +81,18 @@ if (enableAuth)
 
 app.UseAuthorization();
 
+// Enable static file serving for profile images
+var imagesPath = Path.Combine(Directory.GetCurrentDirectory(), "data", "images");
+if (!Directory.Exists(imagesPath))
+{
+    Directory.CreateDirectory(imagesPath);
+}
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(imagesPath),
+    RequestPath = "/images"
+});
+
 // Map controllers
 app.MapControllers();
 

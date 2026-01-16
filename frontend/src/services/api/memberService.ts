@@ -49,5 +49,57 @@ export const memberService = {
       method: 'DELETE',
     });
   },
+
+  /**
+   * Uploads a profile image for a member
+   */
+  async uploadProfileImage(memberId: string, file: File): Promise<{ imageUrl: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+    const token = localStorage.getItem('authToken');
+    
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINT}/${memberId}/profile-image`, {
+      method: 'POST',
+      body: formData,
+      credentials: 'include',
+      headers: headers,
+      // Don't set Content-Type - browser will set it with boundary for FormData
+    });
+
+    if (!response.ok) {
+      // Handle 401 Unauthorized
+      if (response.status === 401) {
+        localStorage.removeItem('authToken');
+        if (!window.location.pathname.includes('/login')) {
+          setTimeout(() => {
+            if (!window.location.pathname.includes('/login')) {
+              window.location.href = '/login';
+            }
+          }, 100);
+        }
+      }
+      
+      const error = await response.json().catch(() => ({ detail: 'Failed to upload image' }));
+      throw new Error(error.detail || 'Failed to upload image');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Deletes a member's profile image
+   */
+  async deleteProfileImage(memberId: string): Promise<void> {
+    return apiRequest<void>(`${API_ENDPOINT}/${memberId}/profile-image`, {
+      method: 'DELETE',
+    });
+  },
 };
 

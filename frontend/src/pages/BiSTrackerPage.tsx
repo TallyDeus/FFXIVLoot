@@ -69,10 +69,8 @@ export const BiSTrackerPage: React.FC = () => {
             </button>
           </div>
 
-          {activeView === 'extra' ? (
-            <ExtraLootMatrix members={members} />
-          ) : (
-            <>
+          <div className="view-content-wrapper">
+            {activeView !== 'extra' && (
               <div className="bis-matrix-legend">
                 <div className="legend-item">
                   <Tag type={TagType.ItemRaid} variant="badge" />
@@ -87,12 +85,20 @@ export const BiSTrackerPage: React.FC = () => {
                   <span>Upgrade Material</span>
                 </div>
               </div>
+            )}
 
-              <div className="spec-section">
-                <BiSMatrix members={members} onUpdate={loadMembers} specType={activeView} />
+            {activeView === 'extra' ? (
+              <div className="view-content">
+                <ExtraLootMatrix members={members} />
               </div>
-            </>
-          )}
+            ) : (
+              <div className="view-content">
+                <div className="spec-section">
+                  <BiSMatrix members={members} onUpdate={loadMembers} specType={activeView} />
+                </div>
+              </div>
+            )}
+          </div>
         </>
       ) : (
         <div className="no-members">

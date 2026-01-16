@@ -44,5 +44,10 @@ public class MemberDto
     /// Permission role for this member (User, Manager, Administrator)
     /// </summary>
     public Domain.Enums.PermissionRole PermissionRole { get; set; } = Domain.Enums.PermissionRole.User;
+
+    /// <summary>
+    /// URL path to the member's profile image
+    /// </summary>
+    public string? ProfileImageUrl { get; set; }
 }
 

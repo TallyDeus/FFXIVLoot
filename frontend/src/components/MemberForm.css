@@ -194,3 +194,73 @@
   border-color: var(--tc-accent-primary);
 }
 
+.profile-image-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profile-image-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-image-circle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--tc-border);
+  background-color: var(--tc-bg-surface);
+}
+
+.file-input {
+  display: none;
+}
+
+.file-input-label {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: var(--tc-bg-surface);
+  border: 1px solid var(--tc-border);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--tc-text-main);
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.file-input-label:hover {
+  background-color: var(--tc-bg-dark);
+  border-color: var(--tc-accent-primary);
+}
+
+.file-input:disabled + .file-input-label {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-delete-image {
+  padding: 6px 12px;
+  background-color: var(--tc-role-dps);
+  color: white;
+  border: 1px solid var(--tc-role-dps);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-delete-image:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.btn-delete-image:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
