@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/FFXIVLoot/static/css/main.e30bdf9e.css",
-    "main.js": "/FFXIVLoot/static/js/main.c5461f98.js",
+    "main.css": "/FFXIVLoot/static/css/main.69e90819.css",
+    "main.js": "/FFXIVLoot/static/js/main.1c6b35c7.js",
     "index.html": "/FFXIVLoot/index.html",
-    "main.e30bdf9e.css.map": "/FFXIVLoot/static/css/main.e30bdf9e.css.map",
-    "main.c5461f98.js.map": "/FFXIVLoot/static/js/main.c5461f98.js.map"
+    "main.69e90819.css.map": "/FFXIVLoot/static/css/main.69e90819.css.map",
+    "main.1c6b35c7.js.map": "/FFXIVLoot/static/js/main.1c6b35c7.js.map"
   },
   "entrypoints": [
-    "static/css/main.e30bdf9e.css",
-    "static/js/main.c5461f98.js"
+    "static/css/main.69e90819.css",
+    "static/js/main.1c6b35c7.js"
   ]
 }
