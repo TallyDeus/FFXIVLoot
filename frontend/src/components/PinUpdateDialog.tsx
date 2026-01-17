@@ -37,7 +37,7 @@ export const PinUpdateDialog: React.FC<PinUpdateDialogProps> = ({ isOpen, onClos
     }
 
     if (newPin !== confirmPin) {
-      showToast('New PIN and confirmation do not match', 'error');
+      showToast('The confirmation PIN does not match the new PIN you entered', 'error');
       return;
     }
 
@@ -65,7 +65,23 @@ export const PinUpdateDialog: React.FC<PinUpdateDialogProps> = ({ isOpen, onClos
         logout();
       }, 1500);
     } catch (error: any) {
-      showToast(error.message || 'Failed to update PIN. Please try again.', 'error');
+      // Provide specific error messages based on the error type
+      let errorMessage = 'Failed to update PIN. Please try again.';
+      
+      if (error.message) {
+        const errorMsg = error.message.toLowerCase();
+        // Check if it's a current PIN error (401 Unauthorized with "Invalid current PIN")
+        if (errorMsg.includes('invalid current pin')) {
+          errorMessage = 'The current PIN you entered is incorrect. Please try again.';
+        } else if (errorMsg.includes('pin must be exactly 4 digits')) {
+          errorMessage = 'PIN must be exactly 4 digits.';
+        } else {
+          // Use the error message if it's meaningful
+          errorMessage = error.message;
+        }
+      }
+      
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }

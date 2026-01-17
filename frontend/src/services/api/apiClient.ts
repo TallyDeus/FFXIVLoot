@@ -63,16 +63,18 @@ export async function apiRequest<T>(
 
     if (!response.ok) {
       // Handle 401 Unauthorized - clear token and redirect to login
-      // But don't redirect if we're already on the login page, making a login request, or validating a session
+      // But don't redirect if we're already on the login page, making a login request, validating a session, or updating PIN
       const isAuthEndpoint = endpoint.includes('/auth/login') || endpoint.includes('/auth/validate');
-      if (response.status === 401 && !isAuthEndpoint) {
+      const isPinUpdateEndpoint = endpoint.includes('/pin');
+      if (response.status === 401 && !isAuthEndpoint && !isPinUpdateEndpoint) {
         localStorage.removeItem('authToken');
         // Only redirect if we're not already on the login page
-        if (!window.location.pathname.includes('/login')) {
+        if (!window.location.pathname.includes('/login') && !window.location.hash.includes('/login')) {
           // Use a small delay to avoid immediate redirect loops
           setTimeout(() => {
-            if (!window.location.pathname.includes('/login')) {
-              window.location.href = '/login';
+            if (!window.location.pathname.includes('/login') && !window.location.hash.includes('/login')) {
+              // Use hash routing for GitHub Pages compatibility
+              window.location.href = '/#/login';
             }
           }, 100);
         }
