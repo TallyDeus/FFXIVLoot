@@ -2,6 +2,7 @@ using FFXIVLoot.Application.DTOs;
 using FFXIVLoot.Application.Helpers;
 using FFXIVLoot.Application.Interfaces;
 using FFXIVLoot.Domain.Interfaces;
+using Microsoft.Extensions.Configuration;
 
 namespace FFXIVLoot.Application.Services;
 
@@ -11,13 +12,15 @@ namespace FFXIVLoot.Application.Services;
 public class MemberService : IMemberService
 {
     private readonly IMemberRepository _memberRepository;
+    private readonly IConfiguration _configuration;
 
     /// <summary>
     /// Initializes a new instance of MemberService
     /// </summary>
-    public MemberService(IMemberRepository memberRepository)
+    public MemberService(IMemberRepository memberRepository, IConfiguration configuration)
     {
         _memberRepository = memberRepository ?? throw new ArgumentNullException(nameof(memberRepository));
+        _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
     }
 
     /// <summary>
@@ -45,17 +48,18 @@ public class MemberService : IMemberService
     {
         var member = MapToEntity(memberDto);
         
-        // Set default PIN if not provided
         if (string.IsNullOrEmpty(member.PinHash))
         {
             member.PinHash = PinHelper.HashPin(PinHelper.DefaultPin);
         }
         
-        // Set default permission role if not provided
-        if (member.PermissionRole == Domain.Enums.PermissionRole.User && 
-            member.Name.Equals("Sandro", StringComparison.OrdinalIgnoreCase))
+        if (member.PermissionRole == Domain.Enums.PermissionRole.User)
         {
-            member.PermissionRole = Domain.Enums.PermissionRole.Administrator;
+            var defaultAdministrators = _configuration.GetSection("DefaultAdministrators").Get<string[]>() ?? Array.Empty<string>();
+            if (defaultAdministrators.Any(name => name.Equals(member.Name, StringComparison.OrdinalIgnoreCase)))
+            {
+                member.PermissionRole = Domain.Enums.PermissionRole.Administrator;
+            }
         }
         
         var createdMember = await _memberRepository.CreateAsync(member);
@@ -67,7 +71,6 @@ public class MemberService : IMemberService
     /// </summary>
     public async Task<MemberDto> UpdateMemberAsync(MemberDto memberDto)
     {
-        // Get existing member to preserve BiS items and PIN
         var existingMember = await _memberRepository.GetByIdAsync(memberDto.Id);
         if (existingMember == null)
         {
@@ -76,32 +79,24 @@ public class MemberService : IMemberService
 
         var member = MapToEntity(memberDto);
         
-        // Always preserve existing BiS items unless the link is being removed
-        // BiS items are updated separately via BiSService when importing
-        
-        // If xivgear link is removed, clear main spec BiS items
         if (string.IsNullOrWhiteSpace(member.XivGearLink))
         {
             member.BisItems = new List<Domain.Entities.GearItem>();
         }
         else
         {
-            // Always preserve existing main spec BiS items when link is present
             member.BisItems = existingMember.BisItems;
         }
         
-        // If off spec xivgear link is removed, clear off spec BiS items
         if (string.IsNullOrWhiteSpace(member.OffSpecXivGearLink))
         {
             member.OffSpecBisItems = new List<Domain.Entities.GearItem>();
         }
         else
         {
-            // Always preserve existing off spec BiS items when link is present
             member.OffSpecBisItems = existingMember.OffSpecBisItems;
         }
         
-        // Preserve PIN hash if not being changed
         if (string.IsNullOrEmpty(member.PinHash))
         {
             member.PinHash = existingMember.PinHash;
@@ -122,19 +117,16 @@ public class MemberService : IMemberService
             throw new InvalidOperationException($"Member with ID {memberId} not found");
         }
 
-        // Verify current PIN
         if (!PinHelper.VerifyPin(currentPin, member.PinHash))
         {
             throw new UnauthorizedAccessException("Invalid current PIN");
         }
 
-        // Validate new PIN (must be 4 digits)
         if (string.IsNullOrWhiteSpace(newPin) || newPin.Length != 4 || !newPin.All(char.IsDigit))
         {
             throw new ArgumentException("PIN must be exactly 4 digits");
         }
 
-        // Update PIN
         member.PinHash = PinHelper.HashPin(newPin);
         await _memberRepository.UpdateAsync(member);
     }

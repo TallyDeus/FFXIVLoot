@@ -73,14 +73,11 @@ export const GearSlotTooltip: React.FC<GearSlotTooltipProps> = ({
 
   useEffect(() => {
     if (isVisible) {
-      // Initial position calculation
       updatePosition();
       
-      // Update on scroll/resize
       window.addEventListener('scroll', updatePosition, true);
       window.addEventListener('resize', updatePosition);
       
-      // Recalculate after a short delay to ensure tooltip is rendered
       const timeout = setTimeout(updatePosition, 0);
       
       return () => {
@@ -99,7 +96,6 @@ export const GearSlotTooltip: React.FC<GearSlotTooltipProps> = ({
     setIsVisible(false);
   };
 
-  // Clone the child element to add event handlers and ref
   const childRef = (children as any).ref;
   const triggerElement = React.cloneElement(children, {
     onMouseEnter: (e: React.MouseEvent) => {
@@ -115,9 +111,7 @@ export const GearSlotTooltip: React.FC<GearSlotTooltipProps> = ({
       }
     },
     ref: (node: HTMLElement | null) => {
-      // Store ref in our ref object using type assertion
       (triggerRef as React.MutableRefObject<HTMLElement | null>).current = node;
-      // Preserve any existing ref
       if (typeof childRef === 'function') {
         childRef(node);
       } else if (childRef && typeof childRef === 'object' && 'current' in childRef) {

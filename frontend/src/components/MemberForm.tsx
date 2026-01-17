@@ -59,8 +59,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
       return;
     }
 
-    // Validate file size (max 2MB)
-    const maxSize = 2 * 1024 * 1024; // 2MB
+    const maxSize = 2 * 1024 * 1024;
     if (file.size > maxSize) {
       if (onValidationError) {
         onValidationError('Image file size must be less than 2MB');
@@ -69,7 +68,6 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
       return;
     }
 
-    // Validate file type
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
       if (onValidationError) {
@@ -81,7 +79,6 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
 
     setSelectedFile(file);
     
-    // Create preview
     const reader = new FileReader();
     reader.onloadend = () => {
       setImagePreview(reader.result as string);
@@ -114,7 +111,6 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
     
     const trimmedName = name.trim();
     
-    // Validate name is not empty
     if (!trimmedName) {
       const errorMessage = 'Name is required';
       if (onValidationError) {
@@ -125,8 +121,6 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
       return;
     }
     
-    // Validate name is not a duplicate (case-insensitive)
-    // When editing, exclude the current member from the check
     const duplicateMember = existingMembers.find(
       m => m.id !== member?.id && m.name.trim().toLowerCase() === trimmedName.toLowerCase()
     );
@@ -141,7 +135,6 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
       return;
     }
 
-    // Validate xivgear links
     if (xivGearLink && !validateXivGearLink(xivGearLink)) {
       if (onValidationError) {
         onValidationError('Invalid URL. It has to be a XivGear Short Link.');
@@ -156,7 +149,6 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
       return;
     }
 
-    // Check if current user can edit permission roles (only Administrators)
     const canEditRole = user && user.permissionRole === PermissionRole.Administrator;
     
     const memberData: Omit<Member, 'id'> | Member = member
@@ -178,9 +170,6 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
           offSpecXivGearLink: offSpecXivGearLink.trim() || undefined
         };
 
-    // Note: Image upload for existing members is handled here
-    // For new members, image upload should be done after member creation
-    // We'll pass the file reference through memberData for handling in MembersPage
     if (selectedFile && member?.id) {
       try {
         setUploading(true);
@@ -197,7 +186,6 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
       }
     }
 
-    // Store selected file in memberData for new members (will be handled after creation)
     if (selectedFile && !member) {
       (memberData as any).__pendingImageFile = selectedFile;
     }

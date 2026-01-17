@@ -52,7 +52,6 @@ public class JsonWeekRepository : IWeekRepository
     {
         var data = await _storage.ReadAsync<WeekDataModel>() ?? new WeekDataModel();
         
-        // Check if week already exists
         var existingWeek = data.Weeks.FirstOrDefault(w => w.WeekNumber == weekNumber);
         if (existingWeek != null)
         {
@@ -79,7 +78,6 @@ public class JsonWeekRepository : IWeekRepository
     {
         var data = await _storage.ReadAsync<WeekDataModel>() ?? new WeekDataModel();
         
-        // Ensure week exists
         var week = data.Weeks.FirstOrDefault(w => w.WeekNumber == weekNumber);
         if (week == null)
         {
@@ -92,13 +90,11 @@ public class JsonWeekRepository : IWeekRepository
             data.Weeks.Add(week);
         }
 
-        // Set all weeks to not current
         foreach (var w in data.Weeks)
         {
             w.IsCurrent = false;
         }
 
-        // Set the specified week as current
         week.IsCurrent = true;
         data.CurrentWeekNumber = weekNumber;
 
@@ -118,7 +114,6 @@ public class JsonWeekRepository : IWeekRepository
             throw new InvalidOperationException($"Week {weekNumber} not found");
         }
 
-        // If deleting the current week, we need to set another week as current
         if (weekToDelete.IsCurrent)
         {
             var remainingWeeks = data.Weeks.Where(w => w.WeekNumber != weekNumber).OrderByDescending(w => w.WeekNumber).ToList();

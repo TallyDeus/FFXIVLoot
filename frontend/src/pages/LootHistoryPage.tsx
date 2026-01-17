@@ -42,7 +42,6 @@ export const LootHistoryPage: React.FC = () => {
       ]);
       setHistory(historyData);
       setMembers(membersData);
-      // Expand current week by default
       const currentWeek = historyData.find(w => w.isCurrentWeek);
       if (currentWeek) {
         setExpandedWeeks(new Set([currentWeek.weekNumber]));
@@ -99,7 +98,6 @@ export const LootHistoryPage: React.FC = () => {
       return;
     }
 
-    // Check if week already exists
     const existingWeek = history.find(w => w.weekNumber === weekNum);
     if (existingWeek) {
       showToast(`Week ${weekNum} already exists. Please choose a different week number.`, 'error');
@@ -144,7 +142,6 @@ export const LootHistoryPage: React.FC = () => {
     if (assignment.isUpgradeMaterial) {
       return TagType.ItemUpgradeMaterial;
     }
-    // For manual edits, use the stored ItemType; for regular assignments, default to Raid
     if (assignment.isManualEdit && assignment.itemType !== undefined) {
       return assignment.itemType === ItemType.AugTome ? TagType.ItemAugTome : TagType.ItemRaid;
     }
@@ -181,7 +178,6 @@ export const LootHistoryPage: React.FC = () => {
       }
     });
     
-    // Group regular assignments by floor
     regularAssignments.forEach(assignment => {
       const floorKey = assignment.floorNumber.toString();
       if (!grouped[floorKey]) {
@@ -190,7 +186,6 @@ export const LootHistoryPage: React.FC = () => {
       grouped[floorKey].push(assignment);
     });
     
-    // Add manual edits as a separate category
     if (manualEdits.length > 0) {
       grouped['manual'] = manualEdits;
     }
@@ -334,7 +329,6 @@ export const LootHistoryPage: React.FC = () => {
                                             alt={assignment.memberName}
                                             className="member-profile-image-small"
                                             onError={(e) => {
-                                              // Fallback to default if custom image fails to load
                                               if (member?.profileImageUrl) {
                                                 (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/ffxiv-logo.png`;
                                               }

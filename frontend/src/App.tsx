@@ -32,18 +32,15 @@ function AppContent() {
   const location = useLocation();
   const { isAuthenticated } = useAuth();
   
-  // Extract page from pathname (e.g., '/members' -> 'members' or '/#/members' -> 'members')
   const getActivePage = (): 'members' | 'bis' | 'loot' | 'history' => {
-    // HashRouter uses location.hash (e.g., '#/members'), BrowserRouter uses location.pathname
     let path = location.pathname;
     if (location.hash) {
-      // Extract path from hash (remove the #)
       path = location.hash.substring(1);
     }
     if (path.startsWith('/bis')) return 'bis';
     if (path.startsWith('/loot')) return 'loot';
     if (path.startsWith('/history')) return 'history';
-    return 'members'; // default
+    return 'members';
   };
 
   if (!isAuthenticated) {
@@ -73,9 +70,6 @@ function AppContent() {
 }
 
 function App() {
-  // Use HashRouter for GitHub Pages compatibility
-  // This allows the app to work without server-side routing configuration
-  // Routes will be like: /#/members instead of /members
   const Router = process.env.NODE_ENV === 'production' ? HashRouter : BrowserRouter;
   
   return (

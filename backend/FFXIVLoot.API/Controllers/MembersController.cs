@@ -99,7 +99,6 @@ public class MembersController : ControllerBase
                 });
             }
 
-            // Only Administrator and Manager can create members
             if (currentUser.PermissionRole != Domain.Enums.PermissionRole.Administrator &&
                 currentUser.PermissionRole != Domain.Enums.PermissionRole.Manager)
             {
@@ -147,7 +146,6 @@ public class MembersController : ControllerBase
                 });
             }
 
-            // Get target member to check permissions
             var targetMemberDto = await _memberService.GetMemberByIdAsync(id);
             if (targetMemberDto == null)
             {
@@ -158,7 +156,6 @@ public class MembersController : ControllerBase
                 });
             }
 
-            // Convert DTO to entity for permission check
             var targetEntity = new Domain.Entities.Member
             {
                 Id = targetMemberDto.Id,
@@ -170,7 +167,6 @@ public class MembersController : ControllerBase
                 return Forbid();
             }
 
-            // Check if user is trying to change permission role
             if (memberDto.PermissionRole != targetMemberDto.PermissionRole)
             {
                 if (!PermissionHelper.CanEditPermissionRole(currentUser, targetEntity))
@@ -220,7 +216,6 @@ public class MembersController : ControllerBase
                 });
             }
 
-            // Only Administrator can delete members
             if (currentUser.PermissionRole != Domain.Enums.PermissionRole.Administrator)
             {
                 return Forbid();
@@ -258,7 +253,6 @@ public class MembersController : ControllerBase
                 });
             }
 
-            // Get target member to check permissions
             var targetMemberDto = await _memberService.GetMemberByIdAsync(id);
             if (targetMemberDto == null)
             {
@@ -269,21 +263,18 @@ public class MembersController : ControllerBase
                 });
             }
 
-            // Convert DTO to entity for permission check
             var targetEntity = new Domain.Entities.Member
             {
                 Id = targetMemberDto.Id,
                 PermissionRole = targetMemberDto.PermissionRole
             };
 
-            // Users can only upload their own profile image, or Managers/Administrators can upload for anyone
             if (currentUser.Id != id && 
                 !PermissionHelper.CanEditMember(currentUser, targetEntity))
             {
                 return Forbid();
             }
 
-            // Validate file
             if (file == null || file.Length == 0)
             {
                 return BadRequest(new ProblemDetails
@@ -293,8 +284,7 @@ public class MembersController : ControllerBase
                 });
             }
 
-            // Validate file size (max 2MB)
-            const long maxFileSize = 2 * 1024 * 1024; // 2MB
+            const long maxFileSize = 2 * 1024 * 1024;
             if (file.Length > maxFileSize)
             {
                 return BadRequest(new ProblemDetails
@@ -304,7 +294,6 @@ public class MembersController : ControllerBase
                 });
             }
 
-            // Validate file type (only images)
             var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
             var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
             if (!allowedExtensions.Contains(fileExtension))
@@ -316,18 +305,15 @@ public class MembersController : ControllerBase
                 });
             }
 
-            // Create images directory if it doesn't exist
             var imagesPath = Path.Combine(Directory.GetCurrentDirectory(), "data", "images");
             if (!Directory.Exists(imagesPath))
             {
                 Directory.CreateDirectory(imagesPath);
             }
 
-            // Generate unique filename: {memberId}{extension}
             var fileName = $"{id}{fileExtension}";
             var filePath = Path.Combine(imagesPath, fileName);
 
-            // Delete old image if it exists
             if (targetMemberDto.ProfileImageUrl != null)
             {
                 var oldFileName = Path.GetFileName(targetMemberDto.ProfileImageUrl);
@@ -345,13 +331,11 @@ public class MembersController : ControllerBase
                 }
             }
 
-            // Save new image
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
                 await file.CopyToAsync(stream);
             }
 
-            // Update member's profile image URL
             var imageUrl = $"/images/{fileName}";
             targetMemberDto.ProfileImageUrl = imageUrl;
             await _memberService.UpdateMemberAsync(targetMemberDto);
@@ -387,7 +371,6 @@ public class MembersController : ControllerBase
                 });
             }
 
-            // Get target member to check permissions
             var targetMemberDto = await _memberService.GetMemberByIdAsync(id);
             if (targetMemberDto == null)
             {
@@ -398,21 +381,18 @@ public class MembersController : ControllerBase
                 });
             }
 
-            // Convert DTO to entity for permission check
             var targetEntity = new Domain.Entities.Member
             {
                 Id = targetMemberDto.Id,
                 PermissionRole = targetMemberDto.PermissionRole
             };
 
-            // Users can only delete their own profile image, or Managers/Administrators can delete for anyone
             if (currentUser.Id != id && 
                 !PermissionHelper.CanEditMember(currentUser, targetEntity))
             {
                 return Forbid();
             }
 
-            // Delete image file if it exists
             if (!string.IsNullOrEmpty(targetMemberDto.ProfileImageUrl))
             {
                 var imagesPath = Path.Combine(Directory.GetCurrentDirectory(), "data", "images");
@@ -432,7 +412,6 @@ public class MembersController : ControllerBase
                 }
             }
 
-            // Update member to remove profile image URL
             targetMemberDto.ProfileImageUrl = null;
             await _memberService.UpdateMemberAsync(targetMemberDto);
 
@@ -467,7 +446,6 @@ public class MembersController : ControllerBase
                 });
             }
 
-            // Users can only update their own PIN
             if (currentUser.Id != id)
             {
                 return Forbid();

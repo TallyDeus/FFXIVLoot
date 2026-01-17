@@ -24,19 +24,16 @@ export const BiSMatrix: React.FC<BiSMatrixProps> = ({ members, onUpdate, specTyp
   const { toasts, showToast, removeToast } = useToast();
   const { currentUser, hasPermission, isSelf } = useAuth();
 
-  // Helper to check if user can edit BiS for a member
   const canEditBiS = (member: Member): boolean => {
     if (!currentUser) return false;
     if (hasPermission(PermissionRole.Manager)) return true;
     return isSelf(member.id);
   };
 
-  // Sort members alphabetically
   const sortedMembers = React.useMemo(() => {
     return [...members].sort((a, b) => a.name.localeCompare(b.name));
   }, [members]);
 
-  // Get all unique gear slots from all members' BiS lists (main or off spec), sorted
   const allSlots = Array.from(
     new Set(
       members
@@ -128,7 +125,6 @@ export const BiSMatrix: React.FC<BiSMatrixProps> = ({ members, onUpdate, specTyp
                             alt={member.name}
                             className="member-profile-image"
                             onError={(e) => {
-                              // Fallback to default if custom image fails to load
                               if (member.profileImageUrl) {
                                 (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/ffxiv-logo.png`;
                               }

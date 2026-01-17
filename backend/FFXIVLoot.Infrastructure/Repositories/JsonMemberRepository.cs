@@ -1,6 +1,7 @@
 using FFXIVLoot.Domain.Entities;
 using FFXIVLoot.Domain.Interfaces;
 using FFXIVLoot.Infrastructure.Storage;
+using Microsoft.Extensions.Configuration;
 
 namespace FFXIVLoot.Infrastructure.Repositories;
 
@@ -10,15 +11,17 @@ namespace FFXIVLoot.Infrastructure.Repositories;
 public class JsonMemberRepository : IMemberRepository
 {
     private readonly JsonFileStorage _storage;
+    private readonly IConfiguration? _configuration;
     private const string DefaultDataFilePath = "data/members.json";
 
     /// <summary>
     /// Initializes a new instance of JsonMemberRepository
     /// </summary>
-    public JsonMemberRepository(string? dataFilePath = null)
+    public JsonMemberRepository(string? dataFilePath = null, IConfiguration? configuration = null)
     {
         var filePath = dataFilePath ?? DefaultDataFilePath;
         _storage = new JsonFileStorage(filePath);
+        _configuration = configuration;
     }
 
     /// <summary>
@@ -30,7 +33,6 @@ public class JsonMemberRepository : IMemberRepository
         var members = data.Members;
         var needsSave = false;
         
-        // Ensure all members have off spec lists, link states, and auth fields initialized (for backward compatibility)
         foreach (var member in members)
         {
             var memberNeedsUpdate = false;
@@ -50,13 +52,16 @@ public class JsonMemberRepository : IMemberRepository
                 member.OffSpecLinkStates = new Dictionary<string, Dictionary<Domain.Enums.GearSlot, (bool, bool)>>();
                 memberNeedsUpdate = true;
             }
-            // Set Sandro as Administrator, others as User
-            if (member.Name.Equals("Sandro", StringComparison.OrdinalIgnoreCase))
+            if (_configuration != null)
             {
-                if (member.PermissionRole != Domain.Enums.PermissionRole.Administrator)
+                var defaultAdministrators = _configuration.GetSection("DefaultAdministrators").Get<string[]>() ?? Array.Empty<string>();
+                if (defaultAdministrators.Any(name => name.Equals(member.Name, StringComparison.OrdinalIgnoreCase)))
                 {
-                    member.PermissionRole = Domain.Enums.PermissionRole.Administrator;
-                    memberNeedsUpdate = true;
+                    if (member.PermissionRole != Domain.Enums.PermissionRole.Administrator)
+                    {
+                        member.PermissionRole = Domain.Enums.PermissionRole.Administrator;
+                        memberNeedsUpdate = true;
+                    }
                 }
             }
             else if (member.PermissionRole == default(Domain.Enums.PermissionRole))
@@ -64,7 +69,6 @@ public class JsonMemberRepository : IMemberRepository
                 member.PermissionRole = Domain.Enums.PermissionRole.User;
                 memberNeedsUpdate = true;
             }
-            // Initialize PIN hash if not set (default PIN is 4444)
             if (string.IsNullOrEmpty(member.PinHash))
             {
                 member.PinHash = Application.Helpers.PinHelper.HashPin(Application.Helpers.PinHelper.DefaultPin);
@@ -77,7 +81,6 @@ public class JsonMemberRepository : IMemberRepository
             }
         }
         
-        // Save changes if any members were updated
         if (needsSave)
         {
             await _storage.WriteAsync(data);
@@ -93,9 +96,6 @@ public class JsonMemberRepository : IMemberRepository
     {
         var members = await GetAllAsync();
         var member = members.FirstOrDefault(m => m.Id == id);
-        
-        // Note: GetAllAsync already handles initialization and persistence,
-        // so we don't need to duplicate that logic here
         return member;
     }
 
@@ -111,22 +111,23 @@ public class JsonMemberRepository : IMemberRepository
 
         var data = await _storage.ReadAsync<DataModel>() ?? new DataModel();
         
-        // Ensure member has an ID
         if (member.Id == Guid.Empty)
         {
             member.Id = Guid.NewGuid();
         }
 
-        // Ensure default PIN is set if not provided
         if (string.IsNullOrEmpty(member.PinHash))
         {
             member.PinHash = Application.Helpers.PinHelper.HashPin(Application.Helpers.PinHelper.DefaultPin);
         }
 
-        // Set Sandro as Administrator, others as User
-        if (member.Name.Equals("Sandro", StringComparison.OrdinalIgnoreCase))
+        if (_configuration != null && member.PermissionRole == default(Domain.Enums.PermissionRole))
         {
-            member.PermissionRole = Domain.Enums.PermissionRole.Administrator;
+            var defaultAdministrators = _configuration.GetSection("DefaultAdministrators").Get<string[]>() ?? Array.Empty<string>();
+            if (defaultAdministrators.Any(name => name.Equals(member.Name, StringComparison.OrdinalIgnoreCase)))
+            {
+                member.PermissionRole = Domain.Enums.PermissionRole.Administrator;
+            }
         }
         else if (member.PermissionRole == default(Domain.Enums.PermissionRole))
         {

@@ -90,7 +90,6 @@ public class BiSController : ControllerBase
                 });
             }
 
-            // Get target member to check permissions
             var targetMemberDto = await _memberService.GetMemberByIdAsync(memberId);
             if (targetMemberDto == null)
             {
@@ -153,7 +152,6 @@ public class BiSController : ControllerBase
                 });
             }
 
-            // Get target member to check permissions
             var targetMemberDto = await _memberService.GetMemberByIdAsync(memberId);
             if (targetMemberDto == null)
             {

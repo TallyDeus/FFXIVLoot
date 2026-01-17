@@ -7,25 +7,16 @@ import './Tag.css';
  * Unified tag type definitions
  */
 export enum TagType {
-  // Roles
   RoleDPS = 'role-dps',
   RoleSupport = 'role-support',
-  
-  // Specs
   SpecMain = 'spec-main',
   SpecOff = 'spec-off',
   SpecExtra = 'spec-extra',
-  
-  // Item Types
   ItemRaid = 'item-raid',
   ItemAugTome = 'item-aug-tome',
   ItemUpgradeMaterial = 'item-upgrade-material',
-  
-  // Status
   StatusAssigned = 'status-assigned',
   StatusCurrent = 'status-current',
-  
-  // Permission Roles
   PermissionAdministrator = 'permission-administrator',
   PermissionManager = 'permission-manager',
   PermissionUser = 'permission-user',
@@ -186,7 +177,6 @@ export const Tag: React.FC<TagProps> = ({
   
   const baseProps = {
     className: finalClassName,
-    // Only set title if we don't have a custom tooltip (to avoid browser tooltip interfering)
     title: (tooltip && finalVariant === 'button') ? undefined : (title || tooltip),
     disabled,
     ...(tooltipId && {
@@ -207,7 +197,6 @@ export const Tag: React.FC<TagProps> = ({
       </button>
     );
 
-    // Use custom portal-based tooltip for gear slots in tables
     if (tooltip) {
       return (
         <GearSlotTooltip tooltip={tooltip} place="bottom">

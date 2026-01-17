@@ -106,14 +106,12 @@ public class JsonFileStorage
     {
         _filePath = Path.GetFullPath(filePath ?? throw new ArgumentNullException(nameof(filePath)));
         
-        // Ensure directory exists
         var directory = Path.GetDirectoryName(_filePath);
         if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
         {
             Directory.CreateDirectory(directory);
         }
         
-        // Get or create a semaphore for this file path to handle concurrent access
         _lock = _fileLocks.GetOrAdd(_filePath, _ => new SemaphoreSlim(1, 1));
     }
 
@@ -154,12 +152,9 @@ public class JsonFileStorage
         {
             var jsonContent = JsonSerializer.Serialize(data, JsonOptions);
             
-            // Write to a temporary file first, then replace the original
-            // This ensures atomic writes and prevents corruption if the process crashes
             var tempFilePath = _filePath + ".tmp";
             await File.WriteAllTextAsync(tempFilePath, jsonContent);
             
-            // Replace the original file with the temporary file
             File.Move(tempFilePath, _filePath, overwrite: true);
         }
         finally

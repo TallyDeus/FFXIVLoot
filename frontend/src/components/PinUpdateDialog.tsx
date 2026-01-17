@@ -56,30 +56,24 @@ export const PinUpdateDialog: React.FC<PinUpdateDialogProps> = ({ isOpen, onClos
     try {
       await authService.updatePin(user.id, currentPin, newPin);
       showToast('PIN updated successfully! Please log in again.', 'success');
-      // Clear form
       setCurrentPin('');
       setNewPin('');
       setConfirmPin('');
       onClose();
-      // Logout user so they need to log in with new PIN
       setTimeout(() => {
         logout();
       }, 1500);
     } catch (error: any) {
-      // Provide specific error messages based on the error type
       let errorMessage = 'Failed to update PIN. Please try again.';
       
-      // Extract error message from various possible error formats
       const errorText = error?.message || error?.detail || error?.toString() || '';
       const errorMsg = errorText.toLowerCase();
       
-      // Check if it's a current PIN error (401 Unauthorized with "Invalid current PIN")
       if (errorMsg.includes('invalid current pin')) {
         errorMessage = 'The current PIN you entered is incorrect. Please try again.';
       } else if (errorMsg.includes('pin must be exactly 4 digits')) {
         errorMessage = 'PIN must be exactly 4 digits.';
       } else if (errorText) {
-        // Use the error message if it's meaningful
         errorMessage = errorText;
       }
       

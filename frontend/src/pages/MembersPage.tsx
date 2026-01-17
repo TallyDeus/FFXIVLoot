@@ -63,8 +63,6 @@ export const MembersPage: React.FC = () => {
 
     setImportingBiS(memberId);
 
-    // Import BiS lists sequentially to avoid race conditions
-    // Main spec first, then off spec
     if (needsMainSpecImport) {
       try {
         await bisService.importBiS({
@@ -103,7 +101,6 @@ export const MembersPage: React.FC = () => {
       const previousOffSpecLink = editingMember?.offSpecXivGearLink?.trim();
 
       if ('id' in memberData) {
-        // Update existing member - ensure we preserve existing BiS items
         const updateData: Member = {
           ...memberData,
           bisItems: editingMember?.bisItems || memberData.bisItems || [],
@@ -111,15 +108,12 @@ export const MembersPage: React.FC = () => {
         };
         savedMember = await memberService.updateMember(updateData);
         
-        // Import BiS lists if links changed
         const mainSpecLink = xivGearLink && xivGearLink !== previousLink ? xivGearLink : undefined;
         const offSpecLink = offSpecXivGearLink && offSpecXivGearLink !== previousOffSpecLink ? offSpecXivGearLink : undefined;
         await importBiSLists(savedMember.id, mainSpecLink, offSpecLink, true);
       } else {
-        // Create new member
         savedMember = await memberService.createMember(memberData);
         
-        // Upload profile image if one was selected for new member
         const pendingImageFile = (memberData as any).__pendingImageFile;
         if (pendingImageFile) {
           try {
@@ -127,12 +121,10 @@ export const MembersPage: React.FC = () => {
             savedMember.profileImageUrl = result.imageUrl;
             await memberService.updateMember(savedMember);
           } catch (error) {
-            // Image upload failed, but member was created - log error but don't fail
             console.error('Failed to upload profile image for new member:', error);
           }
         }
         
-        // Import BiS lists if links are provided
         await importBiSLists(savedMember.id, xivGearLink, offSpecXivGearLink, false);
       }
       
@@ -141,12 +133,10 @@ export const MembersPage: React.FC = () => {
       setEditingMember(undefined);
       showToast(editingMember ? 'Member updated successfully!' : 'Member created successfully!');
     } catch (error: any) {
-      // Extract error message from API response
       let errorMessage = 'Failed to save member. Please try again.';
       
       if (error?.message) {
         const errorMsg = error.message.toLowerCase();
-        // Check for specific error types
         if (errorMsg.includes('duplicate') || errorMsg.includes('already exists') || errorMsg.includes('name')) {
           errorMessage = 'A member with this name already exists';
         } else if (errorMsg.includes('required') || errorMsg.includes('name')) {

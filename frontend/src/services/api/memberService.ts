@@ -74,13 +74,11 @@ export const memberService = {
     });
 
     if (!response.ok) {
-      // Handle 401 Unauthorized
       if (response.status === 401) {
         localStorage.removeItem('authToken');
         if (!window.location.pathname.includes('/login') && !window.location.hash.includes('/login')) {
           setTimeout(() => {
             if (!window.location.pathname.includes('/login') && !window.location.hash.includes('/login')) {
-              // Use hash routing for GitHub Pages compatibility
               window.location.href = '/#/login';
             }
           }, 100);

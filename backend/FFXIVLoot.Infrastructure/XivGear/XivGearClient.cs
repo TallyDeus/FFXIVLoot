@@ -43,7 +43,6 @@ public class XivGearClient : IXivGearClient
         string? job = null;
         Dictionary<int, (string name, ItemType type)>? itemInfoFromHtml = null;
 
-        // First, fetch and parse HTML to get item names and types
         try
         {
             itemInfoFromHtml = await ParseItemInfoFromHtmlAsync(xivGearLink);
@@ -54,11 +53,9 @@ public class XivGearClient : IXivGearClient
             _logger?.LogWarning(ex, "Failed to parse HTML, falling back to API method");
         }
 
-        // Check if it's a bis| format link (e.g., ?page=bis|drk|current)
         var bisInfo = ExtractBisInfoFromLink(xivGearLink);
         if (bisInfo != null)
         {
-            // Call the fulldata/bis endpoint
             var response = await _httpClient.GetAsync($"/fulldata/bis/{bisInfo.Job}/{bisInfo.Type}");
             response.EnsureSuccessStatusCode();
             jsonContent = await response.Content.ReadAsStringAsync();
@@ -66,19 +63,16 @@ public class XivGearClient : IXivGearClient
         }
         else
         {
-            // Try shortlink format (e.g., ?page=sl|{setId})
             var setId = ExtractSetIdFromLink(xivGearLink);
             if (string.IsNullOrEmpty(setId))
             {
                 throw new ArgumentException("Invalid xivgear link format. Expected format: ?page=sl|{setId} or ?page=bis|{job}|{type}", nameof(xivGearLink));
             }
 
-            // Call xivgear API
             var response = await _httpClient.GetAsync($"/shortlink/{setId}");
             response.EnsureSuccessStatusCode();
             jsonContent = await response.Content.ReadAsStringAsync();
             
-            // Extract job from the response to fetch item data
             using (var doc = JsonDocument.Parse(jsonContent))
             {
                 if (doc.RootElement.TryGetProperty("job", out var jobElement))
@@ -88,17 +82,14 @@ public class XivGearClient : IXivGearClient
             }
         }
 
-        // If we got item info from HTML, populate cache
         if (itemInfoFromHtml != null && itemInfoFromHtml.Count > 0)
         {
-            // Populate cache with HTML data
             foreach (var kvp in itemInfoFromHtml)
             {
                 _itemNameCache[kvp.Key] = kvp.Value.name;
             }
         }
         
-        // Always fetch item names from API if we have a job (needed even if HTML parsing found some items)
         if (!string.IsNullOrEmpty(job))
         {
             await LoadItemNamesAsync(job);
@@ -114,7 +105,6 @@ public class XivGearClient : IXivGearClient
     /// </summary>
     private static BisLinkInfo? ExtractBisInfoFromLink(string link)
     {
-        // Pattern: https://xivgear.app/?page=bis|{job}|{type}
         var match = Regex.Match(link, @"[?&]page=bis\|([^|&]+)\|([^&]+)", RegexOptions.IgnoreCase);
         if (match.Success && match.Groups.Count >= 3)
         {
@@ -132,7 +122,6 @@ public class XivGearClient : IXivGearClient
     /// </summary>
     private static string? ExtractSetIdFromLink(string link)
     {
-        // Pattern: https://xivgear.app/?page=sl|{setId}
         var match = Regex.Match(link, @"[?&]page=sl\|([a-f0-9\-]+)", RegexOptions.IgnoreCase);
         return match.Success ? match.Groups[1].Value : null;
     }
@@ -153,7 +142,6 @@ public class XivGearClient : IXivGearClient
     {
         try
         {
-            // Create a separate HTTP client for the data endpoint to avoid base address conflicts
             using var dataClient = new HttpClient();
             dataClient.BaseAddress = new Uri(XivGearDataBaseUrl);
             dataClient.Timeout = TimeSpan.FromSeconds(30); // Large file, may take time
@@ -168,7 +156,6 @@ public class XivGearClient : IXivGearClient
             using var document = JsonDocument.Parse(jsonContent);
             var root = document.RootElement;
 
-            // The response has an "items" array
             if (root.TryGetProperty("items", out var itemsElement) && itemsElement.ValueKind == JsonValueKind.Array)
             {
                 foreach (var item in itemsElement.EnumerateArray())
@@ -189,8 +176,6 @@ public class XivGearClient : IXivGearClient
         }
         catch
         {
-            // If item name loading fails, we'll continue with placeholder names
-            // This is non-critical - the import will still work
         }
     }
 
@@ -203,10 +188,8 @@ public class XivGearClient : IXivGearClient
         
         try
         {
-            // Create a separate HTTP client for fetching HTML
             using var htmlClient = new HttpClient();
             htmlClient.Timeout = TimeSpan.FromSeconds(30);
-            // Set user agent to avoid being blocked
             htmlClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
             
             var response = await htmlClient.GetAsync(xivGearLink);

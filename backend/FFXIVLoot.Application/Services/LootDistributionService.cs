@@ -36,28 +36,23 @@ public class LootDistributionService : ILootDistributionService
         var members = await _memberRepository.GetAllAsync() ?? new List<Domain.Entities.Member>();
         var floorSlots = GetFloorSlots(floorNumber);
 
-        // Get current week if not specified
         if (!weekNumber.HasValue)
         {
             var currentWeek = await _weekRepository.GetCurrentWeekAsync();
             weekNumber = currentWeek?.WeekNumber ?? 1;
         }
 
-        // Get assignments for this floor and week
         var assignments = await _assignmentRepository.GetByFloorAndWeekAsync(floorNumber, weekNumber.Value) ?? new List<Domain.Entities.LootAssignment>();
 
         var availableLoot = new List<AvailableLootDto>();
 
-        // Special handling for Floor 1 - combine rings into a single entry
         if (floorNumber == FloorNumber.Floor1)
         {
-            // Handle regular slots (Ears, Neck, Wrist)
             foreach (var slot in new[] { GearSlot.Ears, GearSlot.Neck, GearSlot.Wrist })
             {
                 var assignment = assignments.FirstOrDefault(a => !a.IsUpgradeMaterial && a.Slot == slot);
                 var eligibleMembers = GetEligibleMembersForSlot(members, slot);
                 
-                // If no eligible members, this is Extra loot - include all members
                 if (!eligibleMembers.Any())
                 {
                     eligibleMembers = members.Select(m => new MemberNeedDto
@@ -79,10 +74,8 @@ public class LootDistributionService : ILootDistributionService
                 });
             }
 
-            // Handle rings - combine LeftRing and RightRing
             var ringEligibleMembers = GetEligibleMembersForRing(members);
 
-            // If no eligible members, this is Extra loot - include all members
             if (!ringEligibleMembers.Any())
             {
                 ringEligibleMembers = members.Select(m => new MemberNeedDto
@@ -93,12 +86,10 @@ public class LootDistributionService : ILootDistributionService
                 }).ToList();
             }
 
-            // Check if any ring is assigned (check both LeftRing and RightRing)
             var ringAssignment = assignments.FirstOrDefault(a => 
                 !a.IsUpgradeMaterial && 
                 (a.Slot == GearSlot.LeftRing || a.Slot == GearSlot.RightRing));
 
-            // Use RightRing as the slot identifier for rings (we'll handle both in assignment)
             availableLoot.Add(new AvailableLootDto
             {
                 Slot = GearSlot.RightRing, // Special marker for "Ring" - we'll handle this in frontend
@@ -111,13 +102,11 @@ public class LootDistributionService : ILootDistributionService
         }
         else
         {
-            // For other floors, handle normally
             foreach (var slot in floorSlots)
             {
                 var assignment = assignments.FirstOrDefault(a => !a.IsUpgradeMaterial && a.Slot == slot);
                 var eligibleMembers = GetEligibleMembersForSlot(members, slot);
                 
-                // If no eligible members, this is Extra loot - include all members
                 if (!eligibleMembers.Any())
                 {
                     eligibleMembers = members.Select(m => new MemberNeedDto
@@ -139,13 +128,10 @@ public class LootDistributionService : ILootDistributionService
                 });
             }
 
-            // Add upgrade materials for floors 2 and 3
             if (floorNumber == FloorNumber.Floor2)
             {
-                // Floor 2: Accessory upgrade material for Ears/Neck/Wrist/Rings
                 var accessoryUpgradeMembers = GetEligibleMembersForUpgradeMaterial(members, isArmorMaterial: false);
                 
-                // If no eligible members, this is Extra loot - include all members
                 if (!accessoryUpgradeMembers.Any())
                 {
                     accessoryUpgradeMembers = members.Select(m => new MemberNeedDto
@@ -172,10 +158,8 @@ public class LootDistributionService : ILootDistributionService
             }
             else if (floorNumber == FloorNumber.Floor3)
             {
-                // Floor 3: Armor upgrade material for Head/Hand/Feet/Body/Legs
                 var armorUpgradeMembers = GetEligibleMembersForUpgradeMaterial(members, isArmorMaterial: true);
                 
-                // If no eligible members, this is Extra loot - include all members
                 if (!armorUpgradeMembers.Any())
                 {
                     armorUpgradeMembers = members.Select(m => new MemberNeedDto
@@ -213,7 +197,6 @@ public class LootDistributionService : ILootDistributionService
     {
         var eligibleMembers = new List<MemberNeedDto>();
 
-        // First check main spec
         var mainSpecMembers = members
             .Where(m => m.BisItems != null && m.BisItems.Count > 0)
             .Where(m => 
@@ -236,7 +219,6 @@ public class LootDistributionService : ILootDistributionService
             return mainSpecMembers;
         }
 
-        // If no main spec needs it, check off spec
         var offSpecMembers = members
             .Where(m => m.OffSpecBisItems != null && m.OffSpecBisItems.Count > 0)
             .Where(m => 
@@ -265,12 +247,10 @@ public class LootDistributionService : ILootDistributionService
     {
         var eligibleMembers = new List<MemberNeedDto>();
 
-        // Determine which slots need this upgrade material
         var relevantSlots = isArmorMaterial
             ? new[] { GearSlot.Head, GearSlot.Hand, GearSlot.Feet, GearSlot.Body, GearSlot.Legs }
             : new[] { GearSlot.Ears, GearSlot.Neck, GearSlot.Wrist, GearSlot.LeftRing, GearSlot.RightRing };
 
-        // First check main spec
         foreach (var member in members)
         {
             if (member.BisItems == null || member.BisItems.Count == 0)
@@ -293,13 +273,11 @@ public class LootDistributionService : ILootDistributionService
             }
         }
 
-        // If main spec members need it, return them
         if (eligibleMembers.Any())
         {
             return eligibleMembers;
         }
 
-        // If no main spec needs it, check off spec
         foreach (var member in members)
         {
             if (member.OffSpecBisItems == null || member.OffSpecBisItems.Count == 0)
@@ -331,7 +309,6 @@ public class LootDistributionService : ILootDistributionService
     /// </summary>
     private static List<MemberNeedDto> GetEligibleMembersForRing(List<Domain.Entities.Member> members)
     {
-        // First check main spec
         var mainSpecMembers = members
             .Where(m => m.BisItems != null && m.BisItems.Count > 0)
             .Where(m => m.BisItems.Any(item => 
@@ -352,7 +329,6 @@ public class LootDistributionService : ILootDistributionService
             return mainSpecMembers;
         }
 
-        // If no main spec needs it, check off spec
         var offSpecMembers = members
             .Where(m => m.OffSpecBisItems != null && m.OffSpecBisItems.Count > 0)
             .Where(m => m.OffSpecBisItems.Any(item => 
@@ -382,14 +358,12 @@ public class LootDistributionService : ILootDistributionService
             throw new InvalidOperationException($"Member with ID {memberId} not found");
         }
 
-        // Get current week
         var currentWeek = await _weekRepository.GetCurrentWeekAsync();
         if (currentWeek == null)
         {
             throw new InvalidOperationException("No current week set. Please start a new week first.");
         }
 
-        // Check if already assigned this week
         var existingAssignment = await _assignmentRepository.GetAssignmentForWeekAsync(
             floorNumber, currentWeek.WeekNumber, slot, false, false);
         if (existingAssignment != null)
@@ -400,15 +374,12 @@ public class LootDistributionService : ILootDistributionService
         GearSlot actualSlot = slot;
         bool itemUpdated = false;
 
-        // For Extra loot, skip BiS updates (members already have everything)
         if (specType != SpecType.Extra)
         {
             var itemsList = MemberLinkStateHelper.GetBisItems(member, specType);
 
-            // Special handling for rings - if slot is RightRing but member needs LeftRing, assign to LeftRing
             if (slot == GearSlot.RightRing)
             {
-                // Check if member needs a left ring first (prioritize left ring)
                 var leftRingItem = itemsList.FirstOrDefault(i => 
                     i.Slot == GearSlot.LeftRing && 
                     i.ItemType == ItemType.Raid && 
@@ -422,7 +393,6 @@ public class LootDistributionService : ILootDistributionService
                 }
                 else
                 {
-                    // Otherwise assign to right ring
                     var rightRingItem = itemsList.FirstOrDefault(i => 
                         i.Slot == GearSlot.RightRing && 
                         i.ItemType == ItemType.Raid && 
@@ -442,7 +412,6 @@ public class LootDistributionService : ILootDistributionService
             }
             else
             {
-                // For other slots, assign normally
                 var item = itemsList.FirstOrDefault(i => i.Slot == slot);
                 if (item == null)
                 {
@@ -455,21 +424,18 @@ public class LootDistributionService : ILootDistributionService
 
             if (itemUpdated)
             {
-                // Update stored state for the current link
                 MemberLinkStateHelper.UpdateLinkStateFromItem(member, specType, actualSlot);
                 await _memberRepository.UpdateAsync(member);
             }
         }
         else
         {
-            // For Extra loot with rings, use RightRing as the slot (frontend handles the display)
             if (slot == GearSlot.RightRing)
             {
                 actualSlot = GearSlot.RightRing;
             }
         }
 
-        // Create assignment record
         var assignment = new Domain.Entities.LootAssignment
         {
             WeekNumber = currentWeek.WeekNumber,
@@ -496,14 +462,12 @@ public class LootDistributionService : ILootDistributionService
             throw new InvalidOperationException($"Member with ID {memberId} not found");
         }
 
-        // Get current week
         var currentWeek = await _weekRepository.GetCurrentWeekAsync();
         if (currentWeek == null)
         {
             throw new InvalidOperationException("No current week set. Please start a new week first.");
         }
 
-        // Check if already assigned this week
         var existingAssignment = await _assignmentRepository.GetAssignmentForWeekAsync(
             floorNumber, currentWeek.WeekNumber, null, true, isArmorMaterial);
         if (existingAssignment != null)
@@ -511,23 +475,19 @@ public class LootDistributionService : ILootDistributionService
             throw new InvalidOperationException("This upgrade material has already been assigned this week.");
         }
 
-        // For Extra loot, skip BiS updates (members already have everything)
         if (specType != SpecType.Extra)
         {
-            // Determine which slots need this upgrade material
             var relevantSlots = isArmorMaterial
                 ? new[] { GearSlot.Head, GearSlot.Hand, GearSlot.Feet, GearSlot.Body, GearSlot.Legs }
                 : new[] { GearSlot.Ears, GearSlot.Neck, GearSlot.Wrist, GearSlot.LeftRing, GearSlot.RightRing };
 
             var itemsList = MemberLinkStateHelper.GetBisItems(member, specType);
 
-            // Find items that need the upgrade material
-            // Include Aug Tome items even if not acquired yet (upgrade materials can be acquired before the base item)
             var itemsToUpgrade = itemsList
                 .Where(item => item.ItemType == ItemType.AugTome && 
                                relevantSlots.Contains(item.Slot) && 
                                !item.UpgradeMaterialAcquired)
-                .OrderBy(item => item.Slot) // Order by slot for consistent assignment
+                .OrderBy(item => item.Slot)
                 .ToList();
 
             if (!itemsToUpgrade.Any())
@@ -535,16 +495,13 @@ public class LootDistributionService : ILootDistributionService
                 throw new InvalidOperationException($"No items found that need {(isArmorMaterial ? "armor" : "accessory")} upgrade material for member {memberId}");
             }
 
-            // Mark the first item's upgrade material as acquired
             var updatedSlot = itemsToUpgrade[0].Slot;
             itemsToUpgrade[0].UpgradeMaterialAcquired = true;
             
-            // Update stored state for the current link
             MemberLinkStateHelper.UpdateLinkStateFromItem(member, specType, updatedSlot);
             await _memberRepository.UpdateAsync(member);
         }
 
-        // Create assignment record
         var assignment = new Domain.Entities.LootAssignment
         {
             WeekNumber = currentWeek.WeekNumber,
@@ -585,10 +542,8 @@ public class LootDistributionService : ILootDistributionService
 
         var itemsList = MemberLinkStateHelper.GetBisItems(member, assignment.SpecType);
 
-        // Revert BiS tracker changes
         if (assignment.IsUpgradeMaterial)
         {
-            // Find and revert upgrade material
             var relevantSlots = assignment.IsArmorMaterial
                 ? new[] { GearSlot.Head, GearSlot.Hand, GearSlot.Feet, GearSlot.Body, GearSlot.Legs }
                 : new[] { GearSlot.Ears, GearSlot.Neck, GearSlot.Wrist, GearSlot.LeftRing, GearSlot.RightRing };
@@ -607,7 +562,6 @@ public class LootDistributionService : ILootDistributionService
         }
         else if (assignment.Slot.HasValue)
         {
-            // Revert gear item acquisition
             var item = itemsList.FirstOrDefault(i => i.Slot == assignment.Slot.Value);
             if (item != null)
             {
@@ -617,7 +571,6 @@ public class LootDistributionService : ILootDistributionService
 
         await _memberRepository.UpdateAsync(member);
 
-        // Mark assignment as undone
         assignment.IsUndone = true;
         await _assignmentRepository.UpdateAsync(assignment);
     }
@@ -644,11 +597,9 @@ public class LootDistributionService : ILootDistributionService
     {
         var allAssignments = await _assignmentRepository.GetAllAsync() ?? new List<Domain.Entities.LootAssignment>();
         
-        // Filter assignments for Extra spec type
         var extraAssignments = allAssignments
             .Where(a => a.SpecType == SpecType.Extra && !a.IsUndone);
 
-        // Filter by item type
         IEnumerable<Domain.Entities.LootAssignment> matchingAssignments;
         
         if (isUpgradeMaterial)
@@ -659,7 +610,6 @@ public class LootDistributionService : ILootDistributionService
         }
         else if (slot.HasValue)
         {
-            // For rings, count both LeftRing and RightRing
             if (slot == GearSlot.RightRing)
             {
                 matchingAssignments = extraAssignments
