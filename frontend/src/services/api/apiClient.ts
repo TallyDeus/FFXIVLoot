@@ -65,7 +65,7 @@ export async function apiRequest<T>(
       // CRITICAL: Check for PIN update endpoint FIRST - NEVER redirect on PIN update errors
       // PIN update errors are user input validation errors, not authentication failures
       const method = (options.method || 'GET').toUpperCase();
-      const pinUpdatePattern = /\/api\/members\/[^\/]+\/pin$|\/members\/[^\/]+\/pin$/;
+      const pinUpdatePattern = /\/api\/members\/[^/]+\/pin$|\/members\/[^/]+\/pin$/;
       const isPinUpdateEndpoint = pinUpdatePattern.test(endpoint) && method === 'PUT';
       
       // If this is a PIN update endpoint, skip ALL redirect logic - just throw the error

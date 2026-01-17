@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { authService } from '../services/api/authService';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../hooks/useToast';
+import { ToastContainer } from './Toast';
 import { Button } from './Button';
 import './PinUpdateDialog.css';
 
@@ -19,7 +20,7 @@ export const PinUpdateDialog: React.FC<PinUpdateDialogProps> = ({ isOpen, onClos
   const [confirmPin, setConfirmPin] = useState('');
   const [loading, setLoading] = useState(false);
   const { user, logout } = useAuth();
-  const { showToast } = useToast();
+  const { toasts, showToast, removeToast } = useToast();
 
   if (!isOpen) return null;
 
@@ -68,17 +69,18 @@ export const PinUpdateDialog: React.FC<PinUpdateDialogProps> = ({ isOpen, onClos
       // Provide specific error messages based on the error type
       let errorMessage = 'Failed to update PIN. Please try again.';
       
-      if (error.message) {
-        const errorMsg = error.message.toLowerCase();
-        // Check if it's a current PIN error (401 Unauthorized with "Invalid current PIN")
-        if (errorMsg.includes('invalid current pin')) {
-          errorMessage = 'The current PIN you entered is incorrect. Please try again.';
-        } else if (errorMsg.includes('pin must be exactly 4 digits')) {
-          errorMessage = 'PIN must be exactly 4 digits.';
-        } else {
-          // Use the error message if it's meaningful
-          errorMessage = error.message;
-        }
+      // Extract error message from various possible error formats
+      const errorText = error?.message || error?.detail || error?.toString() || '';
+      const errorMsg = errorText.toLowerCase();
+      
+      // Check if it's a current PIN error (401 Unauthorized with "Invalid current PIN")
+      if (errorMsg.includes('invalid current pin')) {
+        errorMessage = 'The current PIN you entered is incorrect. Please try again.';
+      } else if (errorMsg.includes('pin must be exactly 4 digits')) {
+        errorMessage = 'PIN must be exactly 4 digits.';
+      } else if (errorText) {
+        // Use the error message if it's meaningful
+        errorMessage = errorText;
       }
       
       showToast(errorMessage, 'error');
@@ -161,6 +163,7 @@ export const PinUpdateDialog: React.FC<PinUpdateDialogProps> = ({ isOpen, onClos
           </div>
         </form>
       </div>
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   );
 };
