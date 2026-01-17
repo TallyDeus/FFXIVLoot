@@ -62,19 +62,33 @@ export async function apiRequest<T>(
     });
 
     if (!response.ok) {
+      // CRITICAL: Check for PIN update endpoint FIRST - NEVER redirect on PIN update errors
+      // PIN update errors are user input validation errors, not authentication failures
+      const method = (options.method || 'GET').toUpperCase();
+      const pinUpdatePattern = /\/api\/members\/[^\/]+\/pin$|\/members\/[^\/]+\/pin$/;
+      const isPinUpdateEndpoint = pinUpdatePattern.test(endpoint) && method === 'PUT';
+      
+      // If this is a PIN update endpoint, skip ALL redirect logic - just throw the error
+      if (isPinUpdateEndpoint) {
+        const apiError = await handleApiError(response);
+        throw new Error(apiError.message);
+      }
+      
       // Handle 401 Unauthorized - clear token and redirect to login
-      // But don't redirect if we're already on the login page, making a login request, validating a session, or updating PIN
+      // But don't redirect if we're already on the login page, making a login request, or validating a session
       const isAuthEndpoint = endpoint.includes('/auth/login') || endpoint.includes('/auth/validate');
-      const isPinUpdateEndpoint = endpoint.includes('/pin');
-      if (response.status === 401 && !isAuthEndpoint && !isPinUpdateEndpoint) {
+      
+      if (response.status === 401 && !isAuthEndpoint) {
         localStorage.removeItem('authToken');
         // Only redirect if we're not already on the login page
         if (!window.location.pathname.includes('/login') && !window.location.hash.includes('/login')) {
           // Use a small delay to avoid immediate redirect loops
           setTimeout(() => {
+            // Double-check we're still not on login page
             if (!window.location.pathname.includes('/login') && !window.location.hash.includes('/login')) {
               // Use hash routing for GitHub Pages compatibility
-              window.location.href = '/#/login';
+              // This works correctly with both root and subpath deployments
+              window.location.hash = '#/login';
             }
           }, 100);
         }
