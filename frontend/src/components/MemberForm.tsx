@@ -11,12 +11,13 @@ interface MemberFormProps {
   onCancel: () => void;
   isOpen: boolean;
   onValidationError?: (message: string) => void;
+  existingMembers?: Member[];
 }
 
 /**
  * Component for adding or editing a raid member
  */
-export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel, isOpen, onValidationError }) => {
+export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel, isOpen, onValidationError, existingMembers = [] }) => {
   const { user } = useAuth();
   const [name, setName] = useState(member?.name || '');
   const [role, setRole] = useState(member?.role ?? 0);
@@ -111,9 +112,31 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name.trim()) {
+    const trimmedName = name.trim();
+    
+    // Validate name is not empty
+    if (!trimmedName) {
+      const errorMessage = 'Name is required';
       if (onValidationError) {
-        onValidationError('Name is required');
+        onValidationError(errorMessage);
+      } else {
+        console.error(errorMessage);
+      }
+      return;
+    }
+    
+    // Validate name is not a duplicate (case-insensitive)
+    // When editing, exclude the current member from the check
+    const duplicateMember = existingMembers.find(
+      m => m.id !== member?.id && m.name.trim().toLowerCase() === trimmedName.toLowerCase()
+    );
+    
+    if (duplicateMember) {
+      const errorMessage = 'A member with this name already exists';
+      if (onValidationError) {
+        onValidationError(errorMessage);
+      } else {
+        console.error(errorMessage);
       }
       return;
     }
@@ -139,14 +162,14 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
     const memberData: Omit<Member, 'id'> | Member = member
       ? { 
           ...member, 
-          name: name.trim(), 
+          name: trimmedName, 
           role,
           permissionRole: canEditRole ? permissionRole : member.permissionRole,
           xivGearLink: xivGearLink.trim() || undefined,
           offSpecXivGearLink: offSpecXivGearLink.trim() || undefined
         }
       : { 
-          name: name.trim(), 
+          name: trimmedName, 
           role,
           permissionRole: canEditRole ? permissionRole : PermissionRole.User,
           xivGearLink: xivGearLink.trim() || undefined, 
@@ -196,8 +219,9 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
               type="text"
               id="name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => setName(e.target.value.slice(0, 20))}
               required
+              maxLength={20}
               placeholder="Enter member name"
             />
           </div>

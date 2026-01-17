@@ -140,8 +140,23 @@ export const MembersPage: React.FC = () => {
       setShowForm(false);
       setEditingMember(undefined);
       showToast(editingMember ? 'Member updated successfully!' : 'Member created successfully!');
-    } catch (error) {
-      showToast('Failed to save member. Please try again.', 'error');
+    } catch (error: any) {
+      // Extract error message from API response
+      let errorMessage = 'Failed to save member. Please try again.';
+      
+      if (error?.message) {
+        const errorMsg = error.message.toLowerCase();
+        // Check for specific error types
+        if (errorMsg.includes('duplicate') || errorMsg.includes('already exists') || errorMsg.includes('name')) {
+          errorMessage = 'A member with this name already exists';
+        } else if (errorMsg.includes('required') || errorMsg.includes('name')) {
+          errorMessage = error.message;
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      showToast(errorMessage, 'error');
     }
   };
 
@@ -198,6 +213,7 @@ export const MembersPage: React.FC = () => {
         onCancel={handleCancel}
         isOpen={showForm}
         onValidationError={(message) => showToast(message, 'error')}
+        existingMembers={members}
       />
 
       {importingBiS && (

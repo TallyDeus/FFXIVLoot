@@ -20,13 +20,41 @@
   text-align: left;
   border-bottom: 1px solid var(--tc-border);
   color: var(--tc-text-main);
-  width: calc(100% / 6);
 }
 
+/* Column width distribution - Name column gets more space for 20 char limit */
 .member-table th:first-child,
 .member-table td:first-child {
-  padding-left: 20px;
+  width: 20%;
+  min-width: 180px;
 }
+
+.member-table th:nth-child(2),
+.member-table td:nth-child(2) {
+  width: 12%;
+  min-width: 80px;
+}
+
+.member-table th:nth-child(3),
+.member-table td:nth-child(3) {
+  width: 15%;
+  min-width: 120px;
+}
+
+.member-table th:nth-child(4),
+.member-table td:nth-child(4),
+.member-table th:nth-child(5),
+.member-table td:nth-child(5) {
+  width: 15%;
+  min-width: 100px;
+}
+
+.member-table th:last-child,
+.member-table td:last-child {
+  width: 23%;
+  min-width: 150px;
+}
+
 
 .member-table th:last-child,
 .member-table td:last-child {
@@ -126,6 +154,8 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .member-name-cell .profile-image-tooltip-wrapper {
@@ -145,6 +175,12 @@
   line-height: 38px;
   display: inline-block;
   vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  flex: 1;
+  min-width: 0;
 }
 
 .member-profile-image {
