@@ -49,7 +49,8 @@ public class JsonLootAssignmentRepository : ILootAssignmentRepository
         return allAssignments
             .Where(a => a.WeekNumber == weekNumber && 
                        a.FloorNumber == floorNumber && 
-                       !a.IsUndone)
+                       !a.IsUndone &&
+                       !a.IsManualEdit)
             .ToList();
     }
 
@@ -123,6 +124,7 @@ public class JsonLootAssignmentRepository : ILootAssignmentRepository
             a.FloorNumber == floorNumber &&
             a.IsUpgradeMaterial == isUpgradeMaterial &&
             !a.IsUndone &&
+            !a.IsManualEdit &&
                 ((isUpgradeMaterial && a.IsArmorMaterial == isArmorMaterial) || 
              (!isUpgradeMaterial && a.Slot == slot)));
     }
