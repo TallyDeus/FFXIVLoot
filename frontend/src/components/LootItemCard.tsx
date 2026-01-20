@@ -22,6 +22,7 @@ interface LootItemCardProps {
 export const LootItemCard: React.FC<LootItemCardProps> = ({ loot, members, floorNumber, currentWeekNumber, onAssign, onAssignUpgrade, onUndo, canAssignLoot = true }) => {
   const [acquisitionCounts, setAcquisitionCounts] = useState<Record<string, number>>({});
   const [loadingCounts, setLoadingCounts] = useState(false);
+  const [visibleSpec, setVisibleSpec] = useState<SpecType>(SpecType.MainSpec);
 
   // Check if this is Extra loot (any eligible member has SpecType.Extra)
   const isExtraLoot = loot.eligibleMembers.some(need => need.specType === SpecType.Extra);
@@ -64,6 +65,45 @@ export const LootItemCard: React.FC<LootItemCardProps> = ({ loot, members, floor
       .filter((item): item is { member: Member; neededCount: number; specType: SpecType } => item !== null);
   }, [loot.eligibleMembers, members, isExtraLoot, acquisitionCounts]);
   
+  const hasMainSpecMembers = React.useMemo(
+    () => memberNeeds.some(item => item.specType === SpecType.MainSpec),
+    [memberNeeds]
+  );
+
+  const hasOffSpecMembers = React.useMemo(
+    () => memberNeeds.some(item => item.specType === SpecType.OffSpec),
+    [memberNeeds]
+  );
+
+  // Default the view to whichever spec is available (prefer main spec)
+  useEffect(() => {
+    if (isExtraLoot) {
+      return;
+    }
+
+    if (hasMainSpecMembers) {
+      setVisibleSpec(SpecType.MainSpec);
+    } else if (hasOffSpecMembers) {
+      setVisibleSpec(SpecType.OffSpec);
+    }
+  }, [hasMainSpecMembers, hasOffSpecMembers, isExtraLoot]);
+
+  const filteredMemberNeeds = React.useMemo(() => {
+    if (isExtraLoot) {
+      return memberNeeds;
+    }
+
+    if (visibleSpec === SpecType.MainSpec) {
+      return memberNeeds.filter(item => item.specType === SpecType.MainSpec);
+    }
+
+    if (visibleSpec === SpecType.OffSpec) {
+      return memberNeeds.filter(item => item.specType === SpecType.OffSpec);
+    }
+
+    return memberNeeds;
+  }, [isExtraLoot, memberNeeds, visibleSpec]);
+  
   /**
    * Groups members by spec type and role for display
    */
@@ -77,10 +117,10 @@ export const LootItemCard: React.FC<LootItemCardProps> = ({ loot, members, floor
       };
     }
     
-    const mainSpecMembers = memberNeeds.filter(item => item.specType === SpecType.MainSpec);
+    const mainSpecMembers = filteredMemberNeeds.filter(item => item.specType === SpecType.MainSpec);
     const mainSpecDps = mainSpecMembers.filter(item => item.member.role === MemberRole.DPS);
     const mainSpecSupport = mainSpecMembers.filter(item => item.member.role === MemberRole.Support);
-    const offSpec = memberNeeds.filter(item => item.specType === SpecType.OffSpec);
+    const offSpec = filteredMemberNeeds.filter(item => item.specType === SpecType.OffSpec);
     
     return {
       extraMembers: [],
@@ -88,7 +128,7 @@ export const LootItemCard: React.FC<LootItemCardProps> = ({ loot, members, floor
       mainSpecSupportMembers: mainSpecSupport,
       offSpecMembers: offSpec,
     };
-  }, [memberNeeds, isExtraLoot]);
+  }, [filteredMemberNeeds, isExtraLoot, memberNeeds]);
 
   // Determine display name
   let displayName: string;
@@ -109,7 +149,7 @@ export const LootItemCard: React.FC<LootItemCardProps> = ({ loot, members, floor
     }
   };
 
-  const totalNeeded = memberNeeds.reduce((sum, item) => sum + item.neededCount, 0);
+  const totalNeeded = filteredMemberNeeds.reduce((sum, item) => sum + item.neededCount, 0);
 
   const assignedMember = loot.isAssigned && loot.assignedToMemberId
     ? members.find(m => m.id === loot.assignedToMemberId)
@@ -152,6 +192,29 @@ export const LootItemCard: React.FC<LootItemCardProps> = ({ loot, members, floor
         </div>
       ) : (
         <div className="eligible-members">
+          {!isExtraLoot && (hasMainSpecMembers || hasOffSpecMembers) && (
+            <div className="loot-spec-toggle">
+              {hasMainSpecMembers && (
+                <button
+                  className={`view-button ${visibleSpec === SpecType.MainSpec ? 'active' : ''}`}
+                  onClick={() => setVisibleSpec(SpecType.MainSpec)}
+                  type="button"
+                >
+                  <SpecTag specType={SpecType.MainSpec} />
+                </button>
+              )}
+              {hasOffSpecMembers && (
+                <button
+                  className={`view-button ${visibleSpec === SpecType.OffSpec ? 'active' : ''}`}
+                  onClick={() => setVisibleSpec(SpecType.OffSpec)}
+                  type="button"
+                >
+                  <SpecTag specType={SpecType.OffSpec} />
+                </button>
+              )}
+            </div>
+          )}
+
           <div className="eligible-count">
             {isExtraLoot ? (
               <>
@@ -159,11 +222,11 @@ export const LootItemCard: React.FC<LootItemCardProps> = ({ loot, members, floor
               </>
             ) : loot.isUpgradeMaterial ? (
               <>
-                {totalNeeded} upgrade material{totalNeeded !== 1 ? 's' : ''} needed across {memberNeeds.length} member{memberNeeds.length !== 1 ? 's' : ''}
+                {totalNeeded} upgrade material{totalNeeded !== 1 ? 's' : ''} needed across {filteredMemberNeeds.length} member{filteredMemberNeeds.length !== 1 ? 's' : ''}
               </>
             ) : (
               <>
-                {memberNeeds.length} member{memberNeeds.length !== 1 ? 's' : ''} need{memberNeeds.length === 1 ? 's' : ''} this
+                {filteredMemberNeeds.length} member{filteredMemberNeeds.length !== 1 ? 's' : ''} need{filteredMemberNeeds.length === 1 ? 's' : ''} this
               </>
             )}
           </div>
@@ -206,7 +269,6 @@ export const LootItemCard: React.FC<LootItemCardProps> = ({ loot, members, floor
               <div className="member-column">
                 <div className="member-column-header">
                   <RoleTag role={MemberRole.DPS} />
-                  <SpecTag specType={SpecType.MainSpec} />
                 </div>
                 <div className="member-list">
                   {mainSpecDpsMembers.map(({ member, neededCount }) => (
@@ -230,7 +292,6 @@ export const LootItemCard: React.FC<LootItemCardProps> = ({ loot, members, floor
               <div className="member-column">
                 <div className="member-column-header">
                   <RoleTag role={MemberRole.Support} />
-                  <SpecTag specType={SpecType.MainSpec} />
                 </div>
                 <div className="member-list">
                   {mainSpecSupportMembers.map(({ member, neededCount }) => (
@@ -252,9 +313,7 @@ export const LootItemCard: React.FC<LootItemCardProps> = ({ loot, members, floor
             
                 {offSpecMembers.length > 0 && (
                   <div className="member-column">
-                    <div className="member-column-header">
-                      <SpecTag specType={SpecType.OffSpec} />
-                    </div>
+                    <div className="member-column-header" />
                     <div className="member-list">
                       {offSpecMembers.map(({ member, neededCount }) => (
                         <Button

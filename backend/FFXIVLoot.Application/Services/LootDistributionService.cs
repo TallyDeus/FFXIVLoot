@@ -191,12 +191,10 @@ public class LootDistributionService : ILootDistributionService
 
     /// <summary>
     /// Gets eligible members who need Raid gear for a specific slot
-    /// Checks main spec first, then off spec if no main spec needs it
+    /// Returns main spec needs first, then off spec needs
     /// </summary>
     private static List<MemberNeedDto> GetEligibleMembersForSlot(List<Domain.Entities.Member> members, GearSlot slot)
     {
-        var eligibleMembers = new List<MemberNeedDto>();
-
         var mainSpecMembers = members
             .Where(m => m.BisItems != null && m.BisItems.Count > 0)
             .Where(m => 
@@ -213,11 +211,6 @@ public class LootDistributionService : ILootDistributionService
                 SpecType = SpecType.MainSpec
             })
             .ToList();
-
-        if (mainSpecMembers.Any())
-        {
-            return mainSpecMembers;
-        }
 
         var offSpecMembers = members
             .Where(m => m.OffSpecBisItems != null && m.OffSpecBisItems.Count > 0)
@@ -236,20 +229,25 @@ public class LootDistributionService : ILootDistributionService
             })
             .ToList();
 
-        return offSpecMembers;
+        var eligibleMembers = new List<MemberNeedDto>();
+        eligibleMembers.AddRange(mainSpecMembers);
+        eligibleMembers.AddRange(offSpecMembers);
+
+        return eligibleMembers;
     }
 
     /// <summary>
     /// Gets eligible members who need upgrade materials and how many they need
-    /// Checks main spec first, then off spec if no main spec needs it
+    /// Returns main spec needs first, then off spec needs
     /// </summary>
     private static List<MemberNeedDto> GetEligibleMembersForUpgradeMaterial(List<Domain.Entities.Member> members, bool isArmorMaterial)
     {
-        var eligibleMembers = new List<MemberNeedDto>();
-
         var relevantSlots = isArmorMaterial
             ? new[] { GearSlot.Head, GearSlot.Hand, GearSlot.Feet, GearSlot.Body, GearSlot.Legs }
             : new[] { GearSlot.Ears, GearSlot.Neck, GearSlot.Wrist, GearSlot.LeftRing, GearSlot.RightRing };
+
+        var mainSpecMembers = new List<MemberNeedDto>();
+        var offSpecMembers = new List<MemberNeedDto>();
 
         foreach (var member in members)
         {
@@ -264,18 +262,13 @@ public class LootDistributionService : ILootDistributionService
 
             if (itemsNeedingUpgrade.Any())
             {
-                eligibleMembers.Add(new MemberNeedDto
+                mainSpecMembers.Add(new MemberNeedDto
                 {
                     MemberId = member.Id,
                     NeededCount = itemsNeedingUpgrade.Count,
                     SpecType = SpecType.MainSpec
                 });
             }
-        }
-
-        if (eligibleMembers.Any())
-        {
-            return eligibleMembers;
         }
 
         foreach (var member in members)
@@ -291,7 +284,7 @@ public class LootDistributionService : ILootDistributionService
 
             if (itemsNeedingUpgrade.Any())
             {
-                eligibleMembers.Add(new MemberNeedDto
+                offSpecMembers.Add(new MemberNeedDto
                 {
                     MemberId = member.Id,
                     NeededCount = itemsNeedingUpgrade.Count,
@@ -300,12 +293,16 @@ public class LootDistributionService : ILootDistributionService
             }
         }
 
+        var eligibleMembers = new List<MemberNeedDto>();
+        eligibleMembers.AddRange(mainSpecMembers);
+        eligibleMembers.AddRange(offSpecMembers);
+
         return eligibleMembers;
     }
 
     /// <summary>
     /// Gets eligible members who need a ring (combines LeftRing and RightRing)
-    /// Checks main spec first, then off spec if no main spec needs it
+    /// Returns main spec needs first, then off spec needs
     /// </summary>
     private static List<MemberNeedDto> GetEligibleMembersForRing(List<Domain.Entities.Member> members)
     {
@@ -324,11 +321,6 @@ public class LootDistributionService : ILootDistributionService
             .DistinctBy(m => m.MemberId)
             .ToList();
 
-        if (mainSpecMembers.Any())
-        {
-            return mainSpecMembers;
-        }
-
         var offSpecMembers = members
             .Where(m => m.OffSpecBisItems != null && m.OffSpecBisItems.Count > 0)
             .Where(m => m.OffSpecBisItems.Any(item => 
@@ -344,7 +336,11 @@ public class LootDistributionService : ILootDistributionService
             .DistinctBy(m => m.MemberId)
             .ToList();
 
-        return offSpecMembers;
+        var eligibleMembers = new List<MemberNeedDto>();
+        eligibleMembers.AddRange(mainSpecMembers);
+        eligibleMembers.AddRange(offSpecMembers);
+
+        return eligibleMembers;
     }
 
     /// <summary>
