@@ -246,76 +246,22 @@
   z-index: 1; /* Ensure content is above cell background */
 }
 
-.item-type-badge {
+.bis-matrix-table .tag-item {
+  min-width: 30px;
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  border-radius: 4px;
+  padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 3px;
-  font-size: 11px;
-  font-weight: 600;
-  text-align: center;
-  color: white;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-  padding: 0;
-  flex-shrink: 0;
+  font-size: 14px;
 }
 
-.item-type-badge:hover:not(:disabled) {
-  transform: scale(1.1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.item-type-badge:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.item-type-badge.acquired {
-  background-color: rgba(76, 175, 80, 0.4) !important;
-  color: white;
-  position: relative;
-}
-
-.item-type-badge.acquired::after {
-  content: '✓';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: #00ffaa;
-  font-weight: bold;
-  font-size: 26px;
-  line-height: 1;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-shadow: 
-    0 0 4px #00ffaa,
-    0 0 8px #00ffaa,
-    0 0 12px #00ffaa,
-    0 0 2px rgba(255, 255, 255, 0.8);
-  pointer-events: none;
-  z-index: 1;
-}
-
-.item-type-badge.raid {
-  background-color: var(--tc-raid);
-}
-
-.item-type-badge.aug-tome {
-  background-color: var(--tc-aug-tome);
-}
-
-.item-type-badge.upgrade-material {
-  background-color: var(--tc-upgrade);
-  cursor: pointer;
+.bis-matrix-table .tag-item.tag-acquired {
+  background-color: #291628;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
 }
 
 .tooltip-container {
@@ -346,8 +292,7 @@
   margin-bottom: 4px;
 }
 
-.tooltip-container:hover .tooltip-text,
-.item-type-badge:hover .tooltip-text {
+.tooltip-container:hover .tooltip-text {
   visibility: visible;
   opacity: 1;
   transform: translateX(-50%) translateY(-8px);

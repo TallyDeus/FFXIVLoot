@@ -150,15 +150,9 @@
   top: 45%;
   left: 50%;
   transform: translate(-50%, -50%);
-  color: #00ff00;
+  color: #88ff00 !important;
   font-weight: 700;
-  font-size: 20px;
-  text-shadow: 
-    0 0 4px #00ff00,
-    0 0 8px #00ff00,
-    0 0 12px #00ff00,
-    0 0 16px #00ff00,
-    0 0 2px rgba(255, 255, 255, 0.8);
+  font-size: 22px;
   pointer-events: none;
   z-index: 1;
 }

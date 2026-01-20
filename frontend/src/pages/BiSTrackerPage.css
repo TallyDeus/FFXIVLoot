@@ -171,13 +171,13 @@
 }
 
 .legend-item .item-type-badge {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 3px;
-  font-size: 13px; /* Increased from 11px */
+  border-radius: 4px;
+  font-size: 14px; /* Match tag item size */
   font-weight: 600;
   color: white;
 }
