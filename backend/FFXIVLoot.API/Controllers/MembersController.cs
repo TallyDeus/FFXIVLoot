@@ -284,13 +284,14 @@ public class MembersController : ControllerBase
                 });
             }
 
-            const long maxFileSize = 2 * 1024 * 1024;
+            // Max profile image size: 10MB to allow higher quality images
+            const long maxFileSize = 10 * 1024 * 1024;
             if (file.Length > maxFileSize)
             {
                 return BadRequest(new ProblemDetails
                 {
                     Title = "Bad Request",
-                    Detail = "File size exceeds 2MB limit"
+                    Detail = "File size exceeds 10MB limit"
                 });
             }
 
