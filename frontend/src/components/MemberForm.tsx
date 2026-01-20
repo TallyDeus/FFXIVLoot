@@ -59,10 +59,10 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
       return;
     }
 
-    const maxSize = 2 * 1024 * 1024;
+    const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
       if (onValidationError) {
-        onValidationError('Image file size must be less than 2MB');
+        onValidationError('Image file size must be less than 10MB');
       }
       e.target.value = '';
       return;
@@ -260,7 +260,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
               <label htmlFor="profileImage" className="file-input-label">
                 {imagePreview ? 'Change Image' : 'Upload Image'}
               </label>
-              <small>Max 2MB. Supported formats: JPG, PNG, GIF, WebP</small>
+              <small>Max 10MB. Supported formats: JPG, PNG, GIF, WebP</small>
             </div>
           </div>
 
