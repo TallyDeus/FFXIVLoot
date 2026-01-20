@@ -289,7 +289,13 @@
   transform: translate(-50%, -50%);
   color: #00ffaa;
   font-weight: bold;
-  font-size: 14px;
+  font-size: 26px;
+  line-height: 1;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-shadow: 
     0 0 4px #00ffaa,
     0 0 8px #00ffaa,

@@ -8,6 +8,20 @@ import { getBisItems } from '../utils/specHelpers';
 import { ItemTypeTag, UpgradeMaterialTag } from './Tag';
 import { ProfileImageTooltip } from './ProfileImageTooltip';
 import './BiSMatrix.css';
+import { RiInkBottleFill } from "react-icons/ri";
+import {
+  GiBroadsword,
+  GiVisoredHelm,
+  GiChestArmor,
+  GiGloves,
+  GiLegArmor,
+  GiArmoredPants,
+  GiDropEarrings,
+  GiPearlNecklace,
+  GiBracer,
+  GiRing,
+  GiYarn
+} from 'react-icons/gi';
 
 interface BiSMatrixProps {
   members: Member[];
@@ -33,6 +47,50 @@ export const BiSMatrix: React.FC<BiSMatrixProps> = ({ members, onUpdate, specTyp
   const sortedMembers = React.useMemo(() => {
     return [...members].sort((a, b) => a.name.localeCompare(b.name));
   }, [members]);
+
+  const iconSize = 18;
+
+  const SlotIcon: React.FC<{ slot: GearSlot }> = ({ slot }) => {
+    const commonProps = { size: iconSize, color: 'white', 'aria-hidden': true };
+    switch (slot) {
+      case GearSlot.Weapon:
+        return <GiBroadsword {...commonProps} />;
+      case GearSlot.Head:
+        return <GiVisoredHelm {...commonProps} />;
+      case GearSlot.Body:
+        return <GiChestArmor {...commonProps} />;
+      case GearSlot.Hand:
+        return <GiGloves {...commonProps} />;
+      case GearSlot.Legs:
+        return <GiArmoredPants {...commonProps} />;
+      case GearSlot.Feet:
+        return <GiLegArmor {...commonProps} />;
+      case GearSlot.Ears:
+        return <GiDropEarrings {...commonProps} />;
+      case GearSlot.Neck:
+        return <GiPearlNecklace {...commonProps} />;
+      case GearSlot.Wrist:
+        return <GiBracer {...commonProps} />;
+      case GearSlot.LeftRing:
+      case GearSlot.RightRing:
+        return <GiRing {...commonProps} />;
+      default:
+        return null;
+    }
+  };
+
+  const UpgradeIcon: React.FC<{ slot: GearSlot }> = ({ slot }) => {
+    const commonProps = { size: iconSize, color: 'white', 'aria-hidden': true };
+    const accessorySlots = [
+      GearSlot.Ears,
+      GearSlot.Neck,
+      GearSlot.Wrist,
+      GearSlot.LeftRing,
+      GearSlot.RightRing,
+    ];
+    const isAccessory = accessorySlots.includes(slot);
+    return isAccessory ? <RiInkBottleFill {...commonProps} /> : <GiYarn {...commonProps} />;
+  };
 
   const allSlots = Array.from(
     new Set(
@@ -171,7 +229,7 @@ export const BiSMatrix: React.FC<BiSMatrixProps> = ({ members, onUpdate, specTyp
                           disabled={!canEditBiS(member) || updating.has(`${member.id}-${slot}`)}
                           tooltip={`${member.name} - ${GearSlotNames[slot]}`}
                           acquired={item.isAcquired}
-                          children={item.itemType === ItemType.AugTome ? 'T' : 'R'}
+                          children={<SlotIcon slot={slot} />}
                         />
                         {item.itemType === ItemType.AugTome && (
                           <UpgradeMaterialTag
@@ -179,6 +237,7 @@ export const BiSMatrix: React.FC<BiSMatrixProps> = ({ members, onUpdate, specTyp
                             disabled={!canEditBiS(member) || updating.has(`${member.id}-${slot}-upgrade`)}
                             tooltip={`${member.name} - ${GearSlotNames[slot]} (Upgrade)`}
                             acquired={item.upgradeMaterialAcquired}
+                            children={<UpgradeIcon slot={slot} />}
                           />
                         )}
                       </div>

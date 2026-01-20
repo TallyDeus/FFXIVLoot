@@ -8,6 +8,20 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 import { useToast } from '../hooks/useToast';
 import { useAuth } from '../contexts/AuthContext';
 import { SpecTag, Tag, TagType } from '../components/Tag';
+import { RiInkBottleFill } from 'react-icons/ri';
+import {
+  GiBroadsword,
+  GiVisoredHelm,
+  GiChestArmor,
+  GiGloves,
+  GiArmoredPants,
+  GiLegArmor,
+  GiDropEarrings,
+  GiPearlNecklace,
+  GiBracer,
+  GiRing,
+  GiYarn,
+} from 'react-icons/gi';
 import { Button } from '../components/Button';
 import './LootHistoryPage.css';
 
@@ -32,6 +46,42 @@ export const LootHistoryPage: React.FC = () => {
   
   const canCreateWeek = hasPermission(PermissionRole.Manager);
   const canDeleteWeek = hasPermission(PermissionRole.Administrator);
+
+  const iconSize = 18;
+
+  const SlotIcon: React.FC<{ slot?: GearSlot | null }> = ({ slot }) => {
+    const commonProps = { size: iconSize, color: 'white', 'aria-hidden': true };
+    switch (slot) {
+      case GearSlot.Weapon:
+        return <GiBroadsword {...commonProps} />;
+      case GearSlot.Head:
+        return <GiVisoredHelm {...commonProps} />;
+      case GearSlot.Body:
+        return <GiChestArmor {...commonProps} />;
+      case GearSlot.Hand:
+        return <GiGloves {...commonProps} />;
+      case GearSlot.Legs:
+        return <GiArmoredPants {...commonProps} />;
+      case GearSlot.Feet:
+        return <GiLegArmor {...commonProps} />;
+      case GearSlot.Ears:
+        return <GiDropEarrings {...commonProps} />;
+      case GearSlot.Neck:
+        return <GiPearlNecklace {...commonProps} />;
+      case GearSlot.Wrist:
+        return <GiBracer {...commonProps} />;
+      case GearSlot.LeftRing:
+      case GearSlot.RightRing:
+        return <GiRing {...commonProps} />;
+      default:
+        return null;
+    }
+  };
+
+  const UpgradeIcon: React.FC<{ isArmorMaterial?: boolean }> = ({ isArmorMaterial }) => {
+    const commonProps = { size: iconSize, color: 'white', 'aria-hidden': true };
+    return isArmorMaterial ? <GiYarn {...commonProps} /> : <RiInkBottleFill {...commonProps} />;
+  };
 
   const loadData = useCallback(async () => {
     try {
@@ -314,7 +364,17 @@ export const LootHistoryPage: React.FC = () => {
                                 <div key={assignment.id} className="assignment-item">
                                   <span className="assignment-text">
                                     <span className="item-name">{itemName}</span>
-                                    <Tag type={tagType} variant="badge" />
+                                    <Tag
+                                      type={tagType}
+                                      variant="badge"
+                                      children={
+                                        assignment.isUpgradeMaterial ? (
+                                          <UpgradeIcon isArmorMaterial={assignment.isArmorMaterial} />
+                                        ) : (
+                                          <SlotIcon slot={assignment.slot as GearSlot | null} />
+                                        )
+                                      }
+                                    />
                                     <span className="assignment-separator">-</span>
                                     <span className="assignment-acquired">Acquired by</span>
                                     {(() => {
