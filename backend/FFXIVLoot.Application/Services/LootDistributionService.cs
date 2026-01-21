@@ -500,8 +500,10 @@ public class LootDistributionService : ILootDistributionService
                                relevantSlots.Contains(item.Slot) && 
                                !item.UpgradeMaterialAcquired)
                 // Prioritize pieces that are already acquired so the upgrade material
-                // is applied next to the owned tomestone piece (e.g., body before an unacquired helm)
+                // is applied next to the owned tomestone piece (applies to both armor and accessory materials)
+                // Additionally, for armor materials: prioritize body/legs over head/hand/feet when one piece from each category is acquired
                 .OrderByDescending(item => item.IsAcquired)
+                .ThenByDescending(item => GetArmorSlotPriority(item.Slot, item.IsAcquired, itemsList))
                 .ThenBy(item => item.Slot)
                 .ToList();
 
@@ -623,6 +625,49 @@ public class LootDistributionService : ILootDistributionService
         {
             await _updatesBroadcaster.BroadcastLootUndoneAsync((int)assignment.FloorNumber, assignment.WeekNumber);
         }
+    }
+
+    /// <summary>
+    /// Gets priority value for armor slot when assigning upgrade materials
+    /// Prioritizes body/legs over head/hand/feet when one piece from each category is acquired
+    /// </summary>
+    private static int GetArmorSlotPriority(GearSlot slot, bool isAcquired, List<Domain.Entities.GearItem> allItems)
+    {
+        // Only applies to armor slots
+        var bodyLegsSlots = new[] { GearSlot.Body, GearSlot.Legs };
+        var headHandFeetSlots = new[] { GearSlot.Head, GearSlot.Hand, GearSlot.Feet };
+
+        if (!bodyLegsSlots.Contains(slot) && !headHandFeetSlots.Contains(slot))
+        {
+            return 0; // Not an armor slot, no priority
+        }
+
+        // Check if there's at least one acquired item in each category
+        var hasAcquiredBodyLegs = allItems.Any(item => 
+            bodyLegsSlots.Contains(item.Slot) && 
+            item.ItemType == ItemType.AugTome && 
+            item.IsAcquired);
+        
+        var hasAcquiredHeadHandFeet = allItems.Any(item => 
+            headHandFeetSlots.Contains(item.Slot) && 
+            item.ItemType == ItemType.AugTome && 
+            item.IsAcquired);
+
+        // If both categories have acquired items, prioritize body/legs
+        if (hasAcquiredBodyLegs && hasAcquiredHeadHandFeet)
+        {
+            if (bodyLegsSlots.Contains(slot))
+            {
+                return 2; // Higher priority for body/legs
+            }
+            else
+            {
+                return 1; // Lower priority for head/hand/feet
+            }
+        }
+
+        // Otherwise, no special priority
+        return 0;
     }
 
     /// <summary>
