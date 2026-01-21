@@ -201,86 +201,105 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
         <form onSubmit={handleSubmit} className="member-form">
           <h3>{member ? 'Edit Member' : 'Add New Member'}</h3>
           
-          <div className="form-group">
-            <label htmlFor="name">Name *</label>
-            <input
-              type="text"
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value.slice(0, 20))}
-              required
-              maxLength={20}
-              placeholder="Enter member name"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Profile Image</label>
-            <div className="profile-image-upload">
-              {imagePreview && (
-                <div className="profile-image-preview">
-                  <img 
-                    src={imagePreview.startsWith('data:') ? imagePreview : `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${imagePreview}`}
-                    alt="Profile preview"
-                    className="profile-image-circle"
-                  />
-                  {member && (
-                    <button
-                      type="button"
-                      onClick={handleDeleteImage}
+          <div className="form-group profile-name-group">
+            <div className="profile-image-section">
+              <label>Profile Image</label>
+              <div className="profile-image-upload">
+                {imagePreview && (
+                  <div className="profile-image-preview">
+                    <img 
+                      src={imagePreview.startsWith('data:') ? imagePreview : `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${imagePreview}`}
+                      alt="Profile preview"
+                      className="profile-image-circle"
+                    />
+                    <div className="profile-image-actions">
+                      <input
+                        type="file"
+                        id="profileImage"
+                        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                        onChange={handleFileChange}
+                        disabled={uploading}
+                        className="file-input"
+                      />
+                      <label htmlFor="profileImage" className="file-input-label">
+                        Change
+                      </label>
+                      {member && (
+                        <button
+                          type="button"
+                          onClick={handleDeleteImage}
+                          disabled={uploading}
+                          className="btn-delete-image"
+                        >
+                          Remove
+                        </button>
+                      )}
+                      {!member && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedFile(null);
+                            setImagePreview(null);
+                          }}
+                          disabled={uploading}
+                          className="btn-delete-image"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {!imagePreview && (
+                  <>
+                    <input
+                      type="file"
+                      id="profileImage"
+                      accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                      onChange={handleFileChange}
                       disabled={uploading}
-                      className="btn-delete-image"
-                    >
-                      Remove
-                    </button>
-                  )}
-                  {!member && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedFile(null);
-                        setImagePreview(null);
-                      }}
-                      disabled={uploading}
-                      className="btn-delete-image"
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
-              )}
-              <input
-                type="file"
-                id="profileImage"
-                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-                onChange={handleFileChange}
-                disabled={uploading}
-                className="file-input"
-              />
-              <label htmlFor="profileImage" className="file-input-label">
-                {imagePreview ? 'Change Image' : 'Upload Image'}
-              </label>
-              <small>Max 10MB. Supported formats: JPG, PNG, GIF, WebP</small>
+                      className="file-input"
+                    />
+                    <label htmlFor="profileImage" className="file-input-label">
+                      Upload Image
+                    </label>
+                  </>
+                )}
+                <small>Max 10MB. Supported formats: JPG, PNG, GIF, WebP</small>
+              </div>
             </div>
-          </div>
-
-          <div className="form-group">
-            <label>Role *</label>
-            <div className="role-buttons">
-              <button
-                type="button"
-                className={`role-button ${role === MemberRole.DPS ? 'active dps' : 'inactive'}`}
-                onClick={() => setRole(MemberRole.DPS)}
-              >
-                DPS
-              </button>
-              <button
-                type="button"
-                className={`role-button ${role === MemberRole.Support ? 'active support' : 'inactive'}`}
-                onClick={() => setRole(MemberRole.Support)}
-              >
-                Support
-              </button>
+            <div className="name-section">
+              <div className="form-group">
+                <label htmlFor="name">Name *</label>
+                <input
+                  type="text"
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value.slice(0, 20))}
+                  required
+                  maxLength={20}
+                  placeholder="Enter member name"
+                />
+              </div>
+              <div className="form-group">
+                <label>Role *</label>
+                <div className="role-buttons">
+                  <button
+                    type="button"
+                    className={`role-button ${role === MemberRole.DPS ? 'active dps' : 'inactive'}`}
+                    onClick={() => setRole(MemberRole.DPS)}
+                  >
+                    DPS
+                  </button>
+                  <button
+                    type="button"
+                    className={`role-button ${role === MemberRole.Support ? 'active support' : 'inactive'}`}
+                    onClick={() => setRole(MemberRole.Support)}
+                  >
+                    Support
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
