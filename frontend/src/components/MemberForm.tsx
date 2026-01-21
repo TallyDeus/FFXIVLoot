@@ -137,14 +137,14 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
 
     if (xivGearLink && !validateXivGearLink(xivGearLink)) {
       if (onValidationError) {
-        onValidationError('Invalid URL. It has to be a XivGear Short Link.');
+        onValidationError('Invalid URL. It has to be a XivGear Short Link. If the link contains multiple sets, you have to click export selected set and generate a link for it.');
       }
       return;
     }
 
     if (offSpecXivGearLink && !validateXivGearLink(offSpecXivGearLink)) {
       if (onValidationError) {
-        onValidationError('Invalid URL. It has to be a XivGear Short Link.');
+        onValidationError('Invalid URL. It has to be a XivGear Short Link. If the link contains multiple sets, you have to click export selected set and generate a link for it.');
       }
       return;
     }

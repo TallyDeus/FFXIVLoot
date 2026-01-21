@@ -68,21 +68,38 @@
   color: var(--tc-text-main);
 }
 
-.form-group input {
+.member-form .form-group input,
+.member-form .form-group input[type="text"],
+.member-form .form-group input[type="url"] {
   width: 100%;
-  padding: 8px;
-  border: 1px solid var(--tc-border);
+  padding: 8px 12px;
+  border: 2px solid rgba(111, 141, 174, 0.8) !important; /* More visible border using accent color */
   border-radius: 4px;
   font-size: 14px;
-  background-color: var(--tc-bg-surface);
-  color: var(--tc-text-main);
+  background-color: rgba(42, 47, 56, 0.8) !important; /* More visible background */
+  color: var(--tc-text-main) !important;
   transition: all 0.2s ease;
 }
 
-.form-group input:focus {
+.member-form .form-group input:hover,
+.member-form .form-group input[type="text"]:hover,
+.member-form .form-group input[type="url"]:hover {
+  border-color: var(--tc-accent-primary) !important;
+  background-color: rgba(42, 47, 56, 0.9) !important;
+}
+
+.member-form .form-group input:focus,
+.member-form .form-group input[type="text"]:focus,
+.member-form .form-group input[type="url"]:focus {
   outline: none;
-  border-color: var(--tc-accent-primary);
-  box-shadow: 0 0 0 2px var(--tc-shadow-hover);
+  border-color: var(--tc-accent-primary) !important;
+  background-color: rgba(42, 47, 56, 1) !important;
+  box-shadow: 0 0 0 3px var(--tc-shadow-hover) !important;
+}
+
+.form-group input::placeholder {
+  color: var(--tc-text-muted);
+  opacity: 0.7;
 }
 
 .role-buttons {
@@ -115,15 +132,16 @@
 }
 
 .role-button.inactive {
-  background-color: var(--tc-bg-surface);
-  color: var(--tc-text-muted);
+  background-color: var(--tc-bg-dark);
+  color: var(--tc-text-main);
   border-color: var(--tc-border);
-  opacity: 0.5;
+  opacity: 0.8;
 }
 
 .role-button.inactive:hover {
-  opacity: 0.7;
-  border-color: var(--tc-border-light);
+  opacity: 1;
+  border-color: var(--tc-accent-primary);
+  background-color: rgba(42, 47, 56, 0.8);
 }
 
 .form-group small {
@@ -175,23 +193,25 @@
 .permission-role-select {
   width: 100%;
   padding: 8px 12px;
-  border: 1px solid var(--tc-border);
+  border: 2px solid var(--tc-border);
   border-radius: 4px;
-  background-color: var(--tc-bg-surface);
+  background-color: var(--tc-bg-dark);
   color: var(--tc-text-main);
   font-size: 14px;
-  transition: border-color 0.2s ease;
+  transition: all 0.2s ease;
   cursor: pointer;
+}
+
+.permission-role-select:hover {
+  border-color: var(--tc-accent-primary);
+  background-color: rgba(42, 47, 56, 0.8);
 }
 
 .permission-role-select:focus {
   outline: none;
   border-color: var(--tc-accent-primary);
-  box-shadow: 0 0 0 2px var(--tc-shadow-hover);
-}
-
-.permission-role-select:hover {
-  border-color: var(--tc-accent-primary);
+  background-color: rgba(42, 47, 56, 0.9);
+  box-shadow: 0 0 0 3px var(--tc-shadow-hover);
 }
 
 .profile-image-upload {
@@ -222,8 +242,8 @@
 .file-input-label {
   display: inline-block;
   padding: 8px 16px;
-  background-color: var(--tc-bg-surface);
-  border: 1px solid var(--tc-border);
+  background-color: var(--tc-bg-dark);
+  border: 2px solid var(--tc-border);
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
@@ -234,7 +254,7 @@
 }
 
 .file-input-label:hover {
-  background-color: var(--tc-bg-dark);
+  background-color: var(--tc-bg-surface);
   border-color: var(--tc-accent-primary);
 }
 
