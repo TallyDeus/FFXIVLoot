@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Member, SpecType } from '../types/member';
+import { Member, SpecType, GearSlot } from '../types/member';
 import { memberService } from '../services/api/memberService';
 import { BiSMatrix } from '../components/BiSMatrix';
 import { ExtraLootMatrix } from '../components/ExtraLootMatrix';
@@ -177,7 +177,38 @@ export const BiSTrackerPage: React.FC = () => {
             ) : (
               <div className="view-content">
                 <div className="spec-section">
-                  <BiSMatrix members={members} onUpdate={loadMembers} specType={activeView} />
+                  <BiSMatrix 
+                    members={members} 
+                    onUpdate={loadMembers} 
+                    onMemberUpdate={(memberId, slot, isAcquired, upgradeMaterialAcquired) => {
+                      // Optimistically update local state for smooth UI
+                      setMembers(prevMembers => {
+                        return prevMembers.map(member => {
+                          if (member.id === memberId) {
+                            const itemsList = getBisItems(member, activeView);
+                            const updatedItems = itemsList.map(item => {
+                              if (item.slot === slot) {
+                                if (upgradeMaterialAcquired !== undefined) {
+                                  return { ...item, upgradeMaterialAcquired };
+                                } else {
+                                  return { ...item, isAcquired };
+                                }
+                              }
+                              return item;
+                            });
+
+                            if (activeView === 'off') {
+                              return { ...member, offSpecBisItems: updatedItems };
+                            } else {
+                              return { ...member, bisItems: updatedItems };
+                            }
+                          }
+                          return member;
+                        });
+                      });
+                    }}
+                    specType={activeView} 
+                  />
                 </div>
               </div>
             )}

@@ -26,6 +26,7 @@ import {
 interface BiSMatrixProps {
   members: Member[];
   onUpdate: () => void;
+  onMemberUpdate?: (memberId: string, slot: GearSlot, isAcquired: boolean, upgradeMaterialAcquired?: boolean) => void;
   specType?: 'main' | 'off';
 }
 
@@ -33,7 +34,7 @@ interface BiSMatrixProps {
  * Matrix view showing all members' BiS progress at once
  * Members as columns, gear slots as rows
  */
-export const BiSMatrix: React.FC<BiSMatrixProps> = ({ members, onUpdate, specType = 'main' }) => {
+export const BiSMatrix: React.FC<BiSMatrixProps> = ({ members, onUpdate, onMemberUpdate, specType = 'main' }) => {
   const [updating, setUpdating] = useState<Set<string>>(new Set());
   const { toasts, showToast, removeToast } = useToast();
   const { currentUser, hasPermission, isSelf } = useAuth();
@@ -104,20 +105,31 @@ export const BiSMatrix: React.FC<BiSMatrixProps> = ({ members, onUpdate, specTyp
   );
 
   /**
-   * Helper to manage updating state for async operations
+   * Helper to manage updating state for async operations with optimistic updates
    */
   const withUpdatingState = async <T,>(
     key: string,
     operation: () => Promise<T>,
-    errorMessage: string
+    errorMessage: string,
+    optimisticUpdate?: () => void
   ): Promise<T | void> => {
     if (updating.has(key)) return;
     
     try {
       setUpdating(prev => new Set(prev).add(key));
+      
+      // Apply optimistic update immediately for smooth UI
+      if (optimisticUpdate) {
+        optimisticUpdate();
+      }
+      
       await operation();
-      onUpdate();
+      
+      // Only refresh on error - SignalR will handle successful updates
+      // onUpdate is kept as fallback but won't cause refresh-like behavior
     } catch (error) {
+      // On error, revert optimistic update by refreshing
+      onUpdate();
       showToast(errorMessage, 'error');
     } finally {
       setUpdating(prev => {
@@ -130,19 +142,37 @@ export const BiSMatrix: React.FC<BiSMatrixProps> = ({ members, onUpdate, specTyp
 
   const handleItemToggle = async (memberId: string, slot: GearSlot, isAcquired: boolean) => {
     const key = `${memberId}-${slot}`;
+    
+    // Optimistic update callback
+    const optimisticUpdate = () => {
+      if (onMemberUpdate) {
+        onMemberUpdate(memberId, slot, isAcquired);
+      }
+    };
+    
     await withUpdatingState(
       key,
       () => bisService.updateItemAcquisition(memberId, slot, isAcquired, specType),
-      'Failed to update item acquisition. Please try again.'
+      'Failed to update item acquisition. Please try again.',
+      optimisticUpdate
     );
   };
 
   const handleUpgradeToggle = async (memberId: string, slot: GearSlot, upgradeMaterialAcquired: boolean) => {
     const key = `${memberId}-${slot}-upgrade`;
+    
+    // Optimistic update callback
+    const optimisticUpdate = () => {
+      if (onMemberUpdate) {
+        onMemberUpdate(memberId, slot, undefined, upgradeMaterialAcquired);
+      }
+    };
+    
     await withUpdatingState(
       key,
       () => bisService.updateUpgradeMaterialAcquisition(memberId, slot, upgradeMaterialAcquired, specType),
-      'Failed to update upgrade material. Please try again.'
+      'Failed to update upgrade material. Please try again.',
+      optimisticUpdate
     );
   };
 
