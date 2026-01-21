@@ -14,6 +14,7 @@ public class LootDistributionService : ILootDistributionService
     private readonly IMemberRepository _memberRepository;
     private readonly ILootAssignmentRepository _assignmentRepository;
     private readonly IWeekRepository _weekRepository;
+    private readonly IUpdatesBroadcaster? _updatesBroadcaster;
 
     /// <summary>
     /// Initializes a new instance of LootDistributionService
@@ -21,11 +22,13 @@ public class LootDistributionService : ILootDistributionService
     public LootDistributionService(
         IMemberRepository memberRepository,
         ILootAssignmentRepository assignmentRepository,
-        IWeekRepository weekRepository)
+        IWeekRepository weekRepository,
+        IUpdatesBroadcaster? updatesBroadcaster = null)
     {
         _memberRepository = memberRepository ?? throw new ArgumentNullException(nameof(memberRepository));
         _assignmentRepository = assignmentRepository ?? throw new ArgumentNullException(nameof(assignmentRepository));
         _weekRepository = weekRepository ?? throw new ArgumentNullException(nameof(weekRepository));
+        _updatesBroadcaster = updatesBroadcaster;
     }
 
     /// <summary>
@@ -422,6 +425,12 @@ public class LootDistributionService : ILootDistributionService
             {
                 MemberLinkStateHelper.UpdateLinkStateFromItem(member, specType, actualSlot);
                 await _memberRepository.UpdateAsync(member);
+
+                // Broadcast BiS item update so BiS Tracker page updates in real-time
+                if (_updatesBroadcaster != null)
+                {
+                    await _updatesBroadcaster.BroadcastBiSItemUpdateAsync(memberId, (int)actualSlot, true, (int)specType);
+                }
             }
         }
         else
@@ -444,6 +453,13 @@ public class LootDistributionService : ILootDistributionService
         };
 
         await _assignmentRepository.CreateAsync(assignment);
+
+        // Broadcast real-time update for loot distribution page
+        if (_updatesBroadcaster != null)
+        {
+            await _updatesBroadcaster.BroadcastLootAssignedAsync((int)floorNumber, currentWeek.WeekNumber);
+        }
+
         return assignment.Id;
     }
 
@@ -483,7 +499,10 @@ public class LootDistributionService : ILootDistributionService
                 .Where(item => item.ItemType == ItemType.AugTome && 
                                relevantSlots.Contains(item.Slot) && 
                                !item.UpgradeMaterialAcquired)
-                .OrderBy(item => item.Slot)
+                // Prioritize pieces that are already acquired so the upgrade material
+                // is applied next to the owned tomestone piece (e.g., body before an unacquired helm)
+                .OrderByDescending(item => item.IsAcquired)
+                .ThenBy(item => item.Slot)
                 .ToList();
 
             if (!itemsToUpgrade.Any())
@@ -496,6 +515,12 @@ public class LootDistributionService : ILootDistributionService
             
             MemberLinkStateHelper.UpdateLinkStateFromItem(member, specType, updatedSlot);
             await _memberRepository.UpdateAsync(member);
+
+            // Broadcast upgrade material update so BiS Tracker page updates in real-time
+            if (_updatesBroadcaster != null)
+            {
+                await _updatesBroadcaster.BroadcastUpgradeMaterialUpdateAsync(memberId, (int)updatedSlot, true, (int)specType);
+            }
         }
 
         var assignment = new Domain.Entities.LootAssignment
@@ -511,6 +536,13 @@ public class LootDistributionService : ILootDistributionService
         };
 
         await _assignmentRepository.CreateAsync(assignment);
+
+        // Broadcast real-time update for loot distribution page
+        if (_updatesBroadcaster != null)
+        {
+            await _updatesBroadcaster.BroadcastLootAssignedAsync((int)floorNumber, currentWeek.WeekNumber);
+        }
+
         return assignment.Id;
     }
 
@@ -554,6 +586,13 @@ public class LootDistributionService : ILootDistributionService
             if (upgradedItem != null)
             {
                 upgradedItem.UpgradeMaterialAcquired = false;
+                await _memberRepository.UpdateAsync(member);
+
+                // Broadcast upgrade material update so BiS Tracker page updates in real-time
+                if (_updatesBroadcaster != null)
+                {
+                    await _updatesBroadcaster.BroadcastUpgradeMaterialUpdateAsync(assignment.MemberId, (int)upgradedItem.Slot, false, (int)assignment.SpecType);
+                }
             }
         }
         else if (assignment.Slot.HasValue)
@@ -562,13 +601,28 @@ public class LootDistributionService : ILootDistributionService
             if (item != null)
             {
                 item.IsAcquired = false;
+                await _memberRepository.UpdateAsync(member);
+
+                // Broadcast BiS item update so BiS Tracker page updates in real-time
+                if (_updatesBroadcaster != null)
+                {
+                    await _updatesBroadcaster.BroadcastBiSItemUpdateAsync(assignment.MemberId, (int)assignment.Slot.Value, false, (int)assignment.SpecType);
+                }
             }
         }
-
-        await _memberRepository.UpdateAsync(member);
+        else
+        {
+            await _memberRepository.UpdateAsync(member);
+        }
 
         assignment.IsUndone = true;
         await _assignmentRepository.UpdateAsync(assignment);
+
+        // Broadcast real-time update for loot distribution page
+        if (_updatesBroadcaster != null)
+        {
+            await _updatesBroadcaster.BroadcastLootUndoneAsync((int)assignment.FloorNumber, assignment.WeekNumber);
+        }
     }
 
     /// <summary>

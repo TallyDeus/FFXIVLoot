@@ -16,16 +16,18 @@ public class BiSService : IBiSService
     private readonly IXivGearClient _xivGearClient;
     private readonly ILootAssignmentRepository _assignmentRepository;
     private readonly IWeekRepository _weekRepository;
+    private readonly IUpdatesBroadcaster? _updatesBroadcaster;
 
     /// <summary>
     /// Initializes a new instance of BiSService
     /// </summary>
-    public BiSService(IMemberRepository memberRepository, IXivGearClient xivGearClient, ILootAssignmentRepository assignmentRepository, IWeekRepository weekRepository)
+    public BiSService(IMemberRepository memberRepository, IXivGearClient xivGearClient, ILootAssignmentRepository assignmentRepository, IWeekRepository weekRepository, IUpdatesBroadcaster? updatesBroadcaster = null)
     {
         _memberRepository = memberRepository ?? throw new ArgumentNullException(nameof(memberRepository));
         _xivGearClient = xivGearClient ?? throw new ArgumentNullException(nameof(xivGearClient));
         _assignmentRepository = assignmentRepository ?? throw new ArgumentNullException(nameof(assignmentRepository));
         _weekRepository = weekRepository ?? throw new ArgumentNullException(nameof(weekRepository));
+        _updatesBroadcaster = updatesBroadcaster;
     }
 
     /// <summary>
@@ -182,6 +184,12 @@ public class BiSService : IBiSService
         }
         
         await _memberRepository.UpdateAsync(member);
+
+        // Broadcast real-time update
+        if (_updatesBroadcaster != null)
+        {
+            await _updatesBroadcaster.BroadcastBiSItemUpdateAsync(memberId, (int)slot, isAcquired, (int)specType);
+        }
     }
 
     /// <summary>
@@ -265,6 +273,12 @@ public class BiSService : IBiSService
         }
         
         await _memberRepository.UpdateAsync(member);
+
+        // Broadcast real-time update
+        if (_updatesBroadcaster != null)
+        {
+            await _updatesBroadcaster.BroadcastUpgradeMaterialUpdateAsync(memberId, (int)slot, upgradeMaterialAcquired, (int)specType);
+        }
     }
 
     /// <summary>

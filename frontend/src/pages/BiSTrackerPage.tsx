@@ -6,6 +6,8 @@ import { ExtraLootMatrix } from '../components/ExtraLootMatrix';
 import { ToastContainer } from '../components/Toast';
 import { useToast } from '../hooks/useToast';
 import { SpecTag, Tag, TagType } from '../components/Tag';
+import { signalRService } from '../services/signalrService';
+import { getBisItems } from '../utils/specHelpers';
 import './BiSTrackerPage.css';
 
 type ViewType = 'main' | 'off' | 'extra';
@@ -19,21 +21,102 @@ export const BiSTrackerPage: React.FC = () => {
   const [activeView, setActiveView] = useState<ViewType>('main');
   const { toasts, showToast, removeToast } = useToast();
 
+  const refreshMembers = useCallback(async () => {
+    try {
+      const data = await memberService.getAllMembers();
+      setMembers(data);
+    } catch (error) {
+      showToast('Failed to refresh members. Please try again.', 'error');
+    }
+  }, [showToast]);
+
   const loadMembers = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await memberService.getAllMembers();
-      setMembers(data);
+      await refreshMembers();
     } catch (error) {
       showToast('Failed to load members. Please try again.', 'error');
     } finally {
       setLoading(false);
     }
-  }, [showToast]);
+  }, [refreshMembers, showToast]);
 
   useEffect(() => {
     loadMembers();
   }, [loadMembers]);
+
+  // Set up SignalR real-time updates
+  useEffect(() => {
+    let isMounted = true;
+
+    const setupSignalR = async () => {
+      try {
+        await signalRService.start();
+
+        // Listen for BiS item updates
+        signalRService.onBiSItemUpdate((memberId, slot, isAcquired, specType) => {
+          if (!isMounted) return;
+
+          setMembers(prevMembers => {
+            return prevMembers.map(member => {
+              if (member.id === memberId) {
+                const itemsList = getBisItems(member, specType === SpecType.OffSpec ? 'off' : 'main');
+                const updatedItems = itemsList.map(item => {
+                  if (item.slot === slot) {
+                    return { ...item, isAcquired };
+                  }
+                  return item;
+                });
+
+                if (specType === SpecType.OffSpec) {
+                  return { ...member, offSpecBisItems: updatedItems };
+                } else {
+                  return { ...member, bisItems: updatedItems };
+                }
+              }
+              return member;
+            });
+          });
+        });
+
+        // Listen for upgrade material updates
+        signalRService.onUpgradeMaterialUpdate((memberId, slot, upgradeMaterialAcquired, specType) => {
+          if (!isMounted) return;
+
+          setMembers(prevMembers => {
+            return prevMembers.map(member => {
+              if (member.id === memberId) {
+                const itemsList = getBisItems(member, specType === SpecType.OffSpec ? 'off' : 'main');
+                const updatedItems = itemsList.map(item => {
+                  if (item.slot === slot) {
+                    return { ...item, upgradeMaterialAcquired };
+                  }
+                  return item;
+                });
+
+                if (specType === SpecType.OffSpec) {
+                  return { ...member, offSpecBisItems: updatedItems };
+                } else {
+                  return { ...member, bisItems: updatedItems };
+                }
+              }
+              return member;
+            });
+          });
+        });
+      } catch (error) {
+        console.error('Failed to setup SignalR connection:', error);
+      }
+    };
+
+    setupSignalR();
+
+    return () => {
+      isMounted = false;
+      // Note: We don't stop SignalR here as it may be used by other pages
+      // The connection will be managed globally
+    };
+  }, []);
 
   if (loading) {
     return <div className="loading">Loading members...</div>;

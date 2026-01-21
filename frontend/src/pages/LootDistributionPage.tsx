@@ -10,6 +10,7 @@ import { ToastContainer } from '../components/Toast';
 import { useToast } from '../hooks/useToast';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/Button';
+import { signalRService } from '../services/signalrService';
 import './LootDistributionPage.css';
 
 /**
@@ -40,6 +41,77 @@ export const LootDistributionPage: React.FC = () => {
       loadAllLootData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentWeek]);
+
+  // Set up SignalR real-time updates for loot distribution
+  useEffect(() => {
+    let isMounted = true;
+
+    const setupSignalR = async () => {
+      try {
+        await signalRService.start();
+
+        // Listen for loot assignment updates
+        signalRService.onLootAssigned((floorNumber, weekNumber) => {
+          if (!isMounted) return;
+          
+          // Only refresh if it's the current week or no week specified
+          if (!currentWeek || weekNumber === null || weekNumber === currentWeek.weekNumber) {
+            const floor = floorNumber as FloorNumber;
+            // Refresh the affected floor's loot data
+            if (currentWeek) {
+              lootService.getAvailableLoot(floor, currentWeek.weekNumber)
+                .then(lootData => {
+                  if (isMounted) {
+                    setLootCache(prevCache => {
+                      const newCache = new Map(prevCache);
+                      newCache.set(floor, lootData);
+                      return newCache;
+                    });
+                  }
+                })
+                .catch(() => {
+                  // Silently handle errors
+                });
+            }
+          }
+        });
+
+        // Listen for loot undone updates
+        signalRService.onLootUndone((floorNumber, weekNumber) => {
+          if (!isMounted) return;
+          
+          // Only refresh if it's the current week or no week specified
+          if (!currentWeek || weekNumber === null || weekNumber === currentWeek.weekNumber) {
+            const floor = floorNumber as FloorNumber;
+            // Refresh the affected floor's loot data
+            if (currentWeek) {
+              lootService.getAvailableLoot(floor, currentWeek.weekNumber)
+                .then(lootData => {
+                  if (isMounted) {
+                    setLootCache(prevCache => {
+                      const newCache = new Map(prevCache);
+                      newCache.set(floor, lootData);
+                      return newCache;
+                    });
+                  }
+                })
+                .catch(() => {
+                  // Silently handle errors
+                });
+            }
+          }
+        });
+      } catch (error) {
+        console.error('Failed to setup SignalR connection:', error);
+      }
+    };
+
+    setupSignalR();
+
+    return () => {
+      isMounted = false;
+    };
   }, [currentWeek]);
 
   const loadWeekData = async () => {

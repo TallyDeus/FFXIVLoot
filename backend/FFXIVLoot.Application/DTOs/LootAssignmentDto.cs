@@ -133,4 +133,3 @@ public class MemberAcquisitionCountDto
     /// </summary>
     public int Count { get; set; }
 }
-
