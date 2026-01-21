@@ -26,7 +26,7 @@ import {
 interface BiSMatrixProps {
   members: Member[];
   onUpdate: () => void;
-  onMemberUpdate?: (memberId: string, slot: GearSlot, isAcquired: boolean, upgradeMaterialAcquired?: boolean) => void;
+  onMemberUpdate?: (memberId: string, slot: GearSlot, isAcquired?: boolean, upgradeMaterialAcquired?: boolean) => void;
   specType?: 'main' | 'off';
 }
 

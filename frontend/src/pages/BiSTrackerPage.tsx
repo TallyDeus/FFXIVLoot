@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Member, SpecType, GearSlot } from '../types/member';
+import { Member, SpecType } from '../types/member';
 import { memberService } from '../services/api/memberService';
 import { BiSMatrix } from '../components/BiSMatrix';
 import { ExtraLootMatrix } from '../components/ExtraLootMatrix';
@@ -190,7 +190,7 @@ export const BiSTrackerPage: React.FC = () => {
                               if (item.slot === slot) {
                                 if (upgradeMaterialAcquired !== undefined) {
                                   return { ...item, upgradeMaterialAcquired };
-                                } else {
+                                } else if (isAcquired !== undefined) {
                                   return { ...item, isAcquired };
                                 }
                               }
