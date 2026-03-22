@@ -5,7 +5,6 @@ import {
   GearSlotNames,
   ItemType,
   PermissionRole,
-  BisJobCategory,
   bisJobCategoryFromAbbrev,
 } from '../types/member';
 import { BisJobCategoryBadge } from './BisJobCategoryBadge';
