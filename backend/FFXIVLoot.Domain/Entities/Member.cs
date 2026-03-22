@@ -31,9 +31,24 @@ public class Member
     public List<GearItem> BisItems { get; set; } = new();
 
     /// <summary>
+    /// Combat role category for the job they are currently playing (set manually with <see cref="MainSpecBisJobAbbrev"/>).
+    /// </summary>
+    public Enums.BisJobCategory MainSpecBisJobCategory { get; set; } = Enums.BisJobCategory.Unknown;
+
+    /// <summary>
+    /// Job abbreviation for display (e.g. PLD), set manually on the member profile.
+    /// </summary>
+    public string? MainSpecBisJobAbbrev { get; set; }
+
+    /// <summary>
     /// Link to the xivgear best-in-slot list for this member's off spec
     /// </summary>
     public string? OffSpecXivGearLink { get; set; }
+
+    /// <summary>
+    /// When true, off-spec BiS is tracked as a full set of raid coffers (plus one tomestone ring) instead of a XivGear link.
+    /// </summary>
+    public bool OffSpecFullCofferSet { get; set; }
 
     /// <summary>
     /// List of best-in-slot gear items for this member's off spec

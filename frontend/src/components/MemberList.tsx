@@ -112,7 +112,11 @@ export const MemberList: React.FC<MemberListProps> = ({ members, onEdit, onDelet
                   )}
                 </td>
                 <td>
-                  {member.offSpecXivGearLink ? (
+                  {member.offSpecFullCofferSet ? (
+                    <span className="no-link" title="Full set of coffers">
+                      Full coffer set
+                    </span>
+                  ) : member.offSpecXivGearLink ? (
                     <Button 
                       component="a"
                       href={member.offSpecXivGearLink} 

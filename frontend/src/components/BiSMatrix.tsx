@@ -1,12 +1,21 @@
 import React, { useState } from 'react';
-import { Member, GearSlot, GearSlotNames, ItemType, PermissionRole } from '../types/member';
+import {
+  Member,
+  GearSlot,
+  GearSlotNames,
+  ItemType,
+  PermissionRole,
+  BisJobCategory,
+  bisJobCategoryFromAbbrev,
+} from '../types/member';
+import { BisJobCategoryBadge } from './BisJobCategoryBadge';
 import { bisService } from '../services/api/bisService';
 import { ToastContainer } from './Toast';
 import { useToast } from '../hooks/useToast';
 import { useAuth } from '../contexts/AuthContext';
 import { getBisItems } from '../utils/specHelpers';
 import { ItemTypeTag, UpgradeMaterialTag } from './Tag';
-import { ProfileImageTooltip } from './ProfileImageTooltip';
+import { BiSMemberProfileModal } from './BiSMemberProfileModal';
 import './BiSMatrix.css';
 import { RiInkBottleFill } from "react-icons/ri";
 import {
@@ -36,6 +45,7 @@ interface BiSMatrixProps {
  */
 export const BiSMatrix: React.FC<BiSMatrixProps> = ({ members, onUpdate, onMemberUpdate, specType = 'main' }) => {
   const [updating, setUpdating] = useState<Set<string>>(new Set());
+  const [profileModalMember, setProfileModalMember] = useState<Member | null>(null);
   const { toasts, showToast, removeToast } = useToast();
   const { currentUser, hasPermission, isSelf } = useAuth();
 
@@ -206,22 +216,38 @@ export const BiSMatrix: React.FC<BiSMatrixProps> = ({ members, onUpdate, onMembe
                       const imageUrl = member.profileImageUrl 
                         ? `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${member.profileImageUrl}`
                         : `${process.env.PUBLIC_URL}/ffxiv-logo.png`;
+                      const jobAbbrev = member.mainSpecBisJobAbbrev;
+                      const jobCat =
+                        member.mainSpecBisJobCategory ??
+                        bisJobCategoryFromAbbrev(member.mainSpecBisJobAbbrev);
                       return (
-                        <ProfileImageTooltip imageUrl={imageUrl} alt={member.name} place="bottom">
-                          <img 
-                            src={imageUrl}
-                            alt={member.name}
-                            className="member-profile-image"
-                            onError={(e) => {
-                              if (member.profileImageUrl) {
-                                (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/ffxiv-logo.png`;
-                              }
-                            }}
+                        <>
+                          <button
+                            type="button"
+                            className="member-profile-image-trigger"
+                            onClick={() => setProfileModalMember(member)}
+                            aria-label={`${member.name} — open profile and BiS links`}
+                          >
+                            <img
+                              src={imageUrl}
+                              alt=""
+                              className="member-profile-image"
+                              onError={(e) => {
+                                if (member.profileImageUrl) {
+                                  (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/ffxiv-logo.png`;
+                                }
+                              }}
+                            />
+                          </button>
+                          <span className="member-name">{member.name}</span>
+                          <BisJobCategoryBadge
+                            category={jobCat}
+                            abbrev={jobAbbrev}
+                            className="member-bis-job-cat"
                           />
-                        </ProfileImageTooltip>
+                        </>
                       );
                     })()}
-                    <span className="member-name">{member.name}</span>
                   </div>
                 </th>
               ))}
@@ -280,6 +306,10 @@ export const BiSMatrix: React.FC<BiSMatrixProps> = ({ members, onUpdate, onMembe
         </table>
       </div>
 
+      <BiSMemberProfileModal
+        member={profileModalMember}
+        onClose={() => setProfileModalMember(null)}
+      />
       <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   );

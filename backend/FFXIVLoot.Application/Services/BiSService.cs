@@ -1,6 +1,7 @@
 using FFXIVLoot.Application.DTOs;
 using FFXIVLoot.Application.Helpers;
 using FFXIVLoot.Application.Interfaces;
+using FFXIVLoot.Domain;
 using FFXIVLoot.Domain.Enums;
 using FFXIVLoot.Domain.Interfaces;
 using FFXIVLoot.Domain.Entities;
@@ -50,7 +51,8 @@ public class BiSService : IBiSService
         var preservedOffSpecItems = GearItemHelper.DeepCopyList(member.OffSpecBisItems ?? new List<Domain.Entities.GearItem>());
 
         // Import gear items from xivgear
-        var gearItems = await _xivGearClient.ImportBiSFromLinkAsync(request.XivGearLink);
+        var importResult = await _xivGearClient.ImportBiSFromLinkAsync(request.XivGearLink);
+        var gearItems = importResult.GearItems;
 
         // Restore acquisition state if this link was used before
         MemberLinkStateHelper.RestoreStateFromLink(member, request.SpecType, request.XivGearLink, gearItems);
@@ -62,6 +64,7 @@ public class BiSService : IBiSService
         // CRITICAL: Only update the spec being imported, explicitly preserve the other spec's data
         if (request.SpecType == SpecType.OffSpec)
         {
+            member.OffSpecFullCofferSet = false;
             // Update off spec only - explicitly preserve main spec data
             member.OffSpecXivGearLink = request.XivGearLink;
             member.OffSpecBisItems = gearItems;
@@ -97,7 +100,10 @@ public class BiSService : IBiSService
                 IsAcquired = item.IsAcquired,
                 UpgradeMaterialAcquired = item.UpgradeMaterialAcquired
             }).ToList(),
+            MainSpecBisJobCategory = updatedMember.MainSpecBisJobCategory,
+            MainSpecBisJobAbbrev = updatedMember.MainSpecBisJobAbbrev,
             OffSpecXivGearLink = updatedMember.OffSpecXivGearLink,
+            OffSpecFullCofferSet = updatedMember.OffSpecFullCofferSet,
             OffSpecBisItems = updatedMember.OffSpecBisItems.Select(item => new GearItemDto
             {
                 Id = item.Id,
@@ -106,7 +112,9 @@ public class BiSService : IBiSService
                 ItemType = item.ItemType,
                 IsAcquired = item.IsAcquired,
                 UpgradeMaterialAcquired = item.UpgradeMaterialAcquired
-            }).ToList()
+            }).ToList(),
+            PermissionRole = updatedMember.PermissionRole,
+            ProfileImageUrl = updatedMember.ProfileImageUrl
         };
     }
 

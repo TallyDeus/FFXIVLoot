@@ -1,0 +1,51 @@
+/* Aligned with .tag-role (Tag.css): same metrics, category-colored fills */
+
+/* Match .tag-role box model (1px border + padding) so height matches role tags */
+.bis-job-cat-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  padding: 4px 8px;
+  border: 1px solid rgba(0, 0, 0, 0.28);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  line-height: normal;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: all 0.2s ease;
+  opacity: 0.9;
+  box-sizing: border-box;
+  min-height: 26px;
+}
+
+.bis-job-cat--tank {
+  background-color: #1e3a5f;
+  color: #fff;
+}
+
+.bis-job-cat--healer {
+  background-color: #166534;
+  color: #fff;
+}
+
+.bis-job-cat--melee {
+  background-color: #991b1b;
+  color: #fff;
+}
+
+.bis-job-cat--phys {
+  background-color: #f97316;
+  color: #fff;
+}
+
+.bis-job-cat--caster {
+  background-color: #6d28d9;
+  color: #fff;
+}

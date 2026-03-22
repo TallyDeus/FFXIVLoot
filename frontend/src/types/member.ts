@@ -60,6 +60,87 @@ export enum PermissionRole {
 }
 
 /**
+ * Combat role category for a BiS set (main or off), from import detection or manual.
+ */
+export enum BisJobCategory {
+  Unknown = 0,
+  Tank = 1,
+  Healer = 2,
+  DpsMelee = 3,
+  DpsPhysRanged = 4,
+  DpsCaster = 5
+}
+
+export const BisJobCategoryLabels: Record<BisJobCategory, string> = {
+  [BisJobCategory.Unknown]: 'Not set',
+  [BisJobCategory.Tank]: 'Tank',
+  [BisJobCategory.Healer]: 'Healer',
+  [BisJobCategory.DpsMelee]: 'DPS (Melee)',
+  [BisJobCategory.DpsPhysRanged]: 'DPS (Phys ranged)',
+  [BisJobCategory.DpsCaster]: 'DPS (Caster)'
+};
+
+/** All categories for select UI (order matters). */
+export const ALL_BIS_JOB_CATEGORIES: BisJobCategory[] = [
+  BisJobCategory.Unknown,
+  BisJobCategory.Tank,
+  BisJobCategory.Healer,
+  BisJobCategory.DpsMelee,
+  BisJobCategory.DpsPhysRanged,
+  BisJobCategory.DpsCaster
+];
+
+/** Canonical job abbreviations (display) grouped by category — matches backend detector. */
+/** Abbreviations per group, A–Z within each category. */
+export const BIS_JOB_ABBREV_OPTIONS: { abbrev: string; category: BisJobCategory; group: string }[] = [
+  { abbrev: 'DRK', category: BisJobCategory.Tank, group: 'Tank' },
+  { abbrev: 'GNB', category: BisJobCategory.Tank, group: 'Tank' },
+  { abbrev: 'PLD', category: BisJobCategory.Tank, group: 'Tank' },
+  { abbrev: 'WAR', category: BisJobCategory.Tank, group: 'Tank' },
+  { abbrev: 'AST', category: BisJobCategory.Healer, group: 'Healer' },
+  { abbrev: 'SCH', category: BisJobCategory.Healer, group: 'Healer' },
+  { abbrev: 'SGE', category: BisJobCategory.Healer, group: 'Healer' },
+  { abbrev: 'WHM', category: BisJobCategory.Healer, group: 'Healer' },
+  { abbrev: 'DRG', category: BisJobCategory.DpsMelee, group: 'DPS (Melee)' },
+  { abbrev: 'MNK', category: BisJobCategory.DpsMelee, group: 'DPS (Melee)' },
+  { abbrev: 'NIN', category: BisJobCategory.DpsMelee, group: 'DPS (Melee)' },
+  { abbrev: 'RPR', category: BisJobCategory.DpsMelee, group: 'DPS (Melee)' },
+  { abbrev: 'SAM', category: BisJobCategory.DpsMelee, group: 'DPS (Melee)' },
+  { abbrev: 'VPR', category: BisJobCategory.DpsMelee, group: 'DPS (Melee)' },
+  { abbrev: 'BRD', category: BisJobCategory.DpsPhysRanged, group: 'DPS (Phys ranged)' },
+  { abbrev: 'DNC', category: BisJobCategory.DpsPhysRanged, group: 'DPS (Phys ranged)' },
+  { abbrev: 'MCH', category: BisJobCategory.DpsPhysRanged, group: 'DPS (Phys ranged)' },
+  { abbrev: 'BLM', category: BisJobCategory.DpsCaster, group: 'DPS (Caster)' },
+  { abbrev: 'PCT', category: BisJobCategory.DpsCaster, group: 'DPS (Caster)' },
+  { abbrev: 'RDM', category: BisJobCategory.DpsCaster, group: 'DPS (Caster)' },
+  { abbrev: 'SMN', category: BisJobCategory.DpsCaster, group: 'DPS (Caster)' },
+];
+
+export function bisJobCategoryFromAbbrev(abbrev: string | undefined | null): BisJobCategory {
+  if (!abbrev) return BisJobCategory.Unknown;
+  const u = abbrev.trim().toUpperCase();
+  const row = BIS_JOB_ABBREV_OPTIONS.find((o) => o.abbrev === u);
+  return row?.category ?? BisJobCategory.Unknown;
+}
+
+/** Tank & Healer → Support; melee / phys ranged / caster (and unknown job) → DPS. */
+export function memberRoleFromBisJobCategory(category: BisJobCategory): MemberRole {
+  if (category === BisJobCategory.Tank || category === BisJobCategory.Healer) {
+    return MemberRole.Support;
+  }
+  return MemberRole.DPS;
+}
+
+/** Optgroup order for job tag dropdowns */
+export const BIS_JOB_GROUP_ORDER = [
+  'Tank',
+  'Healer',
+  'DPS (Melee)',
+  'DPS (Phys ranged)',
+  'DPS (Caster)',
+] as const;
+
+/**
  * Gear item data structure
  */
 export interface GearItem {
@@ -80,11 +161,25 @@ export interface Member {
   role: MemberRole;
   xivGearLink?: string;
   bisItems: GearItem[];
+  /** Category for the job they are currently playing (set with mainSpecBisJobAbbrev on their profile). */
+  mainSpecBisJobCategory?: BisJobCategory;
+  /** Job abbreviation (PLD, GNB, …); set manually — shown on the BiS tracker. */
+  mainSpecBisJobAbbrev?: string;
   offSpecXivGearLink?: string;
+  /** When true, off-spec BiS is tracked as raid coffers + one tomestone ring (no XivGear link). */
+  offSpecFullCofferSet?: boolean;
   offSpecBisItems: GearItem[];
   permissionRole?: PermissionRole;
   profileImageUrl?: string;
 }
+
+/**
+ * Payload from the member form `onSave`. For new members, `pendingProfileImage` is uploaded
+ * after create — omit it before calling the create-member API.
+ */
+export type MemberSavePayload =
+  | Member
+  | (Omit<Member, 'id'> & { pendingProfileImage?: File });
 
 /**
  * XivGear import request

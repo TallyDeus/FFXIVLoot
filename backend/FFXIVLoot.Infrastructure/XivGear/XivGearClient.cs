@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using FFXIVLoot.Domain;
 using FFXIVLoot.Domain.Entities;
 using FFXIVLoot.Domain.Enums;
 using FFXIVLoot.Domain.Interfaces;
@@ -32,15 +33,13 @@ public class XivGearClient : IXivGearClient
     /// <summary>
     /// Imports a best-in-slot list from a xivgear link
     /// </summary>
-    public async Task<List<GearItem>> ImportBiSFromLinkAsync(string xivGearLink)
+    public async Task<XivGearImportResult> ImportBiSFromLinkAsync(string xivGearLink)
     {
         if (string.IsNullOrWhiteSpace(xivGearLink))
         {
             throw new ArgumentException("XivGear link cannot be null or empty", nameof(xivGearLink));
         }
 
-        string jsonContent;
-        string? job = null;
         Dictionary<int, (string name, ItemType type)>? itemInfoFromHtml = null;
 
         try
@@ -53,6 +52,36 @@ public class XivGearClient : IXivGearClient
             _logger?.LogWarning(ex, "Failed to parse HTML, falling back to API method");
         }
 
+        var (jsonContent, job) = await FetchBiSJsonAndJobAsync(xivGearLink);
+
+        if (itemInfoFromHtml != null && itemInfoFromHtml.Count > 0)
+        {
+            foreach (var kvp in itemInfoFromHtml)
+            {
+                _itemNameCache[kvp.Key] = kvp.Value.name;
+            }
+        }
+        
+        if (!string.IsNullOrEmpty(job))
+        {
+            await LoadItemNamesAsync(job);
+        }
+
+        var gearItems = ParseXivGearResponse(jsonContent, itemInfoFromHtml);
+
+        return new XivGearImportResult
+        {
+            GearItems = gearItems
+        };
+    }
+
+    /// <summary>
+    /// Downloads raw BiS JSON from xivgear (bis| or shortlink format).
+    /// </summary>
+    private async Task<(string JsonContent, string? Job)> FetchBiSJsonAndJobAsync(string xivGearLink)
+    {
+        string jsonContent;
+        string? job;
         var bisInfo = ExtractBisInfoFromLink(xivGearLink);
         if (bisInfo != null)
         {
@@ -72,32 +101,19 @@ public class XivGearClient : IXivGearClient
             var response = await _httpClient.GetAsync($"/shortlink/{setId}");
             response.EnsureSuccessStatusCode();
             jsonContent = await response.Content.ReadAsStringAsync();
-            
-            using (var doc = JsonDocument.Parse(jsonContent))
+
+            using var doc = JsonDocument.Parse(jsonContent);
+            if (doc.RootElement.TryGetProperty("job", out var jobElement))
             {
-                if (doc.RootElement.TryGetProperty("job", out var jobElement))
-                {
-                    job = jobElement.GetString();
-                }
+                job = jobElement.GetString();
+            }
+            else
+            {
+                job = null;
             }
         }
 
-        if (itemInfoFromHtml != null && itemInfoFromHtml.Count > 0)
-        {
-            foreach (var kvp in itemInfoFromHtml)
-            {
-                _itemNameCache[kvp.Key] = kvp.Value.name;
-            }
-        }
-        
-        if (!string.IsNullOrEmpty(job))
-        {
-            await LoadItemNamesAsync(job);
-        }
-
-        var gearItems = await ParseXivGearResponseAsync(jsonContent, itemInfoFromHtml);
-
-        return gearItems;
+        return (jsonContent, job);
     }
 
     /// <summary>
@@ -344,7 +360,7 @@ public class XivGearClient : IXivGearClient
     /// <summary>
     /// Parses the JSON response from xivgear API and maps it to GearItem entities
     /// </summary>
-    private async Task<List<GearItem>> ParseXivGearResponseAsync(string jsonContent, Dictionary<int, (string name, ItemType type)>? itemInfoFromHtml = null)
+    private List<GearItem> ParseXivGearResponse(string jsonContent, Dictionary<int, (string name, ItemType type)>? itemInfoFromHtml = null)
     {
         var gearItems = new List<GearItem>();
 
@@ -391,7 +407,7 @@ public class XivGearClient : IXivGearClient
                 throw new InvalidOperationException("Invalid xivgear response: neither 'sets' array nor 'items' object found");
             }
 
-            gearItems.AddRange(await ParseGearSetAsync(itemsElement, itemInfoFromHtml));
+            gearItems.AddRange(ParseGearSet(itemsElement, itemInfoFromHtml));
         }
         catch (JsonException ex)
         {
@@ -404,7 +420,7 @@ public class XivGearClient : IXivGearClient
     /// <summary>
     /// Parses gear set data from JSON element
     /// </summary>
-    private async Task<List<GearItem>> ParseGearSetAsync(JsonElement itemsElement, Dictionary<int, (string name, ItemType type)>? itemInfoFromHtml = null)
+    private List<GearItem> ParseGearSet(JsonElement itemsElement, Dictionary<int, (string name, ItemType type)>? itemInfoFromHtml = null)
     {
         var gearItems = new List<GearItem>();
 
@@ -432,7 +448,7 @@ public class XivGearClient : IXivGearClient
 
             if (slotMapping.TryGetValue(slotName, out var gearSlot) && slotElement.ValueKind == JsonValueKind.Object)
             {
-                var gearItem = await ParseGearItemAsync(slotElement, gearSlot, itemInfoFromHtml);
+                var gearItem = ParseGearItem(slotElement, gearSlot, itemInfoFromHtml);
                 if (gearItem != null)
                 {
                     gearItems.Add(gearItem);
@@ -446,7 +462,7 @@ public class XivGearClient : IXivGearClient
     /// <summary>
     /// Parses a single gear item from JSON element
     /// </summary>
-    private async Task<GearItem?> ParseGearItemAsync(JsonElement itemElement, GearSlot slot, Dictionary<int, (string name, ItemType type)>? itemInfoFromHtml = null)
+    private GearItem? ParseGearItem(JsonElement itemElement, GearSlot slot, Dictionary<int, (string name, ItemType type)>? itemInfoFromHtml = null)
     {
         if (itemElement.ValueKind == JsonValueKind.Null)
         {

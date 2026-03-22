@@ -18,6 +18,14 @@
   font-weight: 600;
 }
 
+.members-page-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
 .btn-add {
   padding: 10px 20px;
   background-color: var(--tc-accent-primary);

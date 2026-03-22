@@ -41,6 +41,8 @@
   background-color: var(--tc-bg-surface);
   border: 1px solid var(--tc-border);
   color: var(--tc-text-main);
+  box-sizing: border-box;
+  min-height: 26px;
 }
 
 .tag-role-dps {

@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <!-- Default SDK analysis (same as omitting). Use `dotnet build -p:AnalysisMode=All` for full CA rules. -->
+    <AnalysisLevel>latest-default</AnalysisLevel>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+</Project>

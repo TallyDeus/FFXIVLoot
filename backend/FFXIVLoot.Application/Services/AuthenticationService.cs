@@ -2,7 +2,6 @@ using FFXIVLoot.Application.DTOs;
 using FFXIVLoot.Application.Helpers;
 using FFXIVLoot.Domain.Interfaces;
 using System.Security.Cryptography;
-using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 
 using FFXIVLoot.Application.Interfaces;
@@ -73,7 +72,10 @@ public class AuthenticationService : IAuthenticationService
             Role = member.Role,
             XivGearLink = member.XivGearLink,
             BisItems = member.BisItems.Select(MapGearItemToDto).ToList(),
+            MainSpecBisJobCategory = member.MainSpecBisJobCategory,
+            MainSpecBisJobAbbrev = member.MainSpecBisJobAbbrev,
             OffSpecXivGearLink = member.OffSpecXivGearLink,
+            OffSpecFullCofferSet = member.OffSpecFullCofferSet,
             OffSpecBisItems = member.OffSpecBisItems.Select(MapGearItemToDto).ToList(),
             PermissionRole = member.PermissionRole
         };
@@ -133,8 +135,6 @@ public class AuthenticationService : IAuthenticationService
         var memberId = ValidateToken(token);
         if (!memberId.HasValue)
         {
-            // Log for debugging - token not found in active sessions
-            System.Diagnostics.Debug.WriteLine($"Token validation failed. Token length: {token?.Length ?? 0}, Active sessions count: {_activeSessions.Count}");
             return null;
         }
 

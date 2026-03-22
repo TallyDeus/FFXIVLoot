@@ -1,0 +1,134 @@
+.bis-member-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000000;
+  background-color: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: bis-member-modal-fade-in 0.2s ease;
+}
+
+@keyframes bis-member-modal-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.bis-member-modal {
+  position: relative;
+  max-width: 420px;
+  width: 100%;
+  padding: 28px 24px 24px;
+  border-radius: 12px;
+  border: 1px solid var(--tc-border);
+  background-color: var(--tc-bg-card);
+  box-shadow: 0 8px 32px var(--tc-shadow);
+  animation: bis-member-modal-slide 0.2s ease;
+}
+
+@keyframes bis-member-modal-slide {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.bis-member-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--tc-text-main);
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease;
+}
+
+.bis-member-modal-close:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.bis-member-modal-image {
+  display: block;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto 16px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid var(--tc-border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  background-color: var(--tc-bg-surface);
+}
+
+.bis-member-modal-name {
+  margin: 0 0 16px;
+  text-align: center;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--tc-text-main);
+}
+
+.bis-member-modal-role-job-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px 28px;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.bis-member-modal-meta-item {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.bis-member-modal-muted {
+  font-size: 0.85rem;
+  color: var(--tc-text-muted, #9aa5b5);
+}
+
+.bis-member-modal-role-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--tc-text-muted, #9aa5b5);
+}
+
+.bis-member-modal-links {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.bis-member-modal-links .MuiButton-root {
+  width: 100%;
+}
+
+.bis-member-modal-no-links {
+  margin: 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--tc-text-muted, #9aa5b5);
+}

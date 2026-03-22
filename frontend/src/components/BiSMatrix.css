@@ -102,6 +102,29 @@
   gap: 3px;
 }
 
+.member-header-content .member-bis-job-cat {
+  max-width: 100%;
+  margin-top: 1px;
+}
+
+.member-profile-image-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0 0 2px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.member-profile-image-trigger:focus-visible {
+  outline: 2px solid var(--tc-accent, #6f8dae);
+  outline-offset: 2px;
+}
+
 .member-profile-image {
   width: 34px;
   height: 34px;
@@ -110,8 +133,8 @@
   border: 1px solid var(--tc-border);
   background-color: var(--tc-bg-surface);
   flex-shrink: 0;
-  margin-bottom: 2px;
-  cursor: pointer;
+  display: block;
+  pointer-events: none;
 }
 
 .profile-image-tooltip-wrapper {

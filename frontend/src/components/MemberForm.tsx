@@ -1,13 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Member, MemberRole, PermissionRole } from '../types/member';
+import {
+  Member,
+  MemberSavePayload,
+  PermissionRole,
+  BisJobCategory,
+  bisJobCategoryFromAbbrev,
+  memberRoleFromBisJobCategory,
+} from '../types/member';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from './Button';
+import { RoleTag } from './Tag';
 import { memberService } from '../services/api/memberService';
+import { GearSlotTooltip } from './GearSlotTooltip';
 import './MemberForm.css';
+import { GiChest } from 'react-icons/gi';
+import { BisJobAbbrevPicker } from './BisJobAbbrevPicker';
 
 interface MemberFormProps {
   member?: Member;
-  onSave: (member: Omit<Member, 'id'> | Member) => void;
+  onSave: (member: MemberSavePayload) => void;
   onCancel: () => void;
   isOpen: boolean;
   onValidationError?: (message: string) => void;
@@ -20,10 +31,11 @@ interface MemberFormProps {
 export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel, isOpen, onValidationError, existingMembers = [] }) => {
   const { user } = useAuth();
   const [name, setName] = useState(member?.name || '');
-  const [role, setRole] = useState(member?.role ?? 0);
   const [permissionRole, setPermissionRole] = useState<PermissionRole>(member?.permissionRole ?? PermissionRole.User);
   const [xivGearLink, setXivGearLink] = useState(member?.xivGearLink || '');
   const [offSpecXivGearLink, setOffSpecXivGearLink] = useState(member?.offSpecXivGearLink || '');
+  const [offSpecFullCofferSet, setOffSpecFullCofferSet] = useState(member?.offSpecFullCofferSet ?? false);
+  const [mainSpecBisJobAbbrev, setMainSpecBisJobAbbrev] = useState(member?.mainSpecBisJobAbbrev ?? '');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(member?.profileImageUrl || null);
   const [uploading, setUploading] = useState(false);
@@ -31,17 +43,19 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
   useEffect(() => {
     if (member) {
       setName(member.name);
-      setRole(member.role);
       setPermissionRole(member.permissionRole ?? PermissionRole.User);
       setXivGearLink(member.xivGearLink || '');
       setOffSpecXivGearLink(member.offSpecXivGearLink || '');
+      setOffSpecFullCofferSet(member.offSpecFullCofferSet ?? false);
+      setMainSpecBisJobAbbrev(member.mainSpecBisJobAbbrev ?? '');
       setImagePreview(member.profileImageUrl || null);
     } else {
       setName('');
-      setRole(0);
       setPermissionRole(PermissionRole.User);
       setXivGearLink('');
       setOffSpecXivGearLink('');
+      setOffSpecFullCofferSet(false);
+      setMainSpecBisJobAbbrev('');
       setImagePreview(null);
     }
     setSelectedFile(null);
@@ -142,7 +156,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
       return;
     }
 
-    if (offSpecXivGearLink && !validateXivGearLink(offSpecXivGearLink)) {
+    if (!offSpecFullCofferSet && offSpecXivGearLink && !validateXivGearLink(offSpecXivGearLink)) {
       if (onValidationError) {
         onValidationError('Invalid URL. It has to be a XivGear Short Link. If the link contains multiple sets, you have to click export selected set and generate a link for it.');
       }
@@ -150,15 +164,24 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
     }
 
     const canEditRole = user && user.permissionRole === PermissionRole.Administrator;
-    
-    const memberData: Omit<Member, 'id'> | Member = member
+
+    const mainAbbr = mainSpecBisJobAbbrev.trim().toUpperCase();
+    const mainSpecBisJobCategory = mainAbbr
+      ? bisJobCategoryFromAbbrev(mainAbbr)
+      : BisJobCategory.Unknown;
+    const role = memberRoleFromBisJobCategory(mainSpecBisJobCategory);
+
+    const memberData: MemberSavePayload = member
       ? { 
           ...member, 
           name: trimmedName, 
           role,
           permissionRole: canEditRole ? permissionRole : member.permissionRole,
           xivGearLink: xivGearLink.trim() || undefined,
-          offSpecXivGearLink: offSpecXivGearLink.trim() || undefined
+          mainSpecBisJobCategory,
+          mainSpecBisJobAbbrev: mainAbbr || undefined,
+          offSpecFullCofferSet,
+          offSpecXivGearLink: offSpecFullCofferSet ? undefined : offSpecXivGearLink.trim() || undefined,
         }
       : { 
           name: trimmedName, 
@@ -167,7 +190,10 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
           xivGearLink: xivGearLink.trim() || undefined, 
           bisItems: [],
           offSpecBisItems: [],
-          offSpecXivGearLink: offSpecXivGearLink.trim() || undefined
+          mainSpecBisJobCategory,
+          mainSpecBisJobAbbrev: mainAbbr || undefined,
+          offSpecFullCofferSet,
+          offSpecXivGearLink: offSpecFullCofferSet ? undefined : offSpecXivGearLink.trim() || undefined,
         };
 
     if (selectedFile && member?.id) {
@@ -187,13 +213,15 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
     }
 
     if (selectedFile && !member) {
-      (memberData as any).__pendingImageFile = selectedFile;
+      (memberData as Omit<Member, 'id'> & { pendingProfileImage?: File }).pendingProfileImage = selectedFile;
     }
 
     onSave(memberData);
   };
 
   if (!isOpen) return null;
+
+  const derivedRaidRole = memberRoleFromBisJobCategory(bisJobCategoryFromAbbrev(mainSpecBisJobAbbrev));
 
   return (
     <div className="member-form-overlay">
@@ -281,23 +309,20 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
                   placeholder="Enter member name"
                 />
               </div>
-              <div className="form-group">
-                <label>Role *</label>
-                <div className="role-buttons">
-                  <button
-                    type="button"
-                    className={`role-button ${role === MemberRole.DPS ? 'active dps' : 'inactive'}`}
-                    onClick={() => setRole(MemberRole.DPS)}
-                  >
-                    DPS
-                  </button>
-                  <button
-                    type="button"
-                    className={`role-button ${role === MemberRole.Support ? 'active support' : 'inactive'}`}
-                    onClick={() => setRole(MemberRole.Support)}
-                  >
-                    Support
-                  </button>
+              <div className="form-group member-form-job-row">
+                <label htmlFor="mainSpecBisJobAbbrev">Current job *</label>
+                <div className="member-form-job-row-inner">
+                  <div className="member-form-job-picker-wrap">
+                    <BisJobAbbrevPicker
+                      id="mainSpecBisJobAbbrev"
+                      value={mainSpecBisJobAbbrev}
+                      onChange={setMainSpecBisJobAbbrev}
+                    />
+                  </div>
+                  <div className="member-form-derived-role" aria-live="polite">
+                    <span className="member-form-derived-role-label">Raid role</span>
+                    <RoleTag role={derivedRaidRole} />
+                  </div>
                 </div>
               </div>
             </div>
@@ -334,14 +359,40 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
 
           <div className="form-group">
             <label htmlFor="offSpecXivGearLink">XivGear Link (Off Spec)</label>
-            <input
-              type="url"
-              id="offSpecXivGearLink"
-              value={offSpecXivGearLink}
-              onChange={(e) => setOffSpecXivGearLink(e.target.value)}
-              placeholder="https://xivgear.app/?page=sl|..."
-            />
-            <small>Paste the xivgear link for this member's off spec best-in-slot list</small>
+            <div className="offspec-link-row">
+              <input
+                type="url"
+                id="offSpecXivGearLink"
+                value={offSpecXivGearLink}
+                onChange={(e) => setOffSpecXivGearLink(e.target.value)}
+                placeholder="https://xivgear.app/?page=sl|..."
+                disabled={offSpecFullCofferSet}
+                className="offspec-link-input"
+              />
+              <GearSlotTooltip tooltip="Full set of coffers" place="bottom">
+                <button
+                  type="button"
+                  className={`offspec-coffer-toggle${offSpecFullCofferSet ? ' active' : ''}`}
+                  onClick={() => {
+                    if (!offSpecFullCofferSet) {
+                      setOffSpecFullCofferSet(true);
+                      setOffSpecXivGearLink('');
+                    } else {
+                      setOffSpecFullCofferSet(false);
+                    }
+                  }}
+                  aria-label="Full set of coffers"
+                  aria-pressed={offSpecFullCofferSet}
+                >
+                  <GiChest size={22} aria-hidden />
+                </button>
+              </GearSlotTooltip>
+            </div>
+            <small>
+              {offSpecFullCofferSet
+                ? 'Tracking off-spec as a full set of raid coffers plus one tomestone ring.'
+                : 'Paste the xivgear link for this member\'s off spec best-in-slot list'}
+            </small>
           </div>
 
           <div className="form-actions">

@@ -31,9 +31,24 @@ public class MemberDto
     public List<GearItemDto> BisItems { get; set; } = new();
 
     /// <summary>
+    /// Combat role category for the job they are currently playing (manual, with <see cref="MainSpecBisJobAbbrev"/>).
+    /// </summary>
+    public Domain.Enums.BisJobCategory MainSpecBisJobCategory { get; set; } = Domain.Enums.BisJobCategory.Unknown;
+
+    /// <summary>
+    /// Job abbreviation for display (PLD, GNB, …), set manually.
+    /// </summary>
+    public string? MainSpecBisJobAbbrev { get; set; }
+
+    /// <summary>
     /// Link to the xivgear best-in-slot list for this member's off spec
     /// </summary>
     public string? OffSpecXivGearLink { get; set; }
+
+    /// <summary>
+    /// When true, off-spec uses synthetic raid coffer + tomestone ring slots instead of a XivGear link.
+    /// </summary>
+    public bool OffSpecFullCofferSet { get; set; }
 
     /// <summary>
     /// List of best-in-slot gear items for this member's off spec

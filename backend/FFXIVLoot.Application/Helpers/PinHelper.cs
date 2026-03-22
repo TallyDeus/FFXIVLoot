@@ -31,7 +31,7 @@ public static class PinHelper
     /// <summary>
     /// Verifies a PIN against a hash
     /// </summary>
-    public static bool VerifyPin(string pin, string hash)
+    public static bool VerifyPin(string pin, string? hash)
     {
         if (string.IsNullOrEmpty(hash))
         {

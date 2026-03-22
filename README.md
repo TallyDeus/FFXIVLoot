@@ -29,6 +29,8 @@ dotnet restore
 dotnet build
 ```
 
+A normal build uses the SDK’s default analyzers and should report **0 warnings**. Stricter checks (`dotnet build -p:AnalysisMode=All`) may flag extra design rules; the **Domain** project suppresses a few codes (**CA1008**, **CA2227**, **CA1002**, **CA1056**) that conflict with JSON-friendly entity shapes.
+
 3. Run the API:
 ```bash
 cd FFXIVLoot.API
@@ -64,6 +66,8 @@ The frontend API URL can be configured via environment variable:
 ```bash
 REACT_APP_API_URL=http://localhost:5000
 ```
+
+Copy `frontend/.env.example` to `frontend/.env.local` for local development (Create React App loads `.env.local` automatically; it is gitignored).
 
 ## API Documentation
 

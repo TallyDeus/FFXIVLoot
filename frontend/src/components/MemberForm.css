@@ -61,6 +61,43 @@
   margin-bottom: 15px;
 }
 
+.offspec-link-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.offspec-link-row .offspec-link-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.offspec-coffer-toggle {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  padding: 0;
+  border: 2px solid rgba(111, 141, 174, 0.8);
+  border-radius: 4px;
+  background: rgba(42, 47, 56, 0.8);
+  color: var(--tc-text-muted, #9aa5b5);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.offspec-coffer-toggle:hover {
+  color: var(--tc-accent, #c9a227);
+  border-color: rgba(201, 162, 39, 0.6);
+}
+
+.offspec-coffer-toggle.active {
+  color: var(--tc-accent, #c9a227);
+  border-color: rgba(201, 162, 39, 0.9);
+  background: rgba(201, 162, 39, 0.12);
+}
+
 .form-group label {
   display: block;
   margin-bottom: 5px;
@@ -236,6 +273,37 @@
 
 .name-section .form-group {
   margin-bottom: 15px;
+}
+
+.member-form-job-row-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.member-form-job-picker-wrap {
+  width: 100%;
+}
+
+.member-form-derived-role {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  box-sizing: border-box;
+  padding: 2px 0 0;
+}
+
+.member-form-derived-role-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--tc-text-muted, #9aa5b5);
+  white-space: nowrap;
+  line-height: 1.2;
 }
 
 .profile-image-upload {

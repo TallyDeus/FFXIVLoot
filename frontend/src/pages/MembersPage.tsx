@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Member, SpecType, PermissionRole } from '../types/member';
+import { Member, MemberSavePayload, SpecType, PermissionRole } from '../types/member';
 import { memberService } from '../services/api/memberService';
 import { bisService } from '../services/api/bisService';
 import { MemberList } from '../components/MemberList';
@@ -92,7 +92,7 @@ export const MembersPage: React.FC = () => {
     setImportingBiS(null);
   };
 
-  const handleSave = async (memberData: Omit<Member, 'id'> | Member) => {
+  const handleSave = async (memberData: MemberSavePayload) => {
     try {
       let savedMember: Member;
       const xivGearLink = memberData.xivGearLink?.trim();
@@ -109,15 +109,22 @@ export const MembersPage: React.FC = () => {
         savedMember = await memberService.updateMember(updateData);
         
         const mainSpecLink = xivGearLink && xivGearLink !== previousLink ? xivGearLink : undefined;
-        const offSpecLink = offSpecXivGearLink && offSpecXivGearLink !== previousOffSpecLink ? offSpecXivGearLink : undefined;
+        const offSpecLink =
+          memberData.offSpecFullCofferSet
+            ? undefined
+            : offSpecXivGearLink && offSpecXivGearLink !== previousOffSpecLink
+              ? offSpecXivGearLink
+              : undefined;
         await importBiSLists(savedMember.id, mainSpecLink, offSpecLink, true);
       } else {
-        savedMember = await memberService.createMember(memberData);
-        
-        const pendingImageFile = (memberData as any).__pendingImageFile;
-        if (pendingImageFile) {
+        const { pendingProfileImage, ...createPayload } = memberData as Omit<Member, 'id'> & {
+          pendingProfileImage?: File;
+        };
+        savedMember = await memberService.createMember(createPayload);
+
+        if (pendingProfileImage) {
           try {
-            const result = await memberService.uploadProfileImage(savedMember.id, pendingImageFile);
+            const result = await memberService.uploadProfileImage(savedMember.id, pendingProfileImage);
             savedMember.profileImageUrl = result.imageUrl;
             await memberService.updateMember(savedMember);
           } catch (error) {
@@ -125,24 +132,29 @@ export const MembersPage: React.FC = () => {
           }
         }
         
-        await importBiSLists(savedMember.id, xivGearLink, offSpecXivGearLink, false);
+        await importBiSLists(
+          savedMember.id,
+          xivGearLink,
+          memberData.offSpecFullCofferSet ? undefined : offSpecXivGearLink,
+          false
+        );
       }
       
       await loadMembers();
       setShowForm(false);
       setEditingMember(undefined);
       showToast(editingMember ? 'Member updated successfully!' : 'Member created successfully!');
-    } catch (error: any) {
+    } catch (error: unknown) {
       let errorMessage = 'Failed to save member. Please try again.';
-      
-      if (error?.message) {
-        const errorMsg = error.message.toLowerCase();
+      const msg = error instanceof Error ? error.message : '';
+      if (msg) {
+        const errorMsg = msg.toLowerCase();
         if (errorMsg.includes('duplicate') || errorMsg.includes('already exists') || errorMsg.includes('name')) {
           errorMessage = 'A member with this name already exists';
         } else if (errorMsg.includes('required') || errorMsg.includes('name')) {
-          errorMessage = error.message;
+          errorMessage = msg;
         } else {
-          errorMessage = error.message;
+          errorMessage = msg;
         }
       }
       
@@ -186,15 +198,15 @@ export const MembersPage: React.FC = () => {
     <div className="members-page">
       <div className="page-header">
         <h1>Member Management</h1>
-        {!showForm && (hasPermission(PermissionRole.Manager) && (
-          <Button 
-            variant="contained"
-            color="primary"
-            onClick={() => setShowForm(true)}
-          >
-            Add Member
-          </Button>
-        ))}
+        {!showForm && (
+          <div className="members-page-header-actions">
+            {hasPermission(PermissionRole.Manager) && (
+              <Button variant="contained" color="primary" onClick={() => setShowForm(true)}>
+                Add Member
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
       <MemberForm

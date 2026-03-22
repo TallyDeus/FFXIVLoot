@@ -1,5 +1,6 @@
 import * as signalR from '@microsoft/signalr';
 import { GearSlot, SpecType } from '../types/member';
+import { devLog, devWarn } from '../utils/devLog';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -42,21 +43,21 @@ class SignalRService {
 
       // Handle reconnection events
       this.connection.onreconnecting(() => {
-        console.log('SignalR: Reconnecting...');
+        devLog('SignalR: Reconnecting...');
       });
 
       this.connection.onreconnected(() => {
-        console.log('SignalR: Reconnected');
+        devLog('SignalR: Reconnected');
         this.reconnectAttempts = 0;
       });
 
       this.connection.onclose((error) => {
-        console.log('SignalR: Connection closed', error);
+        devLog('SignalR: Connection closed', error);
         this.isConnecting = false;
       });
 
       await this.connection.start();
-      console.log('SignalR: Connected');
+      devLog('SignalR: Connected');
       this.reconnectAttempts = 0;
     } catch (error) {
       console.error('SignalR: Failed to start connection', error);
@@ -82,7 +83,7 @@ class SignalRService {
    */
   onBiSItemUpdate(callback: (memberId: string, slot: GearSlot, isAcquired: boolean, specType: SpecType) => void): void {
     if (!this.connection) {
-      console.warn('SignalR: Connection not established. Call start() first.');
+      devWarn('SignalR: Connection not established. Call start() first.');
       return;
     }
 
@@ -96,7 +97,7 @@ class SignalRService {
    */
   onUpgradeMaterialUpdate(callback: (memberId: string, slot: GearSlot, upgradeMaterialAcquired: boolean, specType: SpecType) => void): void {
     if (!this.connection) {
-      console.warn('SignalR: Connection not established. Call start() first.');
+      devWarn('SignalR: Connection not established. Call start() first.');
       return;
     }
 
@@ -110,7 +111,7 @@ class SignalRService {
    */
   onLootAssigned(callback: (floorNumber: number, weekNumber: number | null) => void): void {
     if (!this.connection) {
-      console.warn('SignalR: Connection not established. Call start() first.');
+      devWarn('SignalR: Connection not established. Call start() first.');
       return;
     }
 
@@ -124,7 +125,7 @@ class SignalRService {
    */
   onLootUndone(callback: (floorNumber: number, weekNumber: number | null) => void): void {
     if (!this.connection) {
-      console.warn('SignalR: Connection not established. Call start() first.');
+      devWarn('SignalR: Connection not established. Call start() first.');
       return;
     }
 

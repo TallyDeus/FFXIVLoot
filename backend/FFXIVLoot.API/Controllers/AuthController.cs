@@ -112,7 +112,10 @@ public class AuthController : ControllerBase
                     IsAcquired = item.IsAcquired,
                     UpgradeMaterialAcquired = item.UpgradeMaterialAcquired
                 }).ToList(),
+                MainSpecBisJobCategory = member.MainSpecBisJobCategory,
+                MainSpecBisJobAbbrev = member.MainSpecBisJobAbbrev,
                 OffSpecXivGearLink = member.OffSpecXivGearLink,
+                OffSpecFullCofferSet = member.OffSpecFullCofferSet,
                 OffSpecBisItems = member.OffSpecBisItems.Select(item => new GearItemDto
                 {
                     Id = item.Id,

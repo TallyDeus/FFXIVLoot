@@ -126,9 +126,7 @@ public class MemberAcquisitionCountDto
     /// <summary>
     /// The member ID
     /// </summary>
-    public Guid MemberId { get; set; }
-
-    /// <summary>
+    public Guid MemberId { get; set; }    /// <summary>
     /// How many times this member has acquired this item as Extra
     /// </summary>
     public int Count { get; set; }

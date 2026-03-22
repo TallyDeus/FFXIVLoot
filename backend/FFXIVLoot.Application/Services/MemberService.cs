@@ -29,6 +29,15 @@ public class MemberService : IMemberService
     public async Task<List<MemberDto>> GetAllMembersAsync()
     {
         var members = await _memberRepository.GetAllAsync();
+        foreach (var m in members)
+        {
+            if (m.OffSpecFullCofferSet && OffSpecCofferHelper.NeedsInitialization(m))
+            {
+                OffSpecCofferHelper.EnsureOffSpecCofferItems(m, m);
+                await _memberRepository.UpdateAsync(m);
+            }
+        }
+
         return members.Select(MapToDto).ToList();
     }
 
@@ -38,7 +47,16 @@ public class MemberService : IMemberService
     public async Task<MemberDto?> GetMemberByIdAsync(Guid id)
     {
         var member = await _memberRepository.GetByIdAsync(id);
-        return member != null ? MapToDto(member) : null;
+        if (member == null)
+            return null;
+
+        if (member.OffSpecFullCofferSet && OffSpecCofferHelper.NeedsInitialization(member))
+        {
+            OffSpecCofferHelper.EnsureOffSpecCofferItems(member, member);
+            await _memberRepository.UpdateAsync(member);
+        }
+
+        return MapToDto(member);
     }
 
     /// <summary>
@@ -63,6 +81,13 @@ public class MemberService : IMemberService
         }
         
         var createdMember = await _memberRepository.CreateAsync(member);
+        if (createdMember.OffSpecFullCofferSet)
+        {
+            createdMember.OffSpecXivGearLink = null;
+            OffSpecCofferHelper.EnsureOffSpecCofferItems(createdMember, null);
+            createdMember = await _memberRepository.UpdateAsync(createdMember);
+        }
+
         return MapToDto(createdMember);
     }
 
@@ -82,13 +107,19 @@ public class MemberService : IMemberService
         if (string.IsNullOrWhiteSpace(member.XivGearLink))
         {
             member.BisItems = new List<Domain.Entities.GearItem>();
+            // Main job tag is manual; keep category/abbrev from the submitted profile.
         }
         else
         {
             member.BisItems = existingMember.BisItems;
         }
         
-        if (string.IsNullOrWhiteSpace(member.OffSpecXivGearLink))
+        if (member.OffSpecFullCofferSet)
+        {
+            member.OffSpecXivGearLink = null;
+            OffSpecCofferHelper.EnsureOffSpecCofferItems(member, existingMember);
+        }
+        else if (string.IsNullOrWhiteSpace(member.OffSpecXivGearLink))
         {
             member.OffSpecBisItems = new List<Domain.Entities.GearItem>();
         }
@@ -148,7 +179,10 @@ public class MemberService : IMemberService
             Role = member.Role,
             XivGearLink = member.XivGearLink,
             BisItems = member.BisItems.Select(MapGearItemToDto).ToList(),
+            MainSpecBisJobCategory = member.MainSpecBisJobCategory,
+            MainSpecBisJobAbbrev = member.MainSpecBisJobAbbrev,
             OffSpecXivGearLink = member.OffSpecXivGearLink,
+            OffSpecFullCofferSet = member.OffSpecFullCofferSet,
             OffSpecBisItems = member.OffSpecBisItems.Select(MapGearItemToDto).ToList(),
             PermissionRole = member.PermissionRole,
             ProfileImageUrl = member.ProfileImageUrl
@@ -164,7 +198,10 @@ public class MemberService : IMemberService
             Role = dto.Role,
             XivGearLink = dto.XivGearLink,
             BisItems = dto.BisItems.Select(MapGearItemToEntity).ToList(),
+            MainSpecBisJobCategory = dto.MainSpecBisJobCategory,
+            MainSpecBisJobAbbrev = dto.MainSpecBisJobAbbrev,
             OffSpecXivGearLink = dto.OffSpecXivGearLink,
+            OffSpecFullCofferSet = dto.OffSpecFullCofferSet,
             OffSpecBisItems = dto.OffSpecBisItems.Select(MapGearItemToEntity).ToList(),
             PermissionRole = dto.PermissionRole,
             ProfileImageUrl = dto.ProfileImageUrl
