@@ -125,7 +125,9 @@ public class AuthController : ControllerBase
                     IsAcquired = item.IsAcquired,
                     UpgradeMaterialAcquired = item.UpgradeMaterialAcquired
                 }).ToList(),
-                PermissionRole = member.PermissionRole
+                PermissionRole = member.PermissionRole,
+                ProfileImageUrl = member.ProfileImageUrl,
+                IsActive = member.IsActive
             };
 
             return Ok(memberDto);

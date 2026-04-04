@@ -1,13 +1,15 @@
 import React from 'react';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { HashRouter, BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { HashRouter, BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LoginPage } from './pages/LoginPage';
 import { MembersPage } from './pages/MembersPage';
 import { BiSTrackerPage } from './pages/BiSTrackerPage';
 import { LootDistributionPage } from './pages/LootDistributionPage';
 import { LootHistoryPage } from './pages/LootHistoryPage';
+import { RaidTiersPage } from './pages/RaidTiersPage';
+import { SchedulePage } from './pages/SchedulePage';
 import { Sidebar } from './components/Sidebar';
 import { theme } from './theme';
 import './App.css';
@@ -29,20 +31,8 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
  * Main application component with URL-based routing
  */
 function AppContent() {
-  const location = useLocation();
   const { isAuthenticated } = useAuth();
   
-  const getActivePage = (): 'members' | 'bis' | 'loot' | 'history' => {
-    let path = location.pathname;
-    if (location.hash) {
-      path = location.hash.substring(1);
-    }
-    if (path.startsWith('/bis')) return 'bis';
-    if (path.startsWith('/loot')) return 'loot';
-    if (path.startsWith('/history')) return 'history';
-    return 'members';
-  };
-
   if (!isAuthenticated) {
     return (
       <Routes>
@@ -54,15 +44,17 @@ function AppContent() {
 
   return (
     <div className="App">
-      <Sidebar activePage={getActivePage()} />
+      <Sidebar />
       <main className="App-main">
         <Routes>
-          <Route path="/" element={<Navigate to="/members" replace />} />
+          <Route path="/" element={<Navigate to="/schedule" replace />} />
           <Route path="/members" element={<ProtectedRoute><MembersPage /></ProtectedRoute>} />
+          <Route path="/raid-tiers" element={<ProtectedRoute><RaidTiersPage /></ProtectedRoute>} />
+          <Route path="/schedule" element={<ProtectedRoute><SchedulePage /></ProtectedRoute>} />
           <Route path="/bis" element={<ProtectedRoute><BiSTrackerPage /></ProtectedRoute>} />
           <Route path="/loot" element={<ProtectedRoute><LootDistributionPage /></ProtectedRoute>} />
           <Route path="/history" element={<ProtectedRoute><LootHistoryPage /></ProtectedRoute>} />
-          <Route path="*" element={<Navigate to="/members" replace />} />
+          <Route path="*" element={<Navigate to="/schedule" replace />} />
         </Routes>
       </main>
     </div>

@@ -1,0 +1,360 @@
+.raid-tiers-page {
+  padding: 20px;
+  max-width: min(90vw, 1200px);
+  width: 100%;
+  margin: 0 auto;
+}
+
+.raid-tiers-page .page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.raid-tiers-page .page-header h1 {
+  margin: 0 0 8px 0;
+  color: var(--tc-text-main);
+  font-weight: 600;
+  font-size: 1.75rem;
+}
+
+.raid-tiers-intro {
+  margin: 0;
+  max-width: 640px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--tc-text-muted);
+}
+
+.raid-tiers-readonly-note {
+  margin: 0 0 20px 0;
+  padding: 12px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--tc-border);
+  background-color: var(--tc-bg-surface);
+  font-size: 14px;
+  color: var(--tc-text-main);
+}
+
+.raid-tiers-error {
+  margin: 0 0 16px 0;
+  padding: 10px 12px;
+  border-radius: 4px;
+  border: 1px solid rgba(198, 40, 40, 0.45);
+  background-color: rgba(198, 40, 40, 0.12);
+  color: var(--tc-text-main);
+  font-size: 14px;
+}
+
+.raid-tiers-loading {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--tc-text-muted);
+  font-size: 16px;
+}
+
+.raid-tiers-actions-panel {
+  margin-bottom: 28px;
+  padding: 20px 22px;
+  border: 1px solid var(--tc-border);
+  border-radius: 8px;
+  background-color: var(--tc-bg-card);
+  box-shadow: 0 1px 3px var(--tc-shadow);
+}
+
+.raid-tiers-actions-panel h2 {
+  margin: 0 0 6px 0;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--tc-text-muted);
+}
+
+.raid-tiers-actions-panel > p {
+  margin: 0 0 16px 0;
+  font-size: 14px;
+  color: var(--tc-text-muted);
+  line-height: 1.45;
+}
+
+.raid-tiers-actions-panel > p strong {
+  color: var(--tc-text-main);
+}
+
+.raid-tiers-callout {
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  border-radius: 6px;
+  border: 1px solid rgba(201, 162, 39, 0.55);
+  background-color: rgba(201, 162, 39, 0.1);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--tc-text-main);
+}
+
+.raid-tiers-callout strong {
+  font-weight: 600;
+}
+
+.raid-tiers-form-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.raid-tiers-form-row:last-child {
+  margin-bottom: 0;
+}
+
+.raid-tiers-form-row .form-group {
+  flex: 1;
+  min-width: 200px;
+  margin-bottom: 0;
+}
+
+.raid-tiers-form-row .form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--tc-text-main);
+}
+
+.raid-tiers-form-row .form-group input[type='text'] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 12px;
+  border: 2px solid rgba(111, 141, 174, 0.8);
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: rgba(42, 47, 56, 0.8);
+  color: var(--tc-text-main);
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.raid-tiers-form-row .form-group input[type='text']:hover {
+  border-color: var(--tc-accent-primary);
+  background-color: rgba(42, 47, 56, 0.9);
+}
+
+.raid-tiers-form-row .form-group input[type='text']:focus {
+  outline: none;
+  border-color: var(--tc-accent-primary);
+  background-color: rgba(42, 47, 56, 1);
+  box-shadow: 0 0 0 3px var(--tc-shadow-hover);
+}
+
+.raid-tiers-form-row .form-group input::placeholder {
+  color: var(--tc-text-muted);
+  opacity: 0.75;
+}
+
+.raid-tiers-section-title {
+  margin: 28px 0 14px 0;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--tc-text-muted);
+}
+
+.raid-tiers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.raid-tier-card {
+  border: 1px solid var(--tc-border);
+  border-radius: 8px;
+  background-color: var(--tc-bg-card);
+  box-shadow: 0 1px 3px var(--tc-shadow);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.raid-tier-card--current {
+  border-color: var(--tc-accent-primary);
+  box-shadow: 0 0 0 1px rgba(111, 141, 174, 0.35);
+}
+
+.raid-tier-card-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--tc-border);
+  background-color: var(--tc-bg-surface);
+}
+
+.raid-tier-card-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--tc-text-main);
+  flex: 1;
+  min-width: 0;
+}
+
+.raid-tier-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.raid-tier-card-rename {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.raid-tier-card-rename input {
+  flex: 1;
+  min-width: 120px;
+  padding: 6px 10px;
+  border: 2px solid rgba(111, 141, 174, 0.8);
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: rgba(42, 47, 56, 0.9);
+  color: var(--tc-text-main);
+}
+
+.raid-tier-card-rename input:focus {
+  outline: none;
+  border-color: var(--tc-accent-primary);
+}
+
+.raid-tier-card-body {
+  padding: 14px 16px 16px;
+  flex: 1;
+}
+
+.raid-tier-card-meta {
+  margin: 0 0 12px 0;
+  font-size: 12px;
+  color: var(--tc-text-muted);
+}
+
+.raid-tier-members-block {
+  margin-bottom: 14px;
+}
+
+.raid-tier-members-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--tc-text-muted);
+  margin-bottom: 6px;
+}
+
+.raid-tier-members-empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--tc-text-muted);
+  font-style: italic;
+}
+
+.raid-tier-members-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 2px;
+  row-gap: 0;
+  align-items: start;
+}
+
+.raid-tier-members-column {
+  min-width: 0;
+}
+
+.raid-tier-members-column-head {
+  margin-bottom: 10px;
+}
+
+.raid-tier-members-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.raid-tier-member-preview {
+  min-width: 0;
+}
+
+.raid-tier-member-preview-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.raid-tier-member-preview--inactive {
+  opacity: 0.55;
+}
+
+/* Match loot history small profile images (circular) */
+.raid-tier-member-preview-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid var(--tc-border);
+  background-color: var(--tc-bg-surface);
+}
+
+.raid-tier-member-preview-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tc-text-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.raid-tier-stats {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 14px;
+  font-size: 13px;
+  align-items: baseline;
+}
+
+.raid-tier-stats dt {
+  margin: 0;
+  color: var(--tc-text-muted);
+  font-weight: 500;
+}
+
+.raid-tier-stats dd {
+  margin: 0;
+  color: var(--tc-text-main);
+  font-weight: 600;
+}
+
+.raid-tier-card-footer {
+  padding: 12px 16px;
+  border-top: 1px solid var(--tc-border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}

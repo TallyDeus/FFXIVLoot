@@ -86,18 +86,21 @@ public class JsonFileStorage
     private static readonly ConcurrentDictionary<string, SemaphoreSlim> _fileLocks = new();
     private readonly SemaphoreSlim _lock;
     
-    private static readonly JsonSerializerOptions JsonOptions = new()
+    /// <summary>Shared options for tier JSON files (members, weeks, loot, index).</summary>
+    public static JsonSerializerOptions StorageJsonOptions { get; } = new()
     {
         WriteIndented = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         DefaultIgnoreCondition = JsonIgnoreCondition.Never,
         IncludeFields = false,
-        Converters = 
-        { 
+        Converters =
+        {
             new JsonStringEnumConverter(JsonNamingPolicy.CamelCase),
-            new GearSlotDictionaryConverter() 
+            new GearSlotDictionaryConverter()
         }
     };
+
+    private static readonly JsonSerializerOptions JsonOptions = StorageJsonOptions;
 
     /// <summary>
     /// Initializes a new instance of JsonFileStorage

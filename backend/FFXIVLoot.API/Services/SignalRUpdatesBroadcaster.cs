@@ -67,4 +67,8 @@ public class SignalRUpdatesBroadcaster : IUpdatesBroadcaster
             weekNumber
         });
     }
+
+    /// <inheritdoc />
+    public Task BroadcastScheduleUpdatedAsync() =>
+        _hubContext.Clients.All.SendAsync("ScheduleUpdated");
 }

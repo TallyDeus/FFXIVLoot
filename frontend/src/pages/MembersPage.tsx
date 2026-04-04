@@ -29,15 +29,15 @@ export const MembersPage: React.FC = () => {
   const { toasts, showToast, removeToast } = useToast();
   const { hasPermission } = useAuth();
 
-  const loadMembers = useCallback(async () => {
+  const loadMembers = useCallback(async (opts?: { silent?: boolean }) => {
     try {
-      setLoading(true);
+      if (!opts?.silent) setLoading(true);
       const data = await memberService.getAllMembers();
       setMembers(data);
     } catch (error) {
       showToast('Failed to load members. Please try again.', 'error');
     } finally {
-      setLoading(false);
+      if (!opts?.silent) setLoading(false);
     }
   }, [showToast]);
 
@@ -140,7 +140,7 @@ export const MembersPage: React.FC = () => {
         );
       }
       
-      await loadMembers();
+      await loadMembers({ silent: true });
       setShowForm(false);
       setEditingMember(undefined);
       showToast(editingMember ? 'Member updated successfully!' : 'Member created successfully!');
@@ -176,13 +176,26 @@ export const MembersPage: React.FC = () => {
         setConfirmDialog(null);
         try {
           await memberService.deleteMember(id);
-          await loadMembers();
+          await loadMembers({ silent: true });
           showToast('Member deleted successfully!');
         } catch (error) {
           showToast('Failed to delete member. Please try again.', 'error');
         }
       },
     });
+  };
+
+  const handleActiveChange = async (member: Member, isActive: boolean) => {
+    const loadingToastId = showToast('Updating visibility…', 'loading', { duration: 0 });
+    try {
+      const updated = await memberService.setMemberActive(member.id, isActive);
+      setMembers((prev) => prev.map((m) => (m.id === updated.id ? updated : m)));
+      removeToast(loadingToastId);
+      showToast(isActive ? 'Member will appear on the BiS tracker.' : 'Member hidden from the BiS tracker.', 'success');
+    } catch {
+      removeToast(loadingToastId);
+      showToast('Failed to update member visibility.', 'error');
+    }
   };
 
   const handleCancel = () => {
@@ -231,6 +244,7 @@ export const MembersPage: React.FC = () => {
         members={members}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        onActiveChange={handleActiveChange}
       />
 
       {confirmDialog && (

@@ -26,9 +26,12 @@ public class MemberService : IMemberService
     /// <summary>
     /// Gets all members
     /// </summary>
-    public async Task<List<MemberDto>> GetAllMembersAsync()
+    public async Task<List<MemberDto>> GetAllMembersAsync(bool activeOnly = false)
     {
         var members = await _memberRepository.GetAllAsync();
+        if (activeOnly)
+            members = members.Where(m => m.IsActive).ToList();
+
         foreach (var m in members)
         {
             if (m.OffSpecFullCofferSet && OffSpecCofferHelper.NeedsInitialization(m))
@@ -94,7 +97,7 @@ public class MemberService : IMemberService
     /// <summary>
     /// Updates an existing member
     /// </summary>
-    public async Task<MemberDto> UpdateMemberAsync(MemberDto memberDto)
+    public async Task<MemberDto> UpdateMemberAsync(MemberDto memberDto, bool allowActiveFromPayload = false)
     {
         var existingMember = await _memberRepository.GetByIdAsync(memberDto.Id);
         if (existingMember == null)
@@ -103,6 +106,8 @@ public class MemberService : IMemberService
         }
 
         var member = MapToEntity(memberDto);
+        if (!allowActiveFromPayload)
+            member.IsActive = existingMember.IsActive;
         
         if (string.IsNullOrWhiteSpace(member.XivGearLink))
         {
@@ -170,6 +175,18 @@ public class MemberService : IMemberService
         await _memberRepository.DeleteAsync(id);
     }
 
+    /// <inheritdoc />
+    public async Task<MemberDto> SetMemberActiveAsync(Guid memberId, bool isActive)
+    {
+        var existingMember = await _memberRepository.GetByIdAsync(memberId);
+        if (existingMember == null)
+            throw new InvalidOperationException($"Member with ID {memberId} not found");
+
+        existingMember.IsActive = isActive;
+        var updated = await _memberRepository.UpdateAsync(existingMember);
+        return MapToDto(updated);
+    }
+
     private static MemberDto MapToDto(Domain.Entities.Member member)
     {
         return new MemberDto
@@ -185,7 +202,8 @@ public class MemberService : IMemberService
             OffSpecFullCofferSet = member.OffSpecFullCofferSet,
             OffSpecBisItems = member.OffSpecBisItems.Select(MapGearItemToDto).ToList(),
             PermissionRole = member.PermissionRole,
-            ProfileImageUrl = member.ProfileImageUrl
+            ProfileImageUrl = member.ProfileImageUrl,
+            IsActive = member.IsActive
         };
     }
 
@@ -204,7 +222,8 @@ public class MemberService : IMemberService
             OffSpecFullCofferSet = dto.OffSpecFullCofferSet,
             OffSpecBisItems = dto.OffSpecBisItems.Select(MapGearItemToEntity).ToList(),
             PermissionRole = dto.PermissionRole,
-            ProfileImageUrl = dto.ProfileImageUrl
+            ProfileImageUrl = dto.ProfileImageUrl,
+            IsActive = dto.IsActive
         };
     }
 

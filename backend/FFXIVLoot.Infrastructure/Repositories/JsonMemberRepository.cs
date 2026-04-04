@@ -1,3 +1,4 @@
+using FFXIVLoot.Application.Interfaces;
 using FFXIVLoot.Domain.Entities;
 using FFXIVLoot.Domain.Interfaces;
 using FFXIVLoot.Infrastructure.Storage;
@@ -10,18 +11,23 @@ namespace FFXIVLoot.Infrastructure.Repositories;
 /// </summary>
 public class JsonMemberRepository : IMemberRepository
 {
-    private readonly JsonFileStorage _storage;
+    private readonly IRaidTierManagement _raidTierManagement;
     private readonly IConfiguration? _configuration;
-    private const string DefaultDataFilePath = "data/members.json";
 
     /// <summary>
     /// Initializes a new instance of JsonMemberRepository
     /// </summary>
-    public JsonMemberRepository(string? dataFilePath = null, IConfiguration? configuration = null)
+    public JsonMemberRepository(IRaidTierManagement raidTierManagement, IConfiguration? configuration = null)
     {
-        var filePath = dataFilePath ?? DefaultDataFilePath;
-        _storage = new JsonFileStorage(filePath);
+        _raidTierManagement = raidTierManagement ?? throw new ArgumentNullException(nameof(raidTierManagement));
         _configuration = configuration;
+    }
+
+    private async Task<JsonFileStorage> StorageAsync()
+    {
+        var tierId = await _raidTierManagement.GetCurrentTierIdAsync();
+        var path = Path.Combine(_raidTierManagement.DataRoot, "raid-tiers", tierId.ToString(), "members.json");
+        return new JsonFileStorage(path);
     }
 
     /// <summary>
@@ -29,9 +35,18 @@ public class JsonMemberRepository : IMemberRepository
     /// </summary>
     public async Task<List<Member>> GetAllAsync()
     {
-        var data = await _storage.ReadAsync<DataModel>() ?? new DataModel();
+        var storage = await StorageAsync();
+        var data = await storage.ReadAsync<DataModel>() ?? new DataModel();
         var members = data.Members;
         var needsSave = false;
+
+        if (data.SchemaVersion < 2)
+        {
+            foreach (var member in members)
+                member.IsActive = true;
+            data.SchemaVersion = 2;
+            needsSave = true;
+        }
         
         foreach (var member in members)
         {
@@ -83,7 +98,7 @@ public class JsonMemberRepository : IMemberRepository
         
         if (needsSave)
         {
-            await _storage.WriteAsync(data);
+            await storage.WriteAsync(data);
         }
         
         return members;
@@ -109,7 +124,8 @@ public class JsonMemberRepository : IMemberRepository
             throw new ArgumentNullException(nameof(member));
         }
 
-        var data = await _storage.ReadAsync<DataModel>() ?? new DataModel();
+        var storage = await StorageAsync();
+        var data = await storage.ReadAsync<DataModel>() ?? new DataModel();
         
         if (member.Id == Guid.Empty)
         {
@@ -135,7 +151,7 @@ public class JsonMemberRepository : IMemberRepository
         }
 
         data.Members.Add(member);
-        await _storage.WriteAsync(data);
+        await storage.WriteAsync(data);
         
         return member;
     }
@@ -150,7 +166,8 @@ public class JsonMemberRepository : IMemberRepository
             throw new ArgumentNullException(nameof(member));
         }
 
-        var data = await _storage.ReadAsync<DataModel>() ?? new DataModel();
+        var storage = await StorageAsync();
+        var data = await storage.ReadAsync<DataModel>() ?? new DataModel();
         var existingMember = data.Members.FirstOrDefault(m => m.Id == member.Id);
         
         if (existingMember == null)
@@ -162,7 +179,7 @@ public class JsonMemberRepository : IMemberRepository
         var index = data.Members.IndexOf(existingMember);
         data.Members[index] = member;
         
-        await _storage.WriteAsync(data);
+        await storage.WriteAsync(data);
         
         return member;
     }
@@ -172,13 +189,14 @@ public class JsonMemberRepository : IMemberRepository
     /// </summary>
     public async Task DeleteAsync(Guid id)
     {
-        var data = await _storage.ReadAsync<DataModel>() ?? new DataModel();
+        var storage = await StorageAsync();
+        var data = await storage.ReadAsync<DataModel>() ?? new DataModel();
         var member = data.Members.FirstOrDefault(m => m.Id == id);
         
         if (member != null)
         {
             data.Members.Remove(member);
-            await _storage.WriteAsync(data);
+            await storage.WriteAsync(data);
         }
     }
 }

@@ -2,6 +2,7 @@ using FFXIVLoot.Application.Services;
 using FFXIVLoot.Application.Interfaces;
 using FFXIVLoot.Domain.Interfaces;
 using FFXIVLoot.Infrastructure.Repositories;
+using FFXIVLoot.Infrastructure.Services;
 using FFXIVLoot.Infrastructure.XivGear;
 using FFXIVLoot.API.Middleware;
 using FFXIVLoot.API.Hubs;
@@ -30,9 +31,12 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddSingleton<IRaidTierManagement, RaidTierManagementService>();
 builder.Services.AddScoped<IMemberRepository, JsonMemberRepository>();
 builder.Services.AddScoped<IWeekRepository, JsonWeekRepository>();
 builder.Services.AddScoped<ILootAssignmentRepository, JsonLootAssignmentRepository>();
+builder.Services.AddScoped<IScheduleRepository, JsonScheduleRepository>();
+builder.Services.AddScoped<IScheduleService, ScheduleService>();
 builder.Services.AddHttpClient<IXivGearClient, XivGearClient>();
 
 builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
@@ -48,6 +52,12 @@ builder.Services.AddSignalR();
 builder.Services.AddSingleton<IUpdatesBroadcaster, SignalRUpdatesBroadcaster>();
 
 var app = builder.Build();
+
+await using (var scope = app.Services.CreateAsyncScope())
+{
+    var raidTiers = scope.ServiceProvider.GetRequiredService<IRaidTierManagement>();
+    await raidTiers.EnsureInitializedAsync();
+}
 
 if (app.Environment.IsDevelopment())
 {

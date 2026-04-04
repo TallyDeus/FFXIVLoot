@@ -10,9 +10,7 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 class SignalRService {
   private connection: signalR.HubConnection | null = null;
   private isConnecting = false;
-  private reconnectAttempts = 0;
   private maxReconnectAttempts = 10;
-  private reconnectDelay = 2000;
 
   /**
    * Establishes connection to SignalR hub
@@ -48,7 +46,6 @@ class SignalRService {
 
       this.connection.onreconnected(() => {
         devLog('SignalR: Reconnected');
-        this.reconnectAttempts = 0;
       });
 
       this.connection.onclose((error) => {
@@ -58,7 +55,6 @@ class SignalRService {
 
       await this.connection.start();
       devLog('SignalR: Connected');
-      this.reconnectAttempts = 0;
     } catch (error) {
       console.error('SignalR: Failed to start connection', error);
       this.isConnecting = false;
@@ -117,6 +113,20 @@ class SignalRService {
 
     this.connection.on('LootAssigned', (data: { floorNumber: number; weekNumber: number | null }) => {
       callback(data.floorNumber, data.weekNumber);
+    });
+  }
+
+  /**
+   * Registers a callback when raid schedule (availability or standard days) changes
+   */
+  onScheduleUpdated(callback: () => void): void {
+    if (!this.connection) {
+      devWarn('SignalR: Connection not established. Call start() first.');
+      return;
+    }
+
+    this.connection.on('ScheduleUpdated', () => {
+      callback();
     });
   }
 

@@ -32,11 +32,11 @@ public class MembersController : ControllerBase
     /// Gets all members
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<List<MemberDto>>> GetAllMembers()
+    public async Task<ActionResult<List<MemberDto>>> GetAllMembers([FromQuery] bool activeOnly = false)
     {
         try
         {
-            var members = await _memberService.GetAllMembersAsync();
+            var members = await _memberService.GetAllMembersAsync(activeOnly);
             return Ok(members);
         }
         catch (Exception ex)
@@ -175,7 +175,8 @@ public class MembersController : ControllerBase
                 }
             }
 
-            var updatedMember = await _memberService.UpdateMemberAsync(memberDto);
+            var allowActive = PermissionHelper.CanToggleMemberActive(currentUser);
+            var updatedMember = await _memberService.UpdateMemberAsync(memberDto, allowActive);
             return Ok(updatedMember);
         }
         catch (InvalidOperationException ex)
@@ -190,6 +191,55 @@ public class MembersController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating member {MemberId}", id);
+            return StatusCode(500, new ProblemDetails
+            {
+                Title = "Internal Server Error",
+                Detail = "An error occurred while updating the member"
+            });
+        }
+    }
+
+    /// <summary>
+    /// Sets whether a member is active (shown on BiS tracker).
+    /// </summary>
+    [HttpPatch("{id}/active")]
+    public async Task<ActionResult<MemberDto>> SetMemberActive(Guid id, [FromBody] SetMemberActiveRequestDto body)
+    {
+        try
+        {
+            var currentUser = await this.GetCurrentUserAsync(_authService);
+            if (currentUser == null)
+            {
+                return Unauthorized(new ProblemDetails
+                {
+                    Title = "Unauthorized",
+                    Detail = "Authentication required"
+                });
+            }
+
+            if (!PermissionHelper.CanToggleMemberActive(currentUser))
+                return Forbid();
+
+            var target = await _memberService.GetMemberByIdAsync(id);
+            if (target == null)
+            {
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Not Found",
+                    Detail = $"Member with ID {id} not found"
+                });
+            }
+
+            var updated = await _memberService.SetMemberActiveAsync(id, body.IsActive);
+            return Ok(updated);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new ProblemDetails { Title = "Not Found", Detail = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error setting member active flag {MemberId}", id);
             return StatusCode(500, new ProblemDetails
             {
                 Title = "Internal Server Error",

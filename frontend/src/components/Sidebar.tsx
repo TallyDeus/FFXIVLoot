@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { PinUpdateDialog } from './PinUpdateDialog';
+import { raidTierService } from '../services/api/raidTierService';
 import { PermissionRole } from '../types/member';
 import { PermissionRoleTag } from './Tag';
 import { Button } from './Button';
@@ -11,7 +12,6 @@ interface NavItem {
   id: string;
   label: string;
   icon: React.ReactNode;
-  page: 'members' | 'bis' | 'loot' | 'history';
   path: string;
 }
 
@@ -20,10 +20,6 @@ interface NavGroup {
   label: string;
   items: NavItem[];
   icon?: React.ReactNode;
-}
-
-interface SidebarProps {
-  activePage: 'members' | 'bis' | 'loot' | 'history';
 }
 
 // Minimalist SVG icons (monochrome, no colors)
@@ -67,26 +63,71 @@ const BoxIcon = () => (
   </svg>
 );
 
+const SettingsIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="3"></circle>
+    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>
+  </svg>
+);
+
+const LayersIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+    <polyline points="2 17 12 22 22 17"></polyline>
+    <polyline points="2 12 12 17 22 12"></polyline>
+  </svg>
+);
+
+const CalendarIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+    <line x1="16" y1="2" x2="16" y2="6"></line>
+    <line x1="8" y1="2" x2="8" y2="6"></line>
+    <line x1="3" y1="10" x2="21" y2="10"></line>
+  </svg>
+);
+
 /**
  * Sidebar navigation component styled similar to FFXIV Teamcraft
  */
-export const Sidebar: React.FC<SidebarProps> = ({ activePage }) => {
+export const Sidebar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['loot']));
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['static', 'loot']));
   const [showPinDialog, setShowPinDialog] = useState(false);
+  const [currentTierName, setCurrentTierName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      setCurrentTierName(null);
+      return;
+    }
+    raidTierService
+      .getCurrent()
+      .then((t) => setCurrentTierName(t.name))
+      .catch(() => setCurrentTierName(null));
+  }, [user]);
 
   const navGroups: NavGroup[] = [
+    {
+      id: 'static',
+      label: 'Static management',
+      icon: <SettingsIcon />,
+      items: [
+        { id: 'members', label: 'Members', icon: <UsersIcon />, path: '/members' },
+        { id: 'raid-tiers', label: 'Raid tiers', icon: <LayersIcon />, path: '/raid-tiers' },
+        { id: 'schedule', label: 'Schedule', icon: <CalendarIcon />, path: '/schedule' },
+      ],
+    },
     {
       id: 'loot',
       label: 'Loot',
       icon: <BoxIcon />,
       items: [
-        { id: 'members', label: 'Members', icon: <UsersIcon />, page: 'members', path: '/members' },
-        { id: 'bis', label: 'BiS Tracker', icon: <CheckSquareIcon />, page: 'bis', path: '/bis' },
-        { id: 'loot', label: 'Loot Distribution', icon: <PackageIcon />, page: 'loot', path: '/loot' },
-        { id: 'history', label: 'History', icon: <HistoryIcon />, page: 'history', path: '/history' },
+        { id: 'bis', label: 'BiS Tracker', icon: <CheckSquareIcon />, path: '/bis' },
+        { id: 'loot', label: 'Loot Distribution', icon: <PackageIcon />, path: '/loot' },
+        { id: 'history', label: 'History', icon: <HistoryIcon />, path: '/history' },
       ],
     },
   ];
@@ -106,6 +147,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage }) => {
       return next;
     });
   };
+
+  const resolvedNavPath = React.useMemo(() => {
+    let p = location.pathname;
+    if (location.hash && location.hash.length > 1) {
+      p = location.hash.substring(1).split('?')[0];
+    } else {
+      p = p.split('?')[0];
+    }
+    return p;
+  }, [location.pathname, location.hash]);
 
   return (
     <aside className="sidebar">
@@ -146,8 +197,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage }) => {
               {isExpanded && (
                 <div className="nav-group-items">
                   {group.items.map(item => {
-                    const isActive = location.pathname === item.path || 
-                                    (item.path === '/members' && location.pathname === '/');
+                    const isActive =
+                      resolvedNavPath === item.path ||
+                      (item.path === '/schedule' &&
+                        (resolvedNavPath === '/' || resolvedNavPath === ''));
                     return (
                       <button
                         key={item.id}
@@ -165,6 +218,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage }) => {
           );
         })}
       </nav>
+
+      {user && (
+        <div className="sidebar-raid-tier">
+          <div className="sidebar-raid-tier-label">Active raid tier</div>
+          <div className="sidebar-raid-tier-name">{currentTierName ?? '—'}</div>
+        </div>
+      )}
 
       <div className="sidebar-footer">
         {user && (

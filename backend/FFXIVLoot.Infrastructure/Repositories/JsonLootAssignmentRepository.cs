@@ -1,3 +1,4 @@
+using FFXIVLoot.Application.Interfaces;
 using FFXIVLoot.Domain.Entities;
 using FFXIVLoot.Domain.Enums;
 using FFXIVLoot.Domain.Interfaces;
@@ -10,16 +11,21 @@ namespace FFXIVLoot.Infrastructure.Repositories;
 /// </summary>
 public class JsonLootAssignmentRepository : ILootAssignmentRepository
 {
-    private readonly JsonFileStorage _storage;
-    private const string DefaultDataFilePath = "data/loot-assignments.json";
+    private readonly IRaidTierManagement _raidTierManagement;
 
     /// <summary>
     /// Initializes a new instance of JsonLootAssignmentRepository
     /// </summary>
-    public JsonLootAssignmentRepository(string? dataFilePath = null)
+    public JsonLootAssignmentRepository(IRaidTierManagement raidTierManagement)
     {
-        var filePath = dataFilePath ?? DefaultDataFilePath;
-        _storage = new JsonFileStorage(filePath);
+        _raidTierManagement = raidTierManagement ?? throw new ArgumentNullException(nameof(raidTierManagement));
+    }
+
+    private async Task<JsonFileStorage> StorageAsync()
+    {
+        var tierId = await _raidTierManagement.GetCurrentTierIdAsync();
+        var path = Path.Combine(_raidTierManagement.DataRoot, "raid-tiers", tierId.ToString(), "loot-assignments.json");
+        return new JsonFileStorage(path);
     }
 
     /// <summary>
@@ -27,7 +33,8 @@ public class JsonLootAssignmentRepository : ILootAssignmentRepository
     /// </summary>
     public async Task<List<LootAssignment>> GetAllAsync()
     {
-        var data = await _storage.ReadAsync<LootAssignmentDataModel>();
+        var storage = await StorageAsync();
+        var data = await storage.ReadAsync<LootAssignmentDataModel>();
         return data?.Assignments ?? new List<LootAssignment>();
     }
 
@@ -73,7 +80,8 @@ public class JsonLootAssignmentRepository : ILootAssignmentRepository
             throw new ArgumentNullException(nameof(assignment));
         }
 
-        var data = await _storage.ReadAsync<LootAssignmentDataModel>() ?? new LootAssignmentDataModel();
+        var storage = await StorageAsync();
+        var data = await storage.ReadAsync<LootAssignmentDataModel>() ?? new LootAssignmentDataModel();
         
         if (assignment.Id == Guid.Empty)
         {
@@ -81,7 +89,7 @@ public class JsonLootAssignmentRepository : ILootAssignmentRepository
         }
 
         data.Assignments.Add(assignment);
-        await _storage.WriteAsync(data);
+        await storage.WriteAsync(data);
 
         return assignment;
     }
@@ -96,7 +104,8 @@ public class JsonLootAssignmentRepository : ILootAssignmentRepository
             throw new ArgumentNullException(nameof(assignment));
         }
 
-        var data = await _storage.ReadAsync<LootAssignmentDataModel>() ?? new LootAssignmentDataModel();
+        var storage = await StorageAsync();
+        var data = await storage.ReadAsync<LootAssignmentDataModel>() ?? new LootAssignmentDataModel();
         var existingAssignment = data.Assignments.FirstOrDefault(a => a.Id == assignment.Id);
         
         if (existingAssignment == null)
@@ -107,7 +116,7 @@ public class JsonLootAssignmentRepository : ILootAssignmentRepository
         var index = data.Assignments.IndexOf(existingAssignment);
         data.Assignments[index] = assignment;
         
-        await _storage.WriteAsync(data);
+        await storage.WriteAsync(data);
 
         return assignment;
     }
@@ -134,9 +143,10 @@ public class JsonLootAssignmentRepository : ILootAssignmentRepository
     /// </summary>
     public async Task DeleteByWeekAsync(int weekNumber)
     {
-        var data = await _storage.ReadAsync<LootAssignmentDataModel>() ?? new LootAssignmentDataModel();
+        var storage = await StorageAsync();
+        var data = await storage.ReadAsync<LootAssignmentDataModel>() ?? new LootAssignmentDataModel();
         data.Assignments.RemoveAll(a => a.WeekNumber == weekNumber);
-        await _storage.WriteAsync(data);
+        await storage.WriteAsync(data);
     }
 }
 

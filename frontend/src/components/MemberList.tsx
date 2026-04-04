@@ -1,6 +1,8 @@
 import React from 'react';
-import { Member, MemberRole, PermissionRole } from '../types/member';
-import { RoleTag, PermissionRoleTag } from './Tag';
+import { Switch, Tooltip } from '@mui/material';
+import { BisJobCategory, bisJobCategoryFromAbbrev, Member, MemberRole, PermissionRole } from '../types/member';
+import { BisJobCategoryBadge } from './BisJobCategoryBadge';
+import { RoleTag } from './Tag';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from './Button';
 import { ProfileImageTooltip } from './ProfileImageTooltip';
@@ -10,13 +12,17 @@ interface MemberListProps {
   members: Member[];
   onEdit: (member: Member) => void;
   onDelete: (id: string) => void;
+  onActiveChange?: (member: Member, isActive: boolean) => void;
 }
 
 /**
  * Component for displaying and managing the list of raid members
  */
-export const MemberList: React.FC<MemberListProps> = ({ members, onEdit, onDelete }) => {
+export const MemberList: React.FC<MemberListProps> = ({ members, onEdit, onDelete, onActiveChange }) => {
   const { user, hasPermission, isSelf } = useAuth();
+
+  const canToggleActive =
+    hasPermission(PermissionRole.Administrator) || hasPermission(PermissionRole.Manager);
 
   // Helper to check if user can edit a member
   const canEditMember = (member: Member): boolean => {
@@ -45,6 +51,18 @@ export const MemberList: React.FC<MemberListProps> = ({ members, onEdit, onDelet
     return [...dpsMembers, ...supportMembers];
   }, [members]);
 
+  const renderJobCell = (member: Member) => {
+    const stored = member.mainSpecBisJobCategory;
+    const derived = bisJobCategoryFromAbbrev(member.mainSpecBisJobAbbrev);
+    const jobCat =
+      stored != null && stored !== BisJobCategory.Unknown ? stored : derived;
+
+    if (jobCat === BisJobCategory.Unknown) {
+      return null;
+    }
+    return <BisJobCategoryBadge category={jobCat} abbrev={member.mainSpecBisJobAbbrev} />;
+  };
+
   return (
     <div className="member-list">
       <h2>Raid Members</h2>
@@ -54,12 +72,15 @@ export const MemberList: React.FC<MemberListProps> = ({ members, onEdit, onDelet
         <table className="member-table">
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Role</th>
-              <th>Permission Role</th>
-              <th>Main Spec BiS</th>
-              <th>Off Spec BiS</th>
-              <th>Actions</th>
+              <th className="member-table-col-name">Name</th>
+              <th className="member-table-col-role">Role</th>
+              <th className="member-table-col-job">Job</th>
+              <th className="member-table-col-main-bis">Main Spec BiS</th>
+              <th className="member-table-col-off-bis">Off Spec BiS</th>
+              {canToggleActive && onActiveChange && (
+                <th className="member-table-col-active">Active</th>
+              )}
+              <th className="member-table-col-actions">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -70,7 +91,7 @@ export const MemberList: React.FC<MemberListProps> = ({ members, onEdit, onDelet
               
               return (
                 <tr key={member.id}>
-                  <td>
+                  <td className="member-table-col-name">
                     <div className="member-name-cell">
                       <ProfileImageTooltip imageUrl={imageUrl} alt={member.name} place="right">
                         <img 
@@ -88,13 +109,11 @@ export const MemberList: React.FC<MemberListProps> = ({ members, onEdit, onDelet
                       <span>{member.name}</span>
                     </div>
                   </td>
-                <td>
+                <td className="member-table-col-role">
                   <RoleTag role={member.role} />
                 </td>
-                <td>
-                  <PermissionRoleTag permissionRole={member.permissionRole ?? PermissionRole.User} />
-                </td>
-                <td>
+                <td className="member-table-col-job">{renderJobCell(member)}</td>
+                <td className="member-table-col-main-bis">
                   {member.xivGearLink ? (
                     <Button 
                       component="a"
@@ -111,7 +130,7 @@ export const MemberList: React.FC<MemberListProps> = ({ members, onEdit, onDelet
                     <span className="no-link">Not set</span>
                   )}
                 </td>
-                <td>
+                <td className="member-table-col-off-bis">
                   {member.offSpecFullCofferSet ? (
                     <span className="no-link" title="Full set of coffers">
                       Full coffer set
@@ -132,8 +151,32 @@ export const MemberList: React.FC<MemberListProps> = ({ members, onEdit, onDelet
                     <span className="no-link">Not set</span>
                   )}
                 </td>
-                <td>
-                  <div style={{ display: 'flex', gap: '8px' }}>
+                {canToggleActive && onActiveChange && (
+                  <td className="member-table-col-active">
+                    <Tooltip
+                      title={
+                        member.isActive === false
+                          ? 'Inactive — hidden from BiS tracker'
+                          : 'Active — shown on BiS tracker'
+                      }
+                      placement="top"
+                    >
+                      <div className="member-active-toggle-cell">
+                        <Switch
+                          checked={member.isActive !== false}
+                          onChange={(_, checked) => onActiveChange(member, checked)}
+                          size="small"
+                          color="primary"
+                          inputProps={{
+                            'aria-label': `${member.isActive === false ? 'Inactive' : 'Active'} — ${member.name}`,
+                          }}
+                        />
+                      </div>
+                    </Tooltip>
+                  </td>
+                )}
+                <td className="member-table-col-actions">
+                  <div className="member-actions-cell">
                     {canEditMember(member) && (
                       <Button 
                         variant="outlined"

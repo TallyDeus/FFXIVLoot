@@ -94,6 +94,17 @@ public static class PermissionHelper
         // Only Administrator can delete weeks
         return currentUser.PermissionRole == PermissionRole.Administrator;
     }
+
+    /// <summary>
+    /// Managers and administrators may mark members inactive for the BiS tracker.
+    /// </summary>
+    public static bool CanToggleMemberActive(Member? currentUser)
+    {
+        if (currentUser == null) return false;
+
+        return currentUser.PermissionRole == PermissionRole.Administrator ||
+               currentUser.PermissionRole == PermissionRole.Manager;
+    }
 }
 
 

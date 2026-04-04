@@ -217,6 +217,28 @@
   background-color: var(--tc-border-light);
 }
 
+.sidebar-raid-tier {
+  padding: 12px 20px;
+  border-top: 1px solid var(--tc-border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar-raid-tier-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--tc-text-muted);
+}
+
+.sidebar-raid-tier-name {
+  font-size: 14px;
+  color: var(--tc-text-main);
+  font-weight: 600;
+}
+
 .sidebar-footer {
   padding: 20px;
   border-top: 1px solid var(--tc-border);

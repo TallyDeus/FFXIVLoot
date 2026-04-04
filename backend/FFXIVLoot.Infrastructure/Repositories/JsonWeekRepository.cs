@@ -1,3 +1,4 @@
+using FFXIVLoot.Application.Interfaces;
 using FFXIVLoot.Domain.Entities;
 using FFXIVLoot.Domain.Interfaces;
 using FFXIVLoot.Infrastructure.Storage;
@@ -9,16 +10,21 @@ namespace FFXIVLoot.Infrastructure.Repositories;
 /// </summary>
 public class JsonWeekRepository : IWeekRepository
 {
-    private readonly JsonFileStorage _storage;
-    private const string DefaultDataFilePath = "data/weeks.json";
+    private readonly IRaidTierManagement _raidTierManagement;
 
     /// <summary>
     /// Initializes a new instance of JsonWeekRepository
     /// </summary>
-    public JsonWeekRepository(string? dataFilePath = null)
+    public JsonWeekRepository(IRaidTierManagement raidTierManagement)
     {
-        var filePath = dataFilePath ?? DefaultDataFilePath;
-        _storage = new JsonFileStorage(filePath);
+        _raidTierManagement = raidTierManagement ?? throw new ArgumentNullException(nameof(raidTierManagement));
+    }
+
+    private async Task<JsonFileStorage> StorageAsync()
+    {
+        var tierId = await _raidTierManagement.GetCurrentTierIdAsync();
+        var path = Path.Combine(_raidTierManagement.DataRoot, "raid-tiers", tierId.ToString(), "weeks.json");
+        return new JsonFileStorage(path);
     }
 
     /// <summary>
@@ -26,7 +32,8 @@ public class JsonWeekRepository : IWeekRepository
     /// </summary>
     public async Task<List<Week>> GetAllAsync()
     {
-        var data = await _storage.ReadAsync<WeekDataModel>();
+        var storage = await StorageAsync();
+        var data = await storage.ReadAsync<WeekDataModel>();
         return data?.Weeks ?? new List<Week>();
     }
 
@@ -35,7 +42,8 @@ public class JsonWeekRepository : IWeekRepository
     /// </summary>
     public async Task<Week?> GetCurrentWeekAsync()
     {
-        var data = await _storage.ReadAsync<WeekDataModel>();
+        var storage = await StorageAsync();
+        var data = await storage.ReadAsync<WeekDataModel>();
         if (data == null || data.Weeks.Count == 0)
         {
             return null;
@@ -50,7 +58,8 @@ public class JsonWeekRepository : IWeekRepository
     /// </summary>
     public async Task<Week> CreateWeekAsync(int weekNumber)
     {
-        var data = await _storage.ReadAsync<WeekDataModel>() ?? new WeekDataModel();
+        var storage = await StorageAsync();
+        var data = await storage.ReadAsync<WeekDataModel>() ?? new WeekDataModel();
         
         var existingWeek = data.Weeks.FirstOrDefault(w => w.WeekNumber == weekNumber);
         if (existingWeek != null)
@@ -66,7 +75,7 @@ public class JsonWeekRepository : IWeekRepository
         };
 
         data.Weeks.Add(week);
-        await _storage.WriteAsync(data);
+        await storage.WriteAsync(data);
 
         return week;
     }
@@ -76,7 +85,8 @@ public class JsonWeekRepository : IWeekRepository
     /// </summary>
     public async Task SetCurrentWeekAsync(int weekNumber)
     {
-        var data = await _storage.ReadAsync<WeekDataModel>() ?? new WeekDataModel();
+        var storage = await StorageAsync();
+        var data = await storage.ReadAsync<WeekDataModel>() ?? new WeekDataModel();
         
         var week = data.Weeks.FirstOrDefault(w => w.WeekNumber == weekNumber);
         if (week == null)
@@ -98,7 +108,7 @@ public class JsonWeekRepository : IWeekRepository
         week.IsCurrent = true;
         data.CurrentWeekNumber = weekNumber;
 
-        await _storage.WriteAsync(data);
+        await storage.WriteAsync(data);
     }
 
     /// <summary>
@@ -106,7 +116,8 @@ public class JsonWeekRepository : IWeekRepository
     /// </summary>
     public async Task DeleteWeekAsync(int weekNumber)
     {
-        var data = await _storage.ReadAsync<WeekDataModel>() ?? new WeekDataModel();
+        var storage = await StorageAsync();
+        var data = await storage.ReadAsync<WeekDataModel>() ?? new WeekDataModel();
         
         var weekToDelete = data.Weeks.FirstOrDefault(w => w.WeekNumber == weekNumber);
         if (weekToDelete == null)
@@ -130,7 +141,7 @@ public class JsonWeekRepository : IWeekRepository
         }
 
         data.Weeks.Remove(weekToDelete);
-        await _storage.WriteAsync(data);
+        await storage.WriteAsync(data);
     }
 }
 

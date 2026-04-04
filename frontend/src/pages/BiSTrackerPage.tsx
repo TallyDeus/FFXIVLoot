@@ -23,7 +23,7 @@ export const BiSTrackerPage: React.FC = () => {
 
   const refreshMembers = useCallback(async () => {
     try {
-      const data = await memberService.getAllMembers();
+      const data = await memberService.getAllMembers(true);
       setMembers(data);
     } catch (error) {
       showToast('Failed to refresh members. Please try again.', 'error');

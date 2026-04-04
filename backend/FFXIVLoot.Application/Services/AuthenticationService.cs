@@ -14,7 +14,8 @@ namespace FFXIVLoot.Application.Services;
 public class AuthenticationService : IAuthenticationService
 {
     private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly Dictionary<string, (Guid MemberId, DateTime ExpiresAt)> _activeSessions = new();
+    /// <summary>Session stores login name so we can remap member id after raid tier switch (cloned rosters get new ids).</summary>
+    private readonly Dictionary<string, (Guid MemberId, string AuthenticatedMemberName, DateTime ExpiresAt)> _activeSessions = new();
 
     /// <summary>
     /// Initializes a new instance of AuthenticationService
@@ -60,9 +61,9 @@ public class AuthenticationService : IAuthenticationService
 
         // Generate session token
         var token = GenerateToken();
-        var expiresAt = DateTime.UtcNow.AddHours(24); // 24 hour session
+        var expiresAt = DateTime.UtcNow.AddDays(14); // 2-week session
 
-        _activeSessions[token] = (member.Id, expiresAt);
+        _activeSessions[token] = (member.Id, member.Name, expiresAt);
 
         // Map to DTO
         var memberDto = new MemberDto
@@ -77,7 +78,9 @@ public class AuthenticationService : IAuthenticationService
             OffSpecXivGearLink = member.OffSpecXivGearLink,
             OffSpecFullCofferSet = member.OffSpecFullCofferSet,
             OffSpecBisItems = member.OffSpecBisItems.Select(MapGearItemToDto).ToList(),
-            PermissionRole = member.PermissionRole
+            PermissionRole = member.PermissionRole,
+            ProfileImageUrl = member.ProfileImageUrl,
+            IsActive = member.IsActive
         };
 
         return new LoginResponseDto
@@ -131,16 +134,38 @@ public class AuthenticationService : IAuthenticationService
         {
             return null;
         }
-        
-        var memberId = ValidateToken(token);
-        if (!memberId.HasValue)
+
+        if (!_activeSessions.TryGetValue(token, out var session))
         {
+            return null;
+        }
+
+        if (session.ExpiresAt < DateTime.UtcNow)
+        {
+            _activeSessions.Remove(token);
             return null;
         }
 
         using var scope = _serviceScopeFactory.CreateScope();
         var memberRepository = scope.ServiceProvider.GetRequiredService<IMemberRepository>();
-        return await memberRepository.GetByIdAsync(memberId.Value);
+
+        var member = await memberRepository.GetByIdAsync(session.MemberId);
+        if (member != null)
+        {
+            return member;
+        }
+
+        // Current raid tier may have been switched; cloned members use new ids but same names/PINs.
+        var all = await memberRepository.GetAllAsync();
+        var remapped = all.FirstOrDefault(m =>
+            m.Name.Equals(session.AuthenticatedMemberName, StringComparison.OrdinalIgnoreCase));
+        if (remapped == null)
+        {
+            return null;
+        }
+
+        _activeSessions[token] = (remapped.Id, session.AuthenticatedMemberName, session.ExpiresAt);
+        return remapped;
     }
 
     private void CleanupExpiredSessions()

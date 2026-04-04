@@ -102,11 +102,6 @@
   gap: 3px;
 }
 
-.member-header-content .member-bis-job-cat {
-  max-width: 100%;
-  margin-top: 1px;
-}
-
 .member-profile-image-trigger {
   display: inline-flex;
   align-items: center;

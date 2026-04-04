@@ -81,14 +81,12 @@ export const BiSMemberProfileModal: React.FC<BiSMemberProfileModalProps> = ({ me
             <span className="bis-member-modal-role-label">Role</span>
             <RoleTag role={member.role} />
           </div>
-          <div className="bis-member-modal-meta-item">
-            <span className="bis-member-modal-role-label">Job</span>
-            {currentJobCat !== BisJobCategory.Unknown ? (
+          {currentJobCat !== BisJobCategory.Unknown && (
+            <div className="bis-member-modal-meta-item">
+              <span className="bis-member-modal-role-label">Job</span>
               <BisJobCategoryBadge category={currentJobCat} abbrev={member.mainSpecBisJobAbbrev} />
-            ) : (
-              <span className="bis-member-modal-muted">Not set</span>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         <div className="bis-member-modal-links">

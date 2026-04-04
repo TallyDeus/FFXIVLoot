@@ -34,7 +34,7 @@ export const LoginPage: React.FC = () => {
     try {
       await login(memberName.trim(), pin);
       showToast('Login successful!', 'success');
-      navigate('/members');
+      navigate('/schedule');
     } catch (error: any) {
       showToast(error.message || 'Invalid member name or PIN', 'error');
     } finally {

@@ -64,5 +64,10 @@ public class MemberDto
     /// URL path to the member's profile image
     /// </summary>
     public string? ProfileImageUrl { get; set; }
+
+    /// <summary>
+    /// When false, hidden from BiS tracker (managers/administrators can toggle).
+    /// </summary>
+    public bool IsActive { get; set; } = true;
 }
 

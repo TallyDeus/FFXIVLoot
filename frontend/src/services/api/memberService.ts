@@ -9,9 +9,18 @@ const API_ENDPOINT = '/api/members';
 export const memberService = {
   /**
    * Gets all members
+   * @param activeOnly When true, only members visible on the BiS tracker
    */
-  async getAllMembers(): Promise<Member[]> {
-    return apiRequest<Member[]>(API_ENDPOINT);
+  async getAllMembers(activeOnly?: boolean): Promise<Member[]> {
+    const q = activeOnly ? '?activeOnly=true' : '';
+    return apiRequest<Member[]>(`${API_ENDPOINT}${q}`);
+  },
+
+  async setMemberActive(memberId: string, isActive: boolean): Promise<Member> {
+    return apiRequest<Member>(`${API_ENDPOINT}/${memberId}/active`, {
+      method: 'PATCH',
+      body: JSON.stringify({ isActive }),
+    });
   },
 
   /**

@@ -5,9 +5,7 @@ import {
   GearSlotNames,
   ItemType,
   PermissionRole,
-  bisJobCategoryFromAbbrev,
 } from '../types/member';
-import { BisJobCategoryBadge } from './BisJobCategoryBadge';
 import { bisService } from '../services/api/bisService';
 import { ToastContainer } from './Toast';
 import { useToast } from '../hooks/useToast';
@@ -205,7 +203,7 @@ export const BiSMatrix: React.FC<BiSMatrixProps> = ({ members, onUpdate, onMembe
           <thead>
             <tr>
               <th className="sticky-row slot-header">Gear Slot</th>
-              {sortedMembers.map((member, index) => (
+              {sortedMembers.map((member) => (
                 <th 
                   key={member.id}
                   className="member-header"
@@ -215,10 +213,6 @@ export const BiSMatrix: React.FC<BiSMatrixProps> = ({ members, onUpdate, onMembe
                       const imageUrl = member.profileImageUrl 
                         ? `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${member.profileImageUrl}`
                         : `${process.env.PUBLIC_URL}/ffxiv-logo.png`;
-                      const jobAbbrev = member.mainSpecBisJobAbbrev;
-                      const jobCat =
-                        member.mainSpecBisJobCategory ??
-                        bisJobCategoryFromAbbrev(member.mainSpecBisJobAbbrev);
                       return (
                         <>
                           <button
@@ -239,11 +233,6 @@ export const BiSMatrix: React.FC<BiSMatrixProps> = ({ members, onUpdate, onMembe
                             />
                           </button>
                           <span className="member-name">{member.name}</span>
-                          <BisJobCategoryBadge
-                            category={jobCat}
-                            abbrev={jobAbbrev}
-                            className="member-bis-job-cat"
-                          />
                         </>
                       );
                     })()}
@@ -258,7 +247,7 @@ export const BiSMatrix: React.FC<BiSMatrixProps> = ({ members, onUpdate, onMembe
                 <td className="sticky-row slot-name-cell">
                   <span className="slot-name-text">{GearSlotNames[slot]}</span>
                 </td>
-                {sortedMembers.map((member, index) => {
+                {sortedMembers.map((member) => {
                   const item = getItemForSlot(member, slot);
                   
                   if (!item) {

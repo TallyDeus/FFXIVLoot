@@ -104,7 +104,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return user.id === targetMember.id;
   };
 
-  const canEditPermissionRole = (targetMember: Member): boolean => {
+  const canEditPermissionRole = (_targetMember: Member): boolean => {
     if (!user) return false;
     return user.permissionRole === PermissionRole.Administrator;
   };

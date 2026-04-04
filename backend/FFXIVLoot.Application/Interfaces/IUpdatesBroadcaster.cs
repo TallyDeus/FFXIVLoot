@@ -24,4 +24,9 @@ public interface IUpdatesBroadcaster
     /// Broadcasts that a loot assignment has been undone
     /// </summary>
     Task BroadcastLootUndoneAsync(int floorNumber, int? weekNumber);
+
+    /// <summary>
+    /// Broadcasts that raid schedule data changed (availability or standard days).
+    /// </summary>
+    Task BroadcastScheduleUpdatedAsync();
 }
