@@ -182,7 +182,7 @@ export const RaidTiersPage: React.FC = () => {
     <div className="raid-tiers-page">
       <header className="page-header">
         <div>
-          <h1>Raid tiers</h1>
+          <h1>Raid Tiers</h1>
           <p className="raid-tiers-intro">
             Each tier keeps its own members, BiS data, schedule, loot weeks, and assignment history. Switching the active tier
             changes what the rest of the app loads.
@@ -240,9 +240,9 @@ export const RaidTiersPage: React.FC = () => {
 
               <h2>New raid tier</h2>
               <p>
-                Copies roster (names, roles, PINs, active flag), BiS links, manual BiS rows, acquisition progress, and
+                Copies roster (names, roles, PINs), BiS links, manual BiS rows, acquisition progress, and
                 schedule (standard raid days + availability; responses remapped to cloned member ids) from the{' '}
-                <strong>current</strong> tier. Profile images are not copied. Weeks and loot history start empty.
+                <strong>current</strong> tier. Weeks and loot history start empty.
               </p>
               <div className="raid-tiers-form-row">
                 <div className="form-group">

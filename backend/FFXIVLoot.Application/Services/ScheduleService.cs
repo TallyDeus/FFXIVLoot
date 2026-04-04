@@ -101,6 +101,70 @@ public sealed class ScheduleService : IScheduleService
         return await GetViewAsync(GetMondayOfWeek(viewStartMonday), cancellationToken);
     }
 
+    public async Task<ScheduleViewDto> UpsertWeekResponsesBulkAsync(
+        Member currentUser,
+        DateOnly viewStartMonday,
+        ScheduleWeekResponseBulkUpsertDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(dto.WeekStartMonday) || !DateOnly.TryParse(dto.WeekStartMonday, out var weekMon))
+            throw new ArgumentException("Invalid week (use yyyy-MM-dd for the week's Monday).", nameof(dto));
+
+        weekMon = GetMondayOfWeek(weekMon);
+
+        var targetMemberId = dto.MemberId ?? currentUser.Id;
+        if (targetMemberId != currentUser.Id)
+        {
+            if (currentUser.PermissionRole != PermissionRole.Manager &&
+                currentUser.PermissionRole != PermissionRole.Administrator)
+            {
+                throw new UnauthorizedAccessException("Only managers can edit another member's availability.");
+            }
+        }
+
+        var memberExists = await _memberRepository.GetByIdAsync(targetMemberId);
+        if (memberExists == null)
+            throw new InvalidOperationException("Member not found.");
+
+        if (!TryParseAvailability(dto.Status, out var status))
+            throw new ArgumentException("Status must be yes, no, or maybe.", nameof(dto));
+
+        var file = await _scheduleRepository.LoadAsync(cancellationToken) ?? new ScheduleFileData();
+        NormalizeFile(file);
+
+        for (var i = 0; i < 7; i++)
+        {
+            var date = weekMon.AddDays(i);
+            var dateStr = date.ToString("yyyy-MM-dd");
+
+            var existingRow = file.Responses.Find(r => r.MemberId == targetMemberId && r.Date == dateStr);
+
+            string? comment = null;
+            if (status != ScheduleAvailability.Yes && existingRow != null && !string.IsNullOrWhiteSpace(existingRow.Comment))
+                comment = existingRow.Comment.Trim();
+
+            if (existingRow != null)
+            {
+                existingRow.Status = status;
+                existingRow.Comment = comment;
+            }
+            else
+            {
+                file.Responses.Add(new ScheduleResponseEntry
+                {
+                    MemberId = targetMemberId,
+                    Date = dateStr,
+                    Status = status,
+                    Comment = comment
+                });
+            }
+        }
+
+        await _scheduleRepository.SaveAsync(file, cancellationToken);
+
+        return await GetViewAsync(GetMondayOfWeek(viewStartMonday), cancellationToken);
+    }
+
     public async Task<ScheduleViewDto> UpdateStandardDaysAsync(
         Member currentUser,
         DateOnly viewStartMonday,

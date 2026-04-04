@@ -14,6 +14,12 @@ public interface IScheduleService
         ScheduleResponseUpsertDto dto,
         CancellationToken cancellationToken = default);
 
+    Task<ScheduleViewDto> UpsertWeekResponsesBulkAsync(
+        Member currentUser,
+        DateOnly viewStartMonday,
+        ScheduleWeekResponseBulkUpsertDto dto,
+        CancellationToken cancellationToken = default);
+
     Task<ScheduleViewDto> UpdateStandardDaysAsync(
         Member currentUser,
         DateOnly viewStartMonday,

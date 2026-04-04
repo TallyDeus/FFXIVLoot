@@ -1,11 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { PinUpdateDialog } from './PinUpdateDialog';
 import { raidTierService } from '../services/api/raidTierService';
+import { scheduleService } from '../services/api/scheduleService';
+import { ScheduleConsensus } from '../types/schedule';
+import { mondayOfWeekIso, scheduleRangeStartMonday, todayLocalIso } from '../utils/scheduleDates';
 import { PermissionRole } from '../types/member';
 import { PermissionRoleTag } from './Tag';
 import { Button } from './Button';
+import { signalRService } from '../services/signalrService';
 import './Sidebar.css';
 
 interface NavItem {
@@ -97,6 +101,9 @@ export const Sidebar: React.FC = () => {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['static', 'loot']));
   const [showPinDialog, setShowPinDialog] = useState(false);
   const [currentTierName, setCurrentTierName] = useState<string | null>(null);
+  const [todayRaidStatus, setTodayRaidStatus] = useState<
+    'idle' | 'loading' | 'raiding' | 'maybe' | 'not' | 'incomplete' | 'unknown'
+  >('idle');
 
   useEffect(() => {
     if (!user) {
@@ -109,6 +116,69 @@ export const Sidebar: React.FC = () => {
       .catch(() => setCurrentTierName(null));
   }, [user]);
 
+  const refreshTodayRaidStatus = useCallback(() => {
+    if (!user) return;
+    setTodayRaidStatus('loading');
+    const viewStart = scheduleRangeStartMonday();
+    scheduleService
+      .getView(viewStart)
+      .then((view) => {
+        const today = todayLocalIso();
+        const monday = mondayOfWeekIso(today);
+        const week = view.weeks.find((w) => w.weekStartMonday === monday);
+        if (!week) {
+          setTodayRaidStatus('unknown');
+          return;
+        }
+        const day = week.days.find((d) => d.date === today);
+        if (!day) {
+          setTodayRaidStatus('unknown');
+          return;
+        }
+        switch (day.consensus) {
+          case ScheduleConsensus.Raiding:
+            setTodayRaidStatus('raiding');
+            break;
+          case ScheduleConsensus.MaybeRaiding:
+            setTodayRaidStatus('maybe');
+            break;
+          case ScheduleConsensus.NotRaiding:
+            setTodayRaidStatus('not');
+            break;
+          default:
+            setTodayRaidStatus('incomplete');
+        }
+      })
+      .catch(() => setTodayRaidStatus('unknown'));
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) {
+      setTodayRaidStatus('idle');
+      return;
+    }
+    refreshTodayRaidStatus();
+  }, [user, location.pathname, refreshTodayRaidStatus]);
+
+  useEffect(() => {
+    if (!user) return;
+    const onScheduleUpdated = () => {
+      refreshTodayRaidStatus();
+    };
+    const connect = async () => {
+      try {
+        await signalRService.start();
+        signalRService.onScheduleUpdated(onScheduleUpdated);
+      } catch (e) {
+        console.error('Sidebar: SignalR schedule updates failed', e);
+      }
+    };
+    void connect();
+    return () => {
+      signalRService.offScheduleUpdated(onScheduleUpdated);
+    };
+  }, [user, refreshTodayRaidStatus]);
+
   const navGroups: NavGroup[] = [
     {
       id: 'static',
@@ -116,7 +186,7 @@ export const Sidebar: React.FC = () => {
       icon: <SettingsIcon />,
       items: [
         { id: 'members', label: 'Members', icon: <UsersIcon />, path: '/members' },
-        { id: 'raid-tiers', label: 'Raid tiers', icon: <LayersIcon />, path: '/raid-tiers' },
+        { id: 'raid-tiers', label: 'Raid Tiers', icon: <LayersIcon />, path: '/raid-tiers' },
         { id: 'schedule', label: 'Schedule', icon: <CalendarIcon />, path: '/schedule' },
       ],
     },
@@ -174,6 +244,30 @@ export const Sidebar: React.FC = () => {
         </div>
         <h1 className="app-title">Brain damage is a choice</h1>
       </div>
+
+      {user && (
+        <div className="sidebar-today-raid" aria-live="polite">
+          <div className="sidebar-today-raid-label">Today</div>
+          {(todayRaidStatus === 'idle' || todayRaidStatus === 'loading') && (
+            <div className="sidebar-today-raid-value sidebar-today-raid-loading">Loading…</div>
+          )}
+          {todayRaidStatus === 'raiding' && (
+            <div className="sidebar-today-raid-value sidebar-today-raid-yes">Raiding</div>
+          )}
+          {todayRaidStatus === 'maybe' && (
+            <div className="sidebar-today-raid-value sidebar-today-raid-maybe">Maybe Raiding</div>
+          )}
+          {todayRaidStatus === 'not' && (
+            <div className="sidebar-today-raid-value sidebar-today-raid-no">Not Raiding</div>
+          )}
+          {todayRaidStatus === 'incomplete' && (
+            <div className="sidebar-today-raid-value sidebar-today-raid-incomplete">Incomplete</div>
+          )}
+          {todayRaidStatus === 'unknown' && (
+            <div className="sidebar-today-raid-value sidebar-today-raid-unknown">—</div>
+          )}
+        </div>
+      )}
 
       <nav className="sidebar-nav">
         {navGroups.map(group => {

@@ -12,6 +12,10 @@ class SignalRService {
   private isConnecting = false;
   private maxReconnectAttempts = 10;
 
+  /** Multiple components can subscribe; one hub handler dispatches to all. */
+  private readonly scheduleUpdatedCallbacks = new Set<() => void>();
+  private scheduleUpdatedMulticastWired = false;
+
   /**
    * Establishes connection to SignalR hub
    */
@@ -55,6 +59,7 @@ class SignalRService {
 
       await this.connection.start();
       devLog('SignalR: Connected');
+      this.wireScheduleUpdatedMulticast();
     } catch (error) {
       console.error('SignalR: Failed to start connection', error);
       this.isConnecting = false;
@@ -72,6 +77,7 @@ class SignalRService {
       await this.connection.stop();
       this.connection = null;
     }
+    this.scheduleUpdatedMulticastWired = false;
   }
 
   /**
@@ -117,17 +123,33 @@ class SignalRService {
   }
 
   /**
-   * Registers a callback when raid schedule (availability or standard days) changes
+   * Registers a callback when raid schedule (availability or standard days) changes.
+   * Use {@link offScheduleUpdated} with the same function reference on cleanup.
    */
   onScheduleUpdated(callback: () => void): void {
-    if (!this.connection) {
-      devWarn('SignalR: Connection not established. Call start() first.');
+    this.scheduleUpdatedCallbacks.add(callback);
+    this.wireScheduleUpdatedMulticast();
+  }
+
+  offScheduleUpdated(callback: () => void): void {
+    this.scheduleUpdatedCallbacks.delete(callback);
+  }
+
+  private wireScheduleUpdatedMulticast(): void {
+    if (!this.connection || this.scheduleUpdatedMulticastWired) {
       return;
     }
 
     this.connection.on('ScheduleUpdated', () => {
-      callback();
+      this.scheduleUpdatedCallbacks.forEach((cb) => {
+        try {
+          cb();
+        } catch (e) {
+          console.error('SignalR: ScheduleUpdated callback error', e);
+        }
+      });
     });
+    this.scheduleUpdatedMulticastWired = true;
   }
 
   /**

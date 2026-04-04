@@ -19,6 +19,7 @@ import { ToastContainer } from '../components/Toast';
 import { useToast } from '../hooks/useToast';
 import { signalRService } from '../services/signalrService';
 import { ScheduleAvailabilityPicker } from '../components/schedule/ScheduleAvailabilityPicker';
+import { mondayOfWeekIso, scheduleRangeStartMonday, todayLocalIso } from '../utils/scheduleDates';
 import styles from './SchedulePage.module.css';
 
 const apiBase = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -38,34 +39,6 @@ const NOTE_TOOLTIP_SX = {
 
 function cx(...parts: (string | false | undefined | null)[]): string {
   return parts.filter(Boolean).join(' ');
-}
-
-function todayLocalIso(): string {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
-
-function mondayOfWeekIso(isoDate: string): string {
-  const d = new Date(`${isoDate}T12:00:00`);
-  const dow = d.getDay();
-  const offset = dow === 0 ? -6 : 1 - dow;
-  d.setDate(d.getDate() + offset);
-  return d.toISOString().slice(0, 10);
-}
-
-function addDaysIso(isoDate: string, delta: number): string {
-  const d = new Date(`${isoDate}T12:00:00`);
-  d.setDate(d.getDate() + delta);
-  return d.toISOString().slice(0, 10);
-}
-
-/** First Monday of the 13-week window (2 weeks before this week's Monday). */
-function scheduleRangeStartMonday(): string {
-  const thisMonday = mondayOfWeekIso(todayLocalIso());
-  return mondayOfWeekIso(addDaysIso(thisMonday, -14));
 }
 
 function formatDateDdMm(isoDate: string): string {
@@ -228,22 +201,23 @@ export const SchedulePage: React.FC = () => {
   }, [load]);
 
   useEffect(() => {
-    let mounted = true;
+    const mountedRef = { current: true };
+    const onScheduleUpdated = () => {
+      if (!mountedRef.current) return;
+      void loadRef.current({ silent: true });
+    };
     const setupSignalR = async () => {
       try {
         await signalRService.start();
-        signalRService.onScheduleUpdated(() => {
-          if (!mounted) return;
-          void loadRef.current({ silent: true });
-        });
+        signalRService.onScheduleUpdated(onScheduleUpdated);
       } catch (error) {
         console.error('Schedule: failed to connect SignalR', error);
       }
     };
     void setupSignalR();
     return () => {
-      mounted = false;
-      signalRService.off('ScheduleUpdated');
+      mountedRef.current = false;
+      signalRService.offScheduleUpdated(onScheduleUpdated);
     };
   }, []);
 
@@ -336,6 +310,26 @@ export const SchedulePage: React.FC = () => {
       showToast(e instanceof Error ? e.message : 'Could not save', 'error');
     }
   };
+
+  const handleWeekFill = useCallback(
+    async (memberId: string, week: ScheduleWeekBlock, status: ScheduleAvailability) => {
+      if (!view) return;
+      const vs = view.viewStartMonday;
+      const memberIdParam = canManageSchedule && memberId !== user?.id ? memberId : undefined;
+      try {
+        const next = await scheduleService.upsertWeekResponsesBulk(vs, {
+          weekStartMonday: week.weekStartMonday,
+          status,
+          memberId: memberIdParam,
+        });
+        setView(next);
+        setLocalStandardDays([...next.standardRaidDaysOfWeek]);
+      } catch (e) {
+        showToast(e instanceof Error ? e.message : 'Could not save', 'error');
+      }
+    },
+    [view, canManageSchedule, user?.id, showToast]
+  );
 
   const saveStandardDays = async () => {
     if (!view) return;
@@ -489,14 +483,20 @@ export const SchedulePage: React.FC = () => {
                                       value={val}
                                       disabled={!canEditRow}
                                       ariaLabel={`${m.name}, ${formatDateDdMm(day.date)}`}
-                                      onChange={(next) =>
-                                        void handleCellChange(
-                                          m.id,
-                                          day.date,
-                                          next,
-                                          storedComment ?? undefined
-                                        )
-                                      }
+                                      weekFillHint={canEditRow}
+                                      onChange={(next, e) => {
+                                        if (e.shiftKey && canEditRow) {
+                                          e.preventDefault();
+                                          void handleWeekFill(m.id, week, next);
+                                        } else {
+                                          void handleCellChange(
+                                            m.id,
+                                            day.date,
+                                            next,
+                                            storedComment ?? undefined
+                                          );
+                                        }
+                                      }}
                                     />
                                   </div>
                                 </td>

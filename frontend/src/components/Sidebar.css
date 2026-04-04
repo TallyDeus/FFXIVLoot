@@ -217,6 +217,72 @@
   background-color: var(--tc-border-light);
 }
 
+.sidebar-today-raid {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--tc-border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.sidebar-today-raid-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--tc-text-muted);
+}
+
+.sidebar-today-raid-value {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-today-raid-loading {
+  color: var(--tc-text-muted);
+  background: rgba(42, 47, 56, 0.65);
+}
+
+/* Match schedule availability picker tones */
+.sidebar-today-raid-yes {
+  color: #ecfdf5;
+  background: rgba(5, 150, 105, 0.28);
+  border-color: rgba(5, 150, 105, 0.45);
+  box-shadow: 0 1px 3px rgba(5, 150, 105, 0.25);
+}
+
+.sidebar-today-raid-maybe {
+  color: #fff;
+  background: rgba(245, 158, 11, 0.38);
+  border-color: rgba(245, 158, 11, 0.55);
+  box-shadow: 0 1px 3px rgba(245, 158, 11, 0.25);
+}
+
+.sidebar-today-raid-no {
+  color: #fef2f2;
+  background: rgba(220, 38, 38, 0.32);
+  border-color: rgba(220, 38, 38, 0.5);
+  box-shadow: 0 1px 3px rgba(220, 38, 38, 0.25);
+}
+
+.sidebar-today-raid-incomplete {
+  color: var(--tc-text-muted);
+  background: rgba(42, 47, 56, 0.72);
+  border-color: var(--tc-border);
+}
+
+.sidebar-today-raid-unknown {
+  color: var(--tc-text-muted);
+  background: rgba(42, 47, 56, 0.5);
+  border-color: var(--tc-border);
+  font-weight: 500;
+}
+
 .sidebar-raid-tier {
   padding: 12px 20px;
   border-top: 1px solid var(--tc-border);

@@ -30,6 +30,21 @@ export const scheduleService = {
     });
   },
 
+  async upsertWeekResponsesBulk(
+    viewStartMonday: string,
+    body: { weekStartMonday: string; status: ScheduleAvailability; memberId?: string }
+  ): Promise<ScheduleView> {
+    const q = `?viewStart=${encodeURIComponent(viewStartMonday)}`;
+    return apiRequest<ScheduleView>(`${API_ENDPOINT}/week-responses${q}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        weekStartMonday: body.weekStartMonday,
+        status: body.status,
+        memberId: body.memberId ?? null,
+      }),
+    });
+  },
+
   async updateStandardDays(viewStartMonday: string, standardRaidDaysOfWeek: number[]): Promise<ScheduleView> {
     const q = `?viewStart=${encodeURIComponent(viewStartMonday)}`;
     return apiRequest<ScheduleView>(`${API_ENDPOINT}/settings${q}`, {

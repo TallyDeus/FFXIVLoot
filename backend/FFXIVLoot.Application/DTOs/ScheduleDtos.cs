@@ -122,6 +122,19 @@ public class ScheduleResponseUpsertDto
     public Guid? MemberId { get; set; }
 }
 
+/// <summary>Set the same availability for all seven days of a week for one member (single save).</summary>
+public class ScheduleWeekResponseBulkUpsertDto
+{
+    /// <summary>Monday (yyyy-MM-dd) of the week.</summary>
+    public string WeekStartMonday { get; set; } = string.Empty;
+
+    /// <summary>yes | no | maybe (case-insensitive).</summary>
+    public string Status { get; set; } = string.Empty;
+
+    /// <summary>When set, only managers/administrators may update another member's row.</summary>
+    public Guid? MemberId { get; set; }
+}
+
 public class ScheduleWeekCommentUpsertDto
 {
     /// <summary>Monday (yyyy-MM-dd) of the week.</summary>

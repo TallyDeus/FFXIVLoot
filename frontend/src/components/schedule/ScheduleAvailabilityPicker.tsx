@@ -21,8 +21,11 @@ const OPTIONS: {
 export interface ScheduleAvailabilityPickerProps {
   value: ScheduleAvailability;
   disabled: boolean;
-  onChange: (next: ScheduleAvailability) => void;
+  /** Second argument is the click event (use shiftKey for week-fill). */
+  onChange: (next: ScheduleAvailability, event: React.MouseEvent<HTMLButtonElement>) => void;
   ariaLabel: string;
+  /** When true, button titles mention Shift+click to fill the whole week. */
+  weekFillHint?: boolean;
 }
 
 /**
@@ -33,6 +36,7 @@ export const ScheduleAvailabilityPicker: React.FC<ScheduleAvailabilityPickerProp
   disabled,
   onChange,
   ariaLabel,
+  weekFillHint = false,
 }) => {
   return (
     <div
@@ -42,15 +46,17 @@ export const ScheduleAvailabilityPicker: React.FC<ScheduleAvailabilityPickerProp
     >
       {OPTIONS.map(({ value: v, label, Icon, sel }) => {
         const selected = value === v;
+        const title =
+          weekFillHint && !disabled ? `${label} — Shift+click: set whole week for this member` : label;
         return (
           <button
             key={v}
             type="button"
             disabled={disabled}
-            title={label}
+            title={title}
             aria-label={label}
             aria-pressed={selected}
-            onClick={() => onChange(v)}
+            onClick={(e) => onChange(v, e)}
             className={cx(styles.btn, selected && sel)}
           >
             <Icon className={styles.icon} aria-hidden />

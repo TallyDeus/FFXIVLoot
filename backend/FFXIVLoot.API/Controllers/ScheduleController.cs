@@ -128,6 +128,63 @@ public class ScheduleController : ControllerBase
         }
     }
 
+    [HttpPut("week-responses")]
+    public async Task<ActionResult<ScheduleViewDto>> UpsertWeekResponsesBulk(
+        [FromQuery] string viewStart,
+        [FromBody] ScheduleWeekResponseBulkUpsertDto dto,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var currentUser = await this.GetCurrentUserAsync(_authService);
+            if (currentUser == null)
+                return Unauthorized();
+
+            if (string.IsNullOrWhiteSpace(viewStart) || !DateOnly.TryParse(viewStart, out var anchor))
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Bad Request",
+                    Detail = "viewStart query (yyyy-MM-dd) is required."
+                });
+            }
+
+            anchor = ScheduleService.GetMondayOfWeek(anchor);
+            var view = await _scheduleService.UpsertWeekResponsesBulkAsync(currentUser, anchor, dto, cancellationToken);
+            try
+            {
+                await _updatesBroadcaster.BroadcastScheduleUpdatedAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "SignalR schedule broadcast failed after bulk week response upsert");
+            }
+
+            return Ok(view);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new ProblemDetails { Title = "Bad Request", Detail = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new ProblemDetails { Title = "Bad Request", Detail = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating schedule week responses (bulk)");
+            return StatusCode(500, new ProblemDetails
+            {
+                Title = "Internal Server Error",
+                Detail = "Could not save availability."
+            });
+        }
+    }
+
     [HttpPut("settings")]
     public async Task<ActionResult<ScheduleViewDto>> UpdateSettings(
         [FromQuery] string viewStart,
