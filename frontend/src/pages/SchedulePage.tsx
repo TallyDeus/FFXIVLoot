@@ -447,6 +447,7 @@ export const SchedulePage: React.FC = () => {
                     </thead>
                     <tbody>
                       {view.members.map((m) => {
+                        const isSelfRow = Boolean(user?.id && m.id === user.id);
                         const canEditRow = canManageSchedule || m.id === user?.id;
                         const avatarSrc = m.profileImageUrl
                           ? `${apiBase}${m.profileImageUrl}`
@@ -454,7 +455,11 @@ export const SchedulePage: React.FC = () => {
                         const weekNoteText = getWeekCommentDisplay(m, week);
                         const hasWeekNote = Boolean(weekNoteText?.trim());
                         return (
-                          <tr key={m.id}>
+                          <tr
+                            key={m.id}
+                            className={cx(isSelfRow && styles.trSelf)}
+                            aria-label={isSelfRow ? 'Your availability row' : undefined}
+                          >
                             <td className={styles.tdMember}>
                               <span className={styles.memberInner}>
                                 <div className={styles.avatarWrap}>
