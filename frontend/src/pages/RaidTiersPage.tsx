@@ -34,9 +34,7 @@ const RaidTierMemberPreviewRow: React.FC<{ member: RaidTierMemberPreview }> = ({
     ? `${apiBase}${m.profileImageUrl}`
     : `${process.env.PUBLIC_URL}/ffxiv-logo.png`;
   return (
-    <li
-      className={`raid-tier-member-preview${m.isActive ? '' : ' raid-tier-member-preview--inactive'}`}
-    >
+    <li className="raid-tier-member-preview">
       <span className="raid-tier-member-preview-row">
         <img
           className="raid-tier-member-preview-avatar"
@@ -53,7 +51,8 @@ const RaidTierMemberPreviewRow: React.FC<{ member: RaidTierMemberPreview }> = ({
 };
 
 const RaidTierMembersByRole: React.FC<{ members: RaidTierMemberPreview[] }> = ({ members }) => {
-  const { dps, support } = partitionRaidTierMembers(members);
+  const active = members.filter((m) => m.isActive);
+  const { dps, support } = partitionRaidTierMembers(active);
   return (
     <div className="raid-tier-members-columns">
       <div className="raid-tier-members-column">
@@ -314,7 +313,7 @@ export const RaidTiersPage: React.FC = () => {
                   </p>
                   <div className="raid-tier-members-block">
                     <div className="raid-tier-members-label">Members</div>
-                    {(tier.members?.length ?? 0) === 0 ? (
+                    {(tier.members?.filter((m) => m.isActive).length ?? 0) === 0 ? (
                       <p className="raid-tier-members-empty">No members</p>
                     ) : (
                       <RaidTierMembersByRole members={tier.members ?? []} />

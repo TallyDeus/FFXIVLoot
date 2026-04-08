@@ -93,6 +93,15 @@ const CalendarIcon = () => (
   </svg>
 );
 
+/** RaidPlan.io / slide-style strats */
+const PresentationIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+    <line x1="8" y1="21" x2="16" y2="21" />
+    <line x1="12" y1="17" x2="12" y2="21" />
+  </svg>
+);
+
 /**
  * Sidebar navigation component styled similar to FFXIV Teamcraft
  */
@@ -181,28 +190,32 @@ export const Sidebar: React.FC = () => {
     };
   }, [user, refreshTodayRaidStatus]);
 
-  const navGroups: NavGroup[] = [
-    {
-      id: 'static',
-      label: 'Static management',
-      icon: <StaticGroupIcon />,
-      items: [
-        { id: 'members', label: 'Members', icon: <UsersIcon />, path: '/members' },
-        { id: 'raid-tiers', label: 'Raid Tiers', icon: <LayersIcon />, path: '/raid-tiers' },
-        { id: 'schedule', label: 'Schedule', icon: <CalendarIcon />, path: '/schedule' },
-      ],
-    },
-    {
-      id: 'loot',
-      label: 'Loot',
-      icon: <BoxIcon />,
-      items: [
-        { id: 'bis', label: 'BiS Tracker', icon: <CheckSquareIcon />, path: '/bis' },
-        { id: 'loot', label: 'Loot Distribution', icon: <PackageIcon />, path: '/loot' },
-        { id: 'history', label: 'History', icon: <HistoryIcon />, path: '/history' },
-      ],
-    },
-  ];
+  const navGroups: NavGroup[] = React.useMemo(() => {
+    const lootItems: NavItem[] = [
+      { id: 'bis', label: 'BiS Tracker', icon: <CheckSquareIcon />, path: '/bis' },
+      { id: 'loot', label: 'Loot Distribution', icon: <PackageIcon />, path: '/loot' },
+      { id: 'history', label: 'History', icon: <HistoryIcon />, path: '/history' },
+    ];
+    return [
+      {
+        id: 'static',
+        label: 'Static management',
+        icon: <StaticGroupIcon />,
+        items: [
+          { id: 'members', label: 'Members', icon: <UsersIcon />, path: '/members' },
+          { id: 'raid-tiers', label: 'Raid Tiers', icon: <LayersIcon />, path: '/raid-tiers' },
+          { id: 'raid-plans', label: 'Raidplans', icon: <PresentationIcon />, path: '/raid-plans' },
+          { id: 'schedule', label: 'Schedule', icon: <CalendarIcon />, path: '/schedule' },
+        ],
+      },
+      {
+        id: 'loot',
+        label: 'Loot',
+        icon: <BoxIcon />,
+        items: lootItems,
+      },
+    ];
+  }, []);
 
   const handlePageChange = (path: string) => {
     navigate(path);
@@ -296,7 +309,8 @@ export const Sidebar: React.FC = () => {
                     const isActive =
                       resolvedNavPath === item.path ||
                       (item.path === '/schedule' &&
-                        (resolvedNavPath === '/' || resolvedNavPath === ''));
+                        (resolvedNavPath === '/' || resolvedNavPath === '')) ||
+                      (item.path === '/raid-plans' && resolvedNavPath.startsWith('/raid-plans'));
                     return (
                       <button
                         key={item.id}

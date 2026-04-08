@@ -9,6 +9,7 @@ import { BiSTrackerPage } from './pages/BiSTrackerPage';
 import { LootDistributionPage } from './pages/LootDistributionPage';
 import { LootHistoryPage } from './pages/LootHistoryPage';
 import { RaidTiersPage } from './pages/RaidTiersPage';
+import { RaidPlansPage } from './pages/RaidPlansPage';
 import { SchedulePage } from './pages/SchedulePage';
 import { Sidebar } from './components/Sidebar';
 import { theme } from './theme';
@@ -54,6 +55,7 @@ function AppContent() {
           <Route path="/bis" element={<ProtectedRoute><BiSTrackerPage /></ProtectedRoute>} />
           <Route path="/loot" element={<ProtectedRoute><LootDistributionPage /></ProtectedRoute>} />
           <Route path="/history" element={<ProtectedRoute><LootHistoryPage /></ProtectedRoute>} />
+          <Route path="/raid-plans" element={<ProtectedRoute><RaidPlansPage /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/schedule" replace />} />
         </Routes>
       </main>

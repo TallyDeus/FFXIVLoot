@@ -71,4 +71,8 @@ public class SignalRUpdatesBroadcaster : IUpdatesBroadcaster
     /// <inheritdoc />
     public Task BroadcastScheduleUpdatedAsync() =>
         _hubContext.Clients.All.SendAsync("ScheduleUpdated");
+
+    /// <inheritdoc />
+    public Task BroadcastRaidPlansLayoutChangedAsync(Guid raidTierId) =>
+        _hubContext.Clients.All.SendAsync("RaidPlansLayoutChanged", new { raidTierId = raidTierId.ToString() });
 }

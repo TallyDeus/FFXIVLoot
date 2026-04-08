@@ -171,7 +171,7 @@ export interface Member {
   offSpecBisItems: GearItem[];
   permissionRole?: PermissionRole;
   profileImageUrl?: string;
-  /** When false, omitted from BiS tracker (managers can toggle). */
+  /** When false, hidden from BiS tracker, schedule, loot distribution, and raid tier previews (managers can toggle). */
   isActive?: boolean;
 }
 

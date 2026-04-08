@@ -305,10 +305,6 @@
   max-width: 100%;
 }
 
-.raid-tier-member-preview--inactive {
-  opacity: 0.55;
-}
-
 /* Match loot history small profile images (circular) */
 .raid-tier-member-preview-avatar {
   width: 24px;

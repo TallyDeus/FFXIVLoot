@@ -156,8 +156,8 @@ export const MemberList: React.FC<MemberListProps> = ({ members, onEdit, onDelet
                     <Tooltip
                       title={
                         member.isActive === false
-                          ? 'Inactive — hidden from BiS tracker'
-                          : 'Active — shown on BiS tracker'
+                          ? 'Inactive — hidden from roster views (BiS, schedule, loot, raid tiers)'
+                          : 'Active — shown on roster views'
                       }
                       placement="top"
                     >

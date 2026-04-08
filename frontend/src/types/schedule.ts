@@ -12,6 +12,8 @@ export type ScheduleConsensusType = (typeof ScheduleConsensus)[keyof typeof Sche
 export interface ScheduleCell {
   status: ScheduleAvailability | null;
   comment?: string;
+  /** True when a stored override exists (explicit edit, maybe, or per-day comment); not set for pure defaults. */
+  isManuallyEdited?: boolean;
 }
 
 export interface ScheduleDayHeader {
@@ -19,6 +21,8 @@ export interface ScheduleDayHeader {
   dayName: string;
   dayOfWeek: number;
   isStandardRaidDay: boolean;
+  /** At least one member has a manual override on this calendar day. */
+  hasManualOverride?: boolean;
   consensus: ScheduleConsensusType;
 }
 

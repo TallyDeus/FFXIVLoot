@@ -122,6 +122,43 @@ export const theme = createTheme({
         },
       },
     },
+    /** Align with ConfirmDialog / MemberForm surfaces */
+    MuiDialog: {
+      styleOverrides: {
+        paper: {
+          backgroundImage: 'none',
+          border: '1px solid #3A3F4A',
+          borderRadius: '8px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+        },
+      },
+    },
+    MuiDialogTitle: {
+      styleOverrides: {
+        root: {
+          padding: '20px 24px',
+          borderBottom: '1px solid #3A3F4A',
+          fontSize: '18px',
+          fontWeight: 600,
+        },
+      },
+    },
+    MuiDialogContent: {
+      styleOverrides: {
+        root: {
+          padding: '24px',
+        },
+      },
+    },
+    MuiDialogActions: {
+      styleOverrides: {
+        root: {
+          padding: '16px 24px',
+          borderTop: '1px solid #3A3F4A',
+          gap: '12px',
+        },
+      },
+    },
   },
 });
 

@@ -1,0 +1,64 @@
+/* Match SchedulePage weekWheel / tableScroll scrollbar styling */
+.scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(111, 141, 174, 0.55) rgba(27, 31, 39, 0.85);
+}
+
+.scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scroll::-webkit-scrollbar-track {
+  background: rgba(27, 31, 39, 0.9);
+  border-radius: 8px;
+  margin: 4px 0;
+}
+
+.scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(111, 141, 174, 0.55), rgba(111, 141, 174, 0.35));
+  border-radius: 8px;
+  border: 2px solid rgba(27, 31, 39, 0.9);
+  background-clip: padding-box;
+}
+
+.scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(111, 141, 174, 0.8), rgba(111, 141, 174, 0.5));
+  border: 2px solid rgba(27, 31, 39, 0.9);
+  background-clip: padding-box;
+}
+
+/* Subtle loading sheen on canvas while the active slide iframe finishes */
+.canvasShimmer {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  z-index: 4;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.canvasShimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    transparent 38%,
+    rgba(111, 141, 174, 0.14) 50%,
+    transparent 62%,
+    transparent 100%
+  );
+  background-size: 220% 100%;
+  animation: raidPlanShimmer 1.35s ease-in-out infinite;
+}
+
+@keyframes raidPlanShimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+

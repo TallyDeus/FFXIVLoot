@@ -47,7 +47,7 @@ export const LootDistributionPanel: React.FC<LootDistributionPanelProps> = ({
       setLoading(true);
       const [lootData, membersData] = await Promise.all([
         lootService.getAvailableLoot(floorNumber, currentWeekNumber ?? undefined),
-        memberService.getAllMembers(),
+        memberService.getAllMembers(true),
       ]);
       setAvailableLoot(lootData);
       setMembers(membersData);

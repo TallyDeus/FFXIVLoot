@@ -34,10 +34,6 @@ public class RaidTiersController : ControllerBase
             if (currentUser == null)
                 return Unauthorized();
 
-            if (currentUser.PermissionRole != PermissionRole.Administrator &&
-                currentUser.PermissionRole != PermissionRole.Manager)
-                return Forbid();
-
             var tiers = await _raidTierManagement.ListTiersAsync(cancellationToken);
             return Ok(tiers);
         }

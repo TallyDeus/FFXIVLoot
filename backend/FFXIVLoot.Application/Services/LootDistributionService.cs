@@ -36,7 +36,9 @@ public class LootDistributionService : ILootDistributionService
     /// </summary>
     public async Task<List<AvailableLootDto>> GetAvailableLootAndEligibleMembersAsync(FloorNumber floorNumber, int? weekNumber = null)
     {
-        var members = await _memberRepository.GetAllAsync() ?? new List<Domain.Entities.Member>();
+        var members = (await _memberRepository.GetAllAsync() ?? new List<Domain.Entities.Member>())
+            .Where(m => m.IsActive)
+            .ToList();
         var floorSlots = GetFloorSlots(floorNumber);
 
         if (!weekNumber.HasValue)

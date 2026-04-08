@@ -96,7 +96,7 @@ public static class PermissionHelper
     }
 
     /// <summary>
-    /// Managers and administrators may mark members inactive for the BiS tracker.
+    /// Managers and administrators may mark members inactive (hidden from BiS, schedule, loot, raid tier previews).
     /// </summary>
     public static bool CanToggleMemberActive(Member? currentUser)
     {

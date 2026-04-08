@@ -14,6 +14,9 @@ public interface IRaidTierManagement
 
     Task<Guid> GetCurrentTierIdAsync(CancellationToken cancellationToken = default);
 
+    /// <summary>True if the tier id exists in the raid tier index.</summary>
+    Task<bool> TierExistsAsync(Guid tierId, CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<RaidTierSummaryDto>> ListTiersAsync(CancellationToken cancellationToken = default);
 
     /// <summary>All tiers with file-based stats for overview (does not change current tier).</summary>

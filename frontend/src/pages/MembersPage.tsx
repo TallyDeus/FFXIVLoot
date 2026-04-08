@@ -191,7 +191,12 @@ export const MembersPage: React.FC = () => {
       const updated = await memberService.setMemberActive(member.id, isActive);
       setMembers((prev) => prev.map((m) => (m.id === updated.id ? updated : m)));
       removeToast(loadingToastId);
-      showToast(isActive ? 'Member will appear on the BiS tracker.' : 'Member hidden from the BiS tracker.', 'success');
+      showToast(
+        isActive
+          ? 'Member will appear on BiS, schedule, loot, and raid tier views.'
+          : 'Member hidden from BiS, schedule, loot, and raid tier views.',
+        'success'
+      );
     } catch {
       removeToast(loadingToastId);
       showToast('Failed to update member visibility.', 'error');

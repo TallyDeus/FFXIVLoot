@@ -16,6 +16,9 @@ class SignalRService {
   private readonly scheduleUpdatedCallbacks = new Set<() => void>();
   private scheduleUpdatedMulticastWired = false;
 
+  private readonly raidPlansLayoutCallbacks = new Set<(raidTierId: string) => void>();
+  private raidPlansLayoutMulticastWired = false;
+
   /**
    * Establishes connection to SignalR hub
    */
@@ -78,6 +81,7 @@ class SignalRService {
       this.connection = null;
     }
     this.scheduleUpdatedMulticastWired = false;
+    this.raidPlansLayoutMulticastWired = false;
   }
 
   /**
@@ -133,6 +137,37 @@ class SignalRService {
 
   offScheduleUpdated(callback: () => void): void {
     this.scheduleUpdatedCallbacks.delete(callback);
+  }
+
+  /**
+   * Raid plan layout changed (categories, plans, order) for a tier — refetch layout when tier matches.
+   * Use {@link offRaidPlansLayoutChanged} with the same function reference on cleanup.
+   */
+  onRaidPlansLayoutChanged(callback: (raidTierId: string) => void): void {
+    this.raidPlansLayoutCallbacks.add(callback);
+    this.wireRaidPlansLayoutMulticast();
+  }
+
+  offRaidPlansLayoutChanged(callback: (raidTierId: string) => void): void {
+    this.raidPlansLayoutCallbacks.delete(callback);
+  }
+
+  private wireRaidPlansLayoutMulticast(): void {
+    if (!this.connection || this.raidPlansLayoutMulticastWired) {
+      return;
+    }
+
+    this.connection.on('RaidPlansLayoutChanged', (data: { raidTierId: string }) => {
+      const tierId = data?.raidTierId ?? '';
+      this.raidPlansLayoutCallbacks.forEach((cb) => {
+        try {
+          cb(tierId);
+        } catch (e) {
+          console.error('SignalR: RaidPlansLayoutChanged callback error', e);
+        }
+      });
+    });
+    this.raidPlansLayoutMulticastWired = true;
   }
 
   private wireScheduleUpdatedMulticast(): void {

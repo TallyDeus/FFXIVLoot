@@ -20,6 +20,7 @@ public static class ScheduleConsensusValues
 /// <summary>Persisted shape for schedule.json in each raid tier folder.</summary>
 public class ScheduleFileData
 {
+    /// <summary>1 = initial; 2 = per-response <see cref="ScheduleResponseEntry.IsManuallyEdited"/>.</summary>
     public int SchemaVersion { get; set; } = 1;
 
     /// <summary>.NET <see cref="DayOfWeek"/> values (Sunday = 0).</summary>
@@ -51,6 +52,12 @@ public class ScheduleResponseEntry
     public ScheduleAvailability Status { get; set; }
 
     public string? Comment { get; set; }
+
+    /// <summary>
+    /// When false, the row only mirrors the current default (standard raid day → yes, else no) and may be removed when standard raid days change.
+    /// When true, the value was explicitly set (or is Maybe / has a per-day comment) and is kept when defaults change.
+    /// </summary>
+    public bool IsManuallyEdited { get; set; } = true;
 }
 
 public class ScheduleViewDto
@@ -82,6 +89,9 @@ public class ScheduleDayHeaderDto
 
     public bool IsStandardRaidDay { get; set; }
 
+    /// <summary>True if at least one member has a manual override for this calendar day.</summary>
+    public bool HasManualOverride { get; set; }
+
     public string Consensus { get; set; } = ScheduleConsensusValues.Incomplete;
 }
 
@@ -103,10 +113,13 @@ public class ScheduleMemberRowDto
 
 public class ScheduleCellDto
 {
-    /// <summary>yes | no | maybe, or null if unset.</summary>
+    /// <summary>yes | no | maybe — effective availability for display.</summary>
     public string? Status { get; set; }
 
     public string? Comment { get; set; }
+
+    /// <summary>True when a stored response exists with <see cref="ScheduleResponseEntry.IsManuallyEdited"/> true.</summary>
+    public bool IsManuallyEdited { get; set; }
 }
 
 public class ScheduleResponseUpsertDto

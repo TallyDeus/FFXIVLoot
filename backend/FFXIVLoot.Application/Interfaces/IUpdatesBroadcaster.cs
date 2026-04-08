@@ -29,4 +29,9 @@ public interface IUpdatesBroadcaster
     /// Broadcasts that raid schedule data changed (availability or standard days).
     /// </summary>
     Task BroadcastScheduleUpdatedAsync();
+
+    /// <summary>
+    /// Broadcasts that raid plan layout (categories, plans, order) changed for a tier.
+    /// </summary>
+    Task BroadcastRaidPlansLayoutChangedAsync(Guid raidTierId);
 }

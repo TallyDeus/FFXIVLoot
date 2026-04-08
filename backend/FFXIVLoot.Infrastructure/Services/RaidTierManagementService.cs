@@ -131,6 +131,22 @@ public sealed class RaidTierManagementService : IRaidTierManagement
         }
     }
 
+    /// <inheritdoc />
+    public async Task<bool> TierExistsAsync(Guid tierId, CancellationToken cancellationToken = default)
+    {
+        await EnsureInitializedAsync(cancellationToken);
+        await _mutex.WaitAsync(cancellationToken);
+        try
+        {
+            var state = await ReadIndexFileAsync();
+            return state.RaidTiers.Exists(t => t.Id == tierId);
+        }
+        finally
+        {
+            _mutex.Release();
+        }
+    }
+
     public async Task<IReadOnlyList<RaidTierSummaryDto>> ListTiersAsync(CancellationToken cancellationToken = default)
     {
         await EnsureInitializedAsync(cancellationToken);
@@ -677,7 +693,8 @@ public sealed class RaidTierManagementService : IRaidTierManagement
                 MemberId = newId,
                 Date = r.Date,
                 Status = r.Status,
-                Comment = r.Comment
+                Comment = r.Comment,
+                IsManuallyEdited = r.IsManuallyEdited
             });
         }
 

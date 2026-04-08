@@ -117,7 +117,7 @@ function tdByValue(val: ScheduleAvailability): string {
 function getCellDisplay(
   m: ScheduleMemberRow,
   day: ScheduleDayHeader
-): { val: ScheduleAvailability; storedComment?: string | null } {
+): { val: ScheduleAvailability; storedComment?: string | null; isManuallyEdited: boolean } {
   const cell = m.cellsByDate[day.date] ?? { status: null };
   const val: ScheduleAvailability =
     cell.status === 'yes' || cell.status === 'no' || cell.status === 'maybe'
@@ -125,7 +125,11 @@ function getCellDisplay(
       : day.isStandardRaidDay
         ? 'yes'
         : 'no';
-  return { val, storedComment: cell.comment };
+  return {
+    val,
+    storedComment: cell.comment,
+    isManuallyEdited: cell.isManuallyEdited === true,
+  };
 }
 
 /** Legacy: per-day comments on maybe/no before week-level notes existed. */
@@ -432,8 +436,14 @@ export const SchedulePage: React.FC = () => {
                             className={cx(
                               styles.thDay,
                               thConsensusBg(day.consensus),
-                              day.isStandardRaidDay && styles.thDayStandard
+                              day.isStandardRaidDay && styles.thDayStandard,
+                              day.hasManualOverride && styles.thDayManual
                             )}
+                            title={
+                              day.hasManualOverride
+                                ? 'At least one member has a manual override on this day'
+                                : undefined
+                            }
                           >
                             <span className={styles.thDow}>{day.dayName}</span>
                             <span className={styles.thDate}>{formatDateDdMm(day.date)}</span>
@@ -480,9 +490,13 @@ export const SchedulePage: React.FC = () => {
                               </span>
                             </td>
                             {week.days.map((day) => {
-                              const { val, storedComment } = getCellDisplay(m, day);
+                              const { val, storedComment, isManuallyEdited } = getCellDisplay(m, day);
                               return (
-                                <td key={day.date} className={cx(styles.tdCell, tdByValue(val))}>
+                                <td
+                                  key={day.date}
+                                  className={cx(styles.tdCell, tdByValue(val), isManuallyEdited && styles.tdCellManual)}
+                                  title={isManuallyEdited ? 'Manually set (kept when standard raid days change)' : undefined}
+                                >
                                   <div className={styles.tdCellInner}>
                                     <ScheduleAvailabilityPicker
                                       value={val}

@@ -41,7 +41,9 @@ public sealed class ScheduleService : IScheduleService
         viewStartMonday = GetMondayOfWeek(viewStartMonday);
         var file = await _scheduleRepository.LoadAsync(cancellationToken) ?? new ScheduleFileData();
         NormalizeFile(file);
-        var members = await _memberRepository.GetAllAsync();
+        var members = (await _memberRepository.GetAllAsync() ?? new List<Member>())
+            .Where(m => m.IsActive)
+            .ToList();
         members.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
         return BuildView(file, members, viewStartMonday);
     }
@@ -79,11 +81,22 @@ public sealed class ScheduleService : IScheduleService
         if (status == ScheduleAvailability.Yes)
             comment = null;
 
+        var standardSet = new HashSet<DayOfWeek>(file.StandardRaidDaysOfWeek);
+        var defaultAvail = DefaultAvailabilityForDate(day, standardSet);
+
+        if (status == defaultAvail && comment == null)
+        {
+            file.Responses.RemoveAll(r => r.MemberId == targetMemberId && r.Date == dto.Date);
+            await _scheduleRepository.SaveAsync(file, cancellationToken);
+            return await GetViewAsync(GetMondayOfWeek(viewStartMonday), cancellationToken);
+        }
+
         var existing = file.Responses.Find(r => r.MemberId == targetMemberId && r.Date == dto.Date);
         if (existing != null)
         {
             existing.Status = status;
             existing.Comment = comment;
+            existing.IsManuallyEdited = true;
         }
         else
         {
@@ -92,7 +105,8 @@ public sealed class ScheduleService : IScheduleService
                 MemberId = targetMemberId,
                 Date = dto.Date,
                 Status = status,
-                Comment = comment
+                Comment = comment,
+                IsManuallyEdited = true
             });
         }
 
@@ -132,6 +146,8 @@ public sealed class ScheduleService : IScheduleService
         var file = await _scheduleRepository.LoadAsync(cancellationToken) ?? new ScheduleFileData();
         NormalizeFile(file);
 
+        var standardSet = new HashSet<DayOfWeek>(file.StandardRaidDaysOfWeek);
+
         for (var i = 0; i < 7; i++)
         {
             var date = weekMon.AddDays(i);
@@ -143,10 +159,19 @@ public sealed class ScheduleService : IScheduleService
             if (status != ScheduleAvailability.Yes && existingRow != null && !string.IsNullOrWhiteSpace(existingRow.Comment))
                 comment = existingRow.Comment.Trim();
 
+            var defaultAvail = DefaultAvailabilityForDate(date, standardSet);
+            if (status == defaultAvail && comment == null)
+            {
+                if (existingRow != null)
+                    file.Responses.Remove(existingRow);
+                continue;
+            }
+
             if (existingRow != null)
             {
                 existingRow.Status = status;
                 existingRow.Comment = comment;
+                existingRow.IsManuallyEdited = true;
             }
             else
             {
@@ -155,7 +180,8 @@ public sealed class ScheduleService : IScheduleService
                     MemberId = targetMemberId,
                     Date = dateStr,
                     Status = status,
-                    Comment = comment
+                    Comment = comment,
+                    IsManuallyEdited = true
                 });
             }
         }
@@ -185,6 +211,9 @@ public sealed class ScheduleService : IScheduleService
             .Where(v => v >= 0 && v <= 6)
             .Select(v => (DayOfWeek)v)
             .ToList();
+
+        // Drop entries that only mirrored defaults; remaining rows keep their explicit values when defaults change.
+        file.Responses.RemoveAll(r => !r.IsManuallyEdited);
 
         await _scheduleRepository.SaveAsync(file, cancellationToken);
 
@@ -254,6 +283,32 @@ public sealed class ScheduleService : IScheduleService
         file.Responses ??= new List<ScheduleResponseEntry>();
         file.StandardRaidDaysOfWeek ??= new List<DayOfWeek>();
         file.WeekComments ??= new List<ScheduleWeekCommentEntry>();
+
+        if (file.SchemaVersion < 2)
+        {
+            var standardSet = new HashSet<DayOfWeek>(file.StandardRaidDaysOfWeek);
+            foreach (var r in file.Responses)
+                r.IsManuallyEdited = IsManualOverride(r, standardSet);
+            file.SchemaVersion = 2;
+        }
+    }
+
+    private static ScheduleAvailability DefaultAvailabilityForDate(DateOnly date, HashSet<DayOfWeek> standardSet) =>
+        standardSet.Contains(date.DayOfWeek) ? ScheduleAvailability.Yes : ScheduleAvailability.No;
+
+    /// <summary>
+    /// True when this row should be treated as an explicit user override (kept when standard raid days change).
+    /// </summary>
+    private static bool IsManualOverride(ScheduleResponseEntry r, HashSet<DayOfWeek> standardSet)
+    {
+        if (string.IsNullOrWhiteSpace(r.Date) || !DateOnly.TryParse(r.Date, out var date))
+            return true;
+        if (r.Status == ScheduleAvailability.Maybe)
+            return true;
+        if (!string.IsNullOrWhiteSpace(r.Comment))
+            return true;
+        var def = DefaultAvailabilityForDate(date, standardSet);
+        return r.Status != def;
     }
 
     private static ScheduleViewDto BuildView(ScheduleFileData file, List<Member> members, DateOnly viewStartMonday)
@@ -312,6 +367,7 @@ public sealed class ScheduleService : IScheduleService
             });
         }
 
+        var manualDates = new HashSet<string>(StringComparer.Ordinal);
         var memberRows = new List<ScheduleMemberRowDto>();
         foreach (var m in members)
         {
@@ -321,10 +377,13 @@ public sealed class ScheduleService : IScheduleService
                 var dateStr = date.ToString("yyyy-MM-dd");
                 responseIndex.TryGetValue((m.Id, dateStr), out var entry);
                 var effective = GetEffectiveAvailability(date, standardSet, entry);
+                if (entry != null && entry.IsManuallyEdited)
+                    manualDates.Add(dateStr);
                 cells[dateStr] = new ScheduleCellDto
                 {
                     Status = AvailabilityToApiString(effective),
-                    Comment = entry != null && !string.IsNullOrWhiteSpace(entry.Comment) ? entry.Comment : null
+                    Comment = entry != null && !string.IsNullOrWhiteSpace(entry.Comment) ? entry.Comment : null,
+                    IsManuallyEdited = entry != null && entry.IsManuallyEdited
                 };
             }
 
@@ -346,6 +405,12 @@ public sealed class ScheduleService : IScheduleService
                 CellsByDate = cells,
                 WeekCommentsByWeekStart = weekCommentsOut
             });
+        }
+
+        foreach (var week in weeks)
+        {
+            foreach (var day in week.Days)
+                day.HasManualOverride = manualDates.Contains(day.Date);
         }
 
         return new ScheduleViewDto

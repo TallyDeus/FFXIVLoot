@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Member, GearSlot, GearSlotNames, SpecType } from '../types/member';
+import { Member, GearSlot, GearSlotNames, SpecType, WeekAssignmentHistory } from '../types/member';
 import { lootHistoryService } from '../services/api/lootHistoryService';
-import { WeekAssignmentHistory } from '../types/member';
 import './ExtraLootMatrix.css';
 
 interface ExtraLootMatrixProps {

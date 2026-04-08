@@ -32,6 +32,13 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddSingleton<IRaidTierManagement, RaidTierManagementService>();
+builder.Services.AddHttpClient<IRaidPlanExtractor, RaidPlanExtractor>();
+builder.Services.AddScoped<IRaidPlanStorage>(sp =>
+{
+    var tiers = sp.GetRequiredService<IRaidTierManagement>();
+    var extractor = sp.GetRequiredService<IRaidPlanExtractor>();
+    return new RaidPlanStorageService(tiers, extractor);
+});
 builder.Services.AddScoped<IMemberRepository, JsonMemberRepository>();
 builder.Services.AddScoped<IWeekRepository, JsonWeekRepository>();
 builder.Services.AddScoped<ILootAssignmentRepository, JsonLootAssignmentRepository>();

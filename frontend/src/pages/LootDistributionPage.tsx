@@ -200,7 +200,7 @@ export const LootDistributionPage: React.FC = () => {
         lootService.getAvailableLoot(FloorNumber.Floor2, weekNumber).catch(() => []),
         lootService.getAvailableLoot(FloorNumber.Floor3, weekNumber).catch(() => []),
         lootService.getAvailableLoot(FloorNumber.Floor4, weekNumber).catch(() => []),
-        memberService.getAllMembers().catch(() => []),
+        memberService.getAllMembers(true).catch(() => []),
       ]);
 
       const newCache = new Map<FloorNumber, AvailableLoot[]>();
