@@ -202,10 +202,10 @@ export const Sidebar: React.FC = () => {
         label: 'Static management',
         icon: <StaticGroupIcon />,
         items: [
+          { id: 'schedule', label: 'Schedule', icon: <CalendarIcon />, path: '/schedule' },
           { id: 'members', label: 'Members', icon: <UsersIcon />, path: '/members' },
           { id: 'raid-tiers', label: 'Raid Tiers', icon: <LayersIcon />, path: '/raid-tiers' },
           { id: 'raid-plans', label: 'Raidplans', icon: <PresentationIcon />, path: '/raid-plans' },
-          { id: 'schedule', label: 'Schedule', icon: <CalendarIcon />, path: '/schedule' },
         ],
       },
       {
