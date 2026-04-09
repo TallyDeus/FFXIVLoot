@@ -117,7 +117,7 @@ function tdByValue(val: ScheduleAvailability): string {
 function getCellDisplay(
   m: ScheduleMemberRow,
   day: ScheduleDayHeader
-): { val: ScheduleAvailability; storedComment?: string | null; isManuallyEdited: boolean } {
+): { val: ScheduleAvailability; storedComment?: string | null } {
   const cell = m.cellsByDate[day.date] ?? { status: null };
   const val: ScheduleAvailability =
     cell.status === 'yes' || cell.status === 'no' || cell.status === 'maybe'
@@ -128,7 +128,6 @@ function getCellDisplay(
   return {
     val,
     storedComment: cell.comment,
-    isManuallyEdited: cell.isManuallyEdited === true,
   };
 }
 
@@ -436,14 +435,8 @@ export const SchedulePage: React.FC = () => {
                             className={cx(
                               styles.thDay,
                               thConsensusBg(day.consensus),
-                              day.isStandardRaidDay && styles.thDayStandard,
-                              day.hasManualOverride && styles.thDayManual
+                              day.isStandardRaidDay && styles.thDayStandard
                             )}
-                            title={
-                              day.hasManualOverride
-                                ? 'At least one member has a manual override on this day'
-                                : undefined
-                            }
                           >
                             <span className={styles.thDow}>{day.dayName}</span>
                             <span className={styles.thDate}>{formatDateDdMm(day.date)}</span>
@@ -490,12 +483,11 @@ export const SchedulePage: React.FC = () => {
                               </span>
                             </td>
                             {week.days.map((day) => {
-                              const { val, storedComment, isManuallyEdited } = getCellDisplay(m, day);
+                              const { val, storedComment } = getCellDisplay(m, day);
                               return (
                                 <td
                                   key={day.date}
-                                  className={cx(styles.tdCell, tdByValue(val), isManuallyEdited && styles.tdCellManual)}
-                                  title={isManuallyEdited ? 'Manually set (kept when standard raid days change)' : undefined}
+                                  className={cx(styles.tdCell, tdByValue(val))}
                                 >
                                   <div className={styles.tdCellInner}>
                                     <ScheduleAvailabilityPicker

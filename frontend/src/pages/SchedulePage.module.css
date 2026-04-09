@@ -375,27 +375,6 @@
   box-shadow: inset 0 -3px 0 0 var(--tc-accent-primary);
 }
 
-/* Manual override on this column (any member) */
-.thDayManual {
-  position: relative;
-}
-
-.thDayManual::after {
-  content: '';
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: rgba(147, 197, 253, 0.9);
-  pointer-events: none;
-}
-
-.tdCellManual {
-  box-shadow: inset 0 0 0 1px rgba(147, 197, 253, 0.35);
-}
-
 .thDow {
   display: block;
   font-size: 0.7rem;

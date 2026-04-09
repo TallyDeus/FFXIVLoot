@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Box from '@mui/material/Box';
 
 /**
@@ -7,9 +7,9 @@ import Box from '@mui/material/Box';
  * Adjust OFFSET_Y (or DOC_W) if the crop drifts after RaidPlan CSS changes.
  */
 /** Visible crop width (tuned vs RaidPlan layout). */
-const CANVAS_W = 1323;
+const CANVAS_W = 1300;
 /** Tuned vs RaidPlan canvas; includes extra vertical extent if the crop was cutting off the bottom. */
-const CANVAS_H = 715.25;
+const CANVAS_H = 800.25;
 
 /** Emulated iframe layout width (desktop). Must exceed crop width + OFFSET_X. */
 const DOC_W = 1400;
@@ -17,12 +17,12 @@ const DOC_W = 1400;
 const DOC_H = 1000;
 
 /** Pan: document x at left edge of crop (tuned; increase = show less on the left). */
-const OFFSET_X = 35;
+const OFFSET_X = 50;
 /**
  * Distance from top of iframe document to top of visible canvas.
  * Increase to hide more above the canvas.
  */
-const OFFSET_Y = 154;
+const OFFSET_Y = 70;
 
 export interface RaidPlanIframeCropProps {
   src: string;
@@ -37,6 +37,23 @@ export interface RaidPlanIframeCropProps {
 const RaidPlanIframeCropInner: React.FC<RaidPlanIframeCropProps> = ({ src, iframeKey, onLoad }) => {
   const hostRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.3);
+  const [viewportZoom, setViewportZoom] = useState(1);
+
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const sync = () => {
+      const s = vv.scale;
+      if (s > 0.01 && Number.isFinite(s)) setViewportZoom(Math.min(8, Math.max(0.25, s)));
+    };
+    sync();
+    vv.addEventListener('resize', sync);
+    vv.addEventListener('scroll', sync);
+    return () => {
+      vv.removeEventListener('resize', sync);
+      vv.removeEventListener('scroll', sync);
+    };
+  }, []);
 
   useLayoutEffect(() => {
     const el = hostRef.current;
@@ -53,6 +70,8 @@ const RaidPlanIframeCropInner: React.FC<RaidPlanIframeCropProps> = ({ src, ifram
     return () => ro.disconnect();
   }, []);
 
+  const inv = 1 / viewportZoom;
+
   return (
     <Box
       ref={hostRef}
@@ -62,11 +81,21 @@ const RaidPlanIframeCropInner: React.FC<RaidPlanIframeCropProps> = ({ src, ifram
         height: '100%',
         bgcolor: 'var(--tc-bg-dark, #1B1F27)',
         overflow: 'hidden',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
       }}
     >
+      <Box
+        sx={{
+          position: 'absolute',
+          left: '50%',
+          top: '50%',
+          width: `${viewportZoom * 100}%`,
+          height: `${viewportZoom * 100}%`,
+          transform: `translate(-50%, -50%) scale(${inv})`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
       <Box
         sx={{
           width: CANVAS_W * scale,
@@ -91,6 +120,7 @@ const RaidPlanIframeCropInner: React.FC<RaidPlanIframeCropProps> = ({ src, ifram
             title="RaidPlan slide"
             src={src}
             onLoad={onLoad}
+            scrolling="no"
             sx={{
               position: 'absolute',
               left: -OFFSET_X,
@@ -98,12 +128,14 @@ const RaidPlanIframeCropInner: React.FC<RaidPlanIframeCropProps> = ({ src, ifram
               width: DOC_W,
               height: DOC_H,
               border: 'none',
+              overflow: 'hidden',
             }}
             sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals"
             referrerPolicy="strict-origin-when-cross-origin"
             allow="fullscreen"
           />
         </Box>
+      </Box>
       </Box>
     </Box>
   );
