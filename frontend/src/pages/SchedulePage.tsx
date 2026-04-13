@@ -181,6 +181,8 @@ export const SchedulePage: React.FC = () => {
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
   const didInitialScroll = useRef(false);
   const programmaticSnapRef = useRef(false);
+  /** Last wheel/trackpad gesture time — snap waits until this is quiet so we don't fight a resumed scroll. */
+  const lastWheelAtRef = useRef(0);
 
   const thisWeekMonday = mondayOfWeekIso(todayLocalIso());
 
@@ -232,7 +234,7 @@ export const SchedulePage: React.FC = () => {
     };
   }, []);
 
-  const snapToNearestWeek = useCallback(() => {
+  const snapToNearestWeek = useCallback((options?: { smooth?: boolean }) => {
     const wheel = wheelRef.current;
     if (!wheel || programmaticSnapRef.current) return;
     const slides = slideRefs.current.filter(Boolean) as HTMLDivElement[];
@@ -249,11 +251,18 @@ export const SchedulePage: React.FC = () => {
       }
     }
     if (Math.abs(st - target) < 8) return;
+    const smooth = options?.smooth !== false;
     programmaticSnapRef.current = true;
-    wheel.scrollTo({ top: target, behavior: 'smooth' });
-    window.setTimeout(() => {
-      programmaticSnapRef.current = false;
-    }, 450);
+    wheel.scrollTo({ top: target, behavior: smooth ? 'smooth' : 'auto' });
+    if (smooth) {
+      window.setTimeout(() => {
+        programmaticSnapRef.current = false;
+      }, 650);
+    } else {
+      requestAnimationFrame(() => {
+        programmaticSnapRef.current = false;
+      });
+    }
   }, []);
 
   useLayoutEffect(() => {
@@ -270,29 +279,60 @@ export const SchedulePage: React.FC = () => {
     if (!view) return;
     const wheel = wheelRef.current;
     if (!wheel) return;
-    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-    /** Wait until scrolling has settled; short pauses while slowly dragging the wheel were firing snap too often at 150ms. */
-    const scrollEndMs = 550;
+    let debounceTimer: number | null = null;
+    let quietTimer: number | null = null;
+    /** After last scroll delta, wait before considering a snap. */
+    const scrollSettleMs = 620;
+    /** After last wheel/trackpad input, wait before snapping (avoids snap colliding with a new scroll burst). */
+    const wheelQuietMs = 420;
+
+    const queueSnap = () => {
+      if (quietTimer) clearTimeout(quietTimer);
+      quietTimer = null;
+      const attempt = () => {
+        if (programmaticSnapRef.current) return;
+        const sinceWheel = Date.now() - lastWheelAtRef.current;
+        if (sinceWheel < wheelQuietMs) {
+          quietTimer = window.setTimeout(attempt, wheelQuietMs - sinceWheel + 20);
+          return;
+        }
+        quietTimer = null;
+        snapToNearestWeek();
+      };
+      const sinceWheel = Date.now() - lastWheelAtRef.current;
+      const delay = sinceWheel < wheelQuietMs ? wheelQuietMs - sinceWheel + 20 : 0;
+      quietTimer = window.setTimeout(attempt, delay);
+    };
+
+    const onWheel = () => {
+      lastWheelAtRef.current = Date.now();
+    };
+
     const onScroll = () => {
       if (programmaticSnapRef.current) return;
       if (debounceTimer) clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
+      debounceTimer = window.setTimeout(() => {
         debounceTimer = null;
-        snapToNearestWeek();
-      }, scrollEndMs);
+        queueSnap();
+      }, scrollSettleMs);
     };
+
     const onScrollEnd = () => {
       if (programmaticSnapRef.current) return;
       if (debounceTimer) clearTimeout(debounceTimer);
       debounceTimer = null;
-      snapToNearestWeek();
+      queueSnap();
     };
+
+    wheel.addEventListener('wheel', onWheel, { passive: true });
     wheel.addEventListener('scroll', onScroll, { passive: true });
     wheel.addEventListener('scrollend', onScrollEnd);
     return () => {
+      wheel.removeEventListener('wheel', onWheel);
       wheel.removeEventListener('scroll', onScroll);
       wheel.removeEventListener('scrollend', onScrollEnd);
       if (debounceTimer) clearTimeout(debounceTimer);
+      if (quietTimer) clearTimeout(quietTimer);
     };
   }, [view, snapToNearestWeek]);
 
@@ -308,6 +348,7 @@ export const SchedulePage: React.FC = () => {
     window.setTimeout(() => {
       programmaticSnapRef.current = false;
     }, 450);
+    lastWheelAtRef.current = Date.now();
   };
 
   const handleCellChange = async (
