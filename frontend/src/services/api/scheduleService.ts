@@ -13,7 +13,7 @@ export const scheduleService = {
     viewStartMonday: string,
     body: {
       date: string;
-      status: ScheduleAvailability;
+      status: ScheduleAvailability | null;
       comment?: string;
       memberId?: string;
     }
@@ -23,7 +23,7 @@ export const scheduleService = {
       method: 'PUT',
       body: JSON.stringify({
         date: body.date,
-        status: body.status,
+        status: body.status === null ? 'unset' : body.status,
         comment: body.comment ?? null,
         memberId: body.memberId ?? null,
       }),

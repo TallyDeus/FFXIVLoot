@@ -438,6 +438,10 @@
   background-color: rgba(239, 68, 68, 0.14);
 }
 
+.tdUnset {
+  background-color: rgba(42, 47, 56, 0.35);
+}
+
 /* Modals */
 .modalOverlay {
   position: fixed;

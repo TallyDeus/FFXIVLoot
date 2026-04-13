@@ -217,13 +217,31 @@
   background-color: var(--tc-border-light);
 }
 
-.sidebar-today-raid {
+.sidebar-schedule-strip {
   padding: 12px 20px;
   border-bottom: 1px solid var(--tc-border);
   display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.sidebar-schedule-strip-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
   flex-direction: column;
   gap: 6px;
-  flex-shrink: 0;
+}
+
+.sidebar-next-raid {
+  color: var(--tc-text-main);
+  background: rgba(111, 141, 174, 0.2);
+  border-color: rgba(111, 141, 174, 0.42);
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1.35;
 }
 
 .sidebar-today-raid-label {
@@ -268,12 +286,6 @@
   background: rgba(220, 38, 38, 0.32);
   border-color: rgba(220, 38, 38, 0.5);
   box-shadow: 0 1px 3px rgba(220, 38, 38, 0.25);
-}
-
-.sidebar-today-raid-incomplete {
-  color: var(--tc-text-muted);
-  background: rgba(42, 47, 56, 0.72);
-  border-color: var(--tc-border);
 }
 
 .sidebar-today-raid-unknown {

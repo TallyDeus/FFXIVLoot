@@ -74,17 +74,23 @@ public sealed class ScheduleService : IScheduleService
         var file = await _scheduleRepository.LoadAsync(cancellationToken) ?? new ScheduleFileData();
         NormalizeFile(file);
 
-        if (!TryParseAvailability(dto.Status, out var status))
-            throw new ArgumentException("Status must be yes, no, or maybe.", nameof(dto));
+        var standardSet = new HashSet<DayOfWeek>(file.StandardRaidDaysOfWeek);
+
+        if (IsClearStatus(dto.Status))
+        {
+            file.Responses.RemoveAll(r => r.MemberId == targetMemberId && r.Date == dto.Date);
+            await _scheduleRepository.SaveAsync(file, cancellationToken);
+            return await GetViewAsync(GetMondayOfWeek(viewStartMonday), cancellationToken);
+        }
+
+        if (!TryParseAvailability(dto.Status ?? string.Empty, out var status))
+            throw new ArgumentException("Status must be yes, no, maybe, or unset to clear.", nameof(dto));
 
         var comment = string.IsNullOrWhiteSpace(dto.Comment) ? null : dto.Comment.Trim();
         if (status == ScheduleAvailability.Yes)
             comment = null;
 
-        var standardSet = new HashSet<DayOfWeek>(file.StandardRaidDaysOfWeek);
-        var defaultAvail = DefaultAvailabilityForDate(day, standardSet);
-
-        if (status == defaultAvail && comment == null)
+        if (standardSet.Contains(day.DayOfWeek) && status == ScheduleAvailability.Yes && comment == null)
         {
             file.Responses.RemoveAll(r => r.MemberId == targetMemberId && r.Date == dto.Date);
             await _scheduleRepository.SaveAsync(file, cancellationToken);
@@ -140,7 +146,7 @@ public sealed class ScheduleService : IScheduleService
         if (memberExists == null)
             throw new InvalidOperationException("Member not found.");
 
-        if (!TryParseAvailability(dto.Status, out var status))
+        if (string.IsNullOrWhiteSpace(dto.Status) || !TryParseAvailability(dto.Status, out var status))
             throw new ArgumentException("Status must be yes, no, or maybe.", nameof(dto));
 
         var file = await _scheduleRepository.LoadAsync(cancellationToken) ?? new ScheduleFileData();
@@ -159,8 +165,8 @@ public sealed class ScheduleService : IScheduleService
             if (status != ScheduleAvailability.Yes && existingRow != null && !string.IsNullOrWhiteSpace(existingRow.Comment))
                 comment = existingRow.Comment.Trim();
 
-            var defaultAvail = DefaultAvailabilityForDate(date, standardSet);
-            if (status == defaultAvail && comment == null)
+            var isStandard = standardSet.Contains(date.DayOfWeek);
+            if (status == ScheduleAvailability.Yes && comment == null && isStandard)
             {
                 if (existingRow != null)
                     file.Responses.Remove(existingRow);
@@ -288,13 +294,43 @@ public sealed class ScheduleService : IScheduleService
         {
             var standardSet = new HashSet<DayOfWeek>(file.StandardRaidDaysOfWeek);
             foreach (var r in file.Responses)
-                r.IsManuallyEdited = IsManualOverride(r, standardSet);
+                r.IsManuallyEdited = IsManualOverrideLegacy(r, standardSet);
             file.SchemaVersion = 2;
+        }
+
+        if (file.SchemaVersion < 3)
+        {
+            var standardSet = new HashSet<DayOfWeek>(file.StandardRaidDaysOfWeek);
+            file.Responses.RemoveAll(r =>
+            {
+                if (string.IsNullOrWhiteSpace(r.Date) || !DateOnly.TryParse(r.Date, out var date))
+                    return false;
+                if (standardSet.Contains(date.DayOfWeek))
+                    return false;
+                if (r.Status != ScheduleAvailability.No)
+                    return false;
+                if (!string.IsNullOrWhiteSpace(r.Comment))
+                    return false;
+                return !r.IsManuallyEdited;
+            });
+            foreach (var r in file.Responses)
+                r.IsManuallyEdited = IsManualOverride(r, standardSet);
+            file.SchemaVersion = 3;
         }
     }
 
-    private static ScheduleAvailability DefaultAvailabilityForDate(DateOnly date, HashSet<DayOfWeek> standardSet) =>
-        standardSet.Contains(date.DayOfWeek) ? ScheduleAvailability.Yes : ScheduleAvailability.No;
+    /// <summary>Pre–schema-3: standard → yes, else no.</summary>
+    private static bool IsManualOverrideLegacy(ScheduleResponseEntry r, HashSet<DayOfWeek> standardSet)
+    {
+        if (string.IsNullOrWhiteSpace(r.Date) || !DateOnly.TryParse(r.Date, out var date))
+            return true;
+        if (r.Status == ScheduleAvailability.Maybe)
+            return true;
+        if (!string.IsNullOrWhiteSpace(r.Comment))
+            return true;
+        var def = standardSet.Contains(date.DayOfWeek) ? ScheduleAvailability.Yes : ScheduleAvailability.No;
+        return r.Status != def;
+    }
 
     /// <summary>
     /// True when this row should be treated as an explicit user override (kept when standard raid days change).
@@ -307,8 +343,9 @@ public sealed class ScheduleService : IScheduleService
             return true;
         if (!string.IsNullOrWhiteSpace(r.Comment))
             return true;
-        var def = DefaultAvailabilityForDate(date, standardSet);
-        return r.Status != def;
+        if (standardSet.Contains(date.DayOfWeek))
+            return r.Status != ScheduleAvailability.Yes;
+        return true;
     }
 
     private static ScheduleViewDto BuildView(ScheduleFileData file, List<Member> members, DateOnly viewStartMonday)
@@ -343,7 +380,7 @@ public sealed class ScheduleService : IScheduleService
                 var date = monday.AddDays(d);
                 allDates.Add(date);
                 var dateStr = date.ToString("yyyy-MM-dd");
-                var statuses = new List<ScheduleAvailability>();
+                var statuses = new List<ScheduleAvailability?>();
                 foreach (var m in members)
                 {
                     responseIndex.TryGetValue((m.Id, dateStr), out var entry);
@@ -423,9 +460,9 @@ public sealed class ScheduleService : IScheduleService
     }
 
     /// <summary>
-    /// Stored response wins; otherwise standard raid weekday → Yes, else No.
+    /// Stored response wins; otherwise standard raid weekday → Yes; else unset (null).
     /// </summary>
-    private static ScheduleAvailability GetEffectiveAvailability(
+    private static ScheduleAvailability? GetEffectiveAvailability(
         DateOnly date,
         HashSet<DayOfWeek> standardSet,
         ScheduleResponseEntry? entry)
@@ -434,15 +471,18 @@ public sealed class ScheduleService : IScheduleService
             return entry.Status;
         return standardSet.Contains(date.DayOfWeek)
             ? ScheduleAvailability.Yes
-            : ScheduleAvailability.No;
+            : null;
     }
 
     /// <summary>
-    /// Any No → not raiding; else any Maybe → maybe; else all Yes → raiding; else incomplete.
+    /// Any unset → incomplete; any No → not raiding; else any Maybe → maybe; else all Yes → raiding; else incomplete.
     /// </summary>
-    private static string ComputeConsensus(IReadOnlyList<ScheduleAvailability> statuses)
+    private static string ComputeConsensus(IReadOnlyList<ScheduleAvailability?> statuses)
     {
         if (statuses.Count == 0)
+            return ScheduleConsensusValues.Incomplete;
+
+        if (statuses.Any(s => s == null))
             return ScheduleConsensusValues.Incomplete;
 
         if (statuses.Any(s => s == ScheduleAvailability.No))
@@ -457,7 +497,7 @@ public sealed class ScheduleService : IScheduleService
         return ScheduleConsensusValues.Incomplete;
     }
 
-    private static string? AvailabilityToApiString(ScheduleAvailability s) =>
+    private static string? AvailabilityToApiString(ScheduleAvailability? s) =>
         s switch
         {
             ScheduleAvailability.Yes => "yes",
@@ -473,4 +513,8 @@ public sealed class ScheduleService : IScheduleService
             return false;
         return Enum.TryParse(raw.Trim(), true, out status);
     }
+
+    private static bool IsClearStatus(string? raw) =>
+        string.IsNullOrWhiteSpace(raw) ||
+        raw.Equals("unset", StringComparison.OrdinalIgnoreCase);
 }

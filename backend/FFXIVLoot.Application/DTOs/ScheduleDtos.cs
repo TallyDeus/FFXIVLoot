@@ -20,7 +20,7 @@ public static class ScheduleConsensusValues
 /// <summary>Persisted shape for schedule.json in each raid tier folder.</summary>
 public class ScheduleFileData
 {
-    /// <summary>1 = initial; 2 = per-response <see cref="ScheduleResponseEntry.IsManuallyEdited"/>.</summary>
+    /// <summary>1 = initial; 2 = per-response <see cref="ScheduleResponseEntry.IsManuallyEdited"/>; 3 = non-standard default unset (prune legacy mirror Nos).</summary>
     public int SchemaVersion { get; set; } = 1;
 
     /// <summary>.NET <see cref="DayOfWeek"/> values (Sunday = 0).</summary>
@@ -126,8 +126,8 @@ public class ScheduleResponseUpsertDto
 {
     public string Date { get; set; } = string.Empty;
 
-    /// <summary>yes | no | maybe (case-insensitive).</summary>
-    public string Status { get; set; } = string.Empty;
+    /// <summary>yes | no | maybe (case-insensitive), or null/empty/unset to clear the cell.</summary>
+    public string? Status { get; set; }
 
     public string? Comment { get; set; }
 

@@ -19,10 +19,12 @@ const OPTIONS: {
 ];
 
 export interface ScheduleAvailabilityPickerProps {
-  value: ScheduleAvailability;
+  value: ScheduleAvailability | null;
+  /** When false, clicking the active Yes on a standard default cell does nothing (cannot “unset” implicit yes). */
+  canToggleOff: boolean;
   disabled: boolean;
   /** Second argument is the click event (use shiftKey for week-fill). */
-  onChange: (next: ScheduleAvailability, event: React.MouseEvent<HTMLButtonElement>) => void;
+  onChange: (next: ScheduleAvailability | null, event: React.MouseEvent<HTMLButtonElement>) => void;
   ariaLabel: string;
   /** When true, button titles mention Shift+click to fill the whole week. */
   weekFillHint?: boolean;
@@ -33,6 +35,7 @@ export interface ScheduleAvailabilityPickerProps {
  */
 export const ScheduleAvailabilityPicker: React.FC<ScheduleAvailabilityPickerProps> = ({
   value,
+  canToggleOff,
   disabled,
   onChange,
   ariaLabel,
@@ -56,7 +59,14 @@ export const ScheduleAvailabilityPicker: React.FC<ScheduleAvailabilityPickerProp
             title={title}
             aria-label={label}
             aria-pressed={selected}
-            onClick={(e) => onChange(v, e)}
+            onClick={(e) => {
+              if (selected) {
+                if (!canToggleOff) return;
+                onChange(null, e);
+              } else {
+                onChange(v, e);
+              }
+            }}
             className={cx(styles.btn, selected && sel)}
           >
             <Icon className={styles.icon} aria-hidden />

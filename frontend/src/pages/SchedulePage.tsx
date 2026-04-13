@@ -101,7 +101,7 @@ function thConsensusText(c: ScheduleConsensusType): string {
   }
 }
 
-function tdByValue(val: ScheduleAvailability): string {
+function tdByValue(val: ScheduleAvailability | null): string {
   switch (val) {
     case 'yes':
       return styles.tdYes;
@@ -109,6 +109,8 @@ function tdByValue(val: ScheduleAvailability): string {
       return styles.tdMaybe;
     case 'no':
       return styles.tdNo;
+    case null:
+      return styles.tdUnset;
     default:
       return '';
   }
@@ -117,18 +119,24 @@ function tdByValue(val: ScheduleAvailability): string {
 function getCellDisplay(
   m: ScheduleMemberRow,
   day: ScheduleDayHeader
-): { val: ScheduleAvailability; storedComment?: string | null } {
+): { val: ScheduleAvailability | null; storedComment?: string | null } {
   const cell = m.cellsByDate[day.date] ?? { status: null };
-  const val: ScheduleAvailability =
-    cell.status === 'yes' || cell.status === 'no' || cell.status === 'maybe'
-      ? cell.status
-      : day.isStandardRaidDay
-        ? 'yes'
-        : 'no';
-  return {
-    val,
-    storedComment: cell.comment,
-  };
+  if (cell.status === 'yes' || cell.status === 'no' || cell.status === 'maybe') {
+    return { val: cell.status, storedComment: cell.comment };
+  }
+  if (day.isStandardRaidDay) {
+    return { val: 'yes', storedComment: cell.comment };
+  }
+  return { val: null, storedComment: cell.comment };
+}
+
+/** Allow clearing via picker unless this is implicit default yes on a standard day. */
+function canToggleAvailabilityOff(m: ScheduleMemberRow, day: ScheduleDayHeader, displayVal: ScheduleAvailability | null): boolean {
+  if (displayVal == null) return false;
+  const cell = m.cellsByDate[day.date];
+  if (!day.isStandardRaidDay) return true;
+  if (displayVal !== 'yes') return true;
+  return cell?.isManuallyEdited === true;
 }
 
 /** Legacy: per-day comments on maybe/no before week-level notes existed. */
@@ -240,7 +248,7 @@ export const SchedulePage: React.FC = () => {
         target = top;
       }
     }
-    if (Math.abs(st - target) < 3) return;
+    if (Math.abs(st - target) < 8) return;
     programmaticSnapRef.current = true;
     wheel.scrollTo({ top: target, behavior: 'smooth' });
     window.setTimeout(() => {
@@ -263,17 +271,27 @@ export const SchedulePage: React.FC = () => {
     const wheel = wheelRef.current;
     if (!wheel) return;
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    /** Wait until scrolling has settled; short pauses while slowly dragging the wheel were firing snap too often at 150ms. */
+    const scrollEndMs = 550;
     const onScroll = () => {
       if (programmaticSnapRef.current) return;
       if (debounceTimer) clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
         debounceTimer = null;
         snapToNearestWeek();
-      }, 150);
+      }, scrollEndMs);
+    };
+    const onScrollEnd = () => {
+      if (programmaticSnapRef.current) return;
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = null;
+      snapToNearestWeek();
     };
     wheel.addEventListener('scroll', onScroll, { passive: true });
+    wheel.addEventListener('scrollend', onScrollEnd);
     return () => {
       wheel.removeEventListener('scroll', onScroll);
+      wheel.removeEventListener('scrollend', onScrollEnd);
       if (debounceTimer) clearTimeout(debounceTimer);
     };
   }, [view, snapToNearestWeek]);
@@ -295,7 +313,7 @@ export const SchedulePage: React.FC = () => {
   const handleCellChange = async (
     memberId: string,
     date: string,
-    status: ScheduleAvailability,
+    status: ScheduleAvailability | null,
     currentComment?: string
   ) => {
     if (!view) return;
@@ -304,7 +322,7 @@ export const SchedulePage: React.FC = () => {
       const next = await scheduleService.upsertResponse(vs, {
         date,
         status,
-        comment: status === 'yes' ? undefined : currentComment,
+        comment: status === null || status === 'yes' ? undefined : currentComment,
         memberId: canManageSchedule && memberId !== user?.id ? memberId : undefined,
       });
       setView(next);
@@ -492,11 +510,12 @@ export const SchedulePage: React.FC = () => {
                                   <div className={styles.tdCellInner}>
                                     <ScheduleAvailabilityPicker
                                       value={val}
+                                      canToggleOff={canToggleAvailabilityOff(m, day, val)}
                                       disabled={!canEditRow}
                                       ariaLabel={`${m.name}, ${formatDateDdMm(day.date)}`}
                                       weekFillHint={canEditRow}
                                       onChange={(next, e) => {
-                                        if (e.shiftKey && canEditRow) {
+                                        if (e.shiftKey && canEditRow && next !== null) {
                                           e.preventDefault();
                                           void handleWeekFill(m.id, week, next);
                                         } else {
@@ -600,8 +619,8 @@ export const SchedulePage: React.FC = () => {
               Standard raid days
             </h3>
             <p className={styles.modalHint}>
-              Choose which weekdays are usual progression nights. Those columns default to <strong>Yes</strong> for
-              everyone until someone changes their cell; other weekdays default to <strong>No</strong>.
+              Choose which weekdays are usual progression nights. Those columns default to <strong>Yes</strong> until
+              someone changes a cell; other weekdays start <strong>unset</strong> until someone picks availability.
             </p>
             <div className={styles.dayChecks}>
               {WEEKDAY_LABELS.map((label, dow) => (

@@ -5,6 +5,7 @@ import { PinUpdateDialog } from './PinUpdateDialog';
 import { raidTierService } from '../services/api/raidTierService';
 import { scheduleService } from '../services/api/scheduleService';
 import { ScheduleConsensus } from '../types/schedule';
+import { formatNextRaidLabel, RAID_WALL_CLOCK_TIMEZONE } from '../utils/scheduleRaidDisplay';
 import { mondayOfWeekIso, scheduleRangeStartMonday, todayLocalIso } from '../utils/scheduleDates';
 import { PermissionRole } from '../types/member';
 import { PermissionRoleTag } from './Tag';
@@ -113,8 +114,10 @@ export const Sidebar: React.FC = () => {
   const [showPinDialog, setShowPinDialog] = useState(false);
   const [currentTierName, setCurrentTierName] = useState<string | null>(null);
   const [todayRaidStatus, setTodayRaidStatus] = useState<
-    'idle' | 'loading' | 'raiding' | 'maybe' | 'not' | 'incomplete' | 'unknown'
+    'idle' | 'loading' | 'raiding' | 'maybe' | 'not' | 'unknown'
   >('idle');
+  const [nextRaidLabel, setNextRaidLabel] = useState<string | null>(null);
+  const scheduleStripLoadedRef = React.useRef(false);
 
   useEffect(() => {
     if (!user) {
@@ -127,13 +130,15 @@ export const Sidebar: React.FC = () => {
       .catch(() => setCurrentTierName(null));
   }, [user]);
 
-  const refreshTodayRaidStatus = useCallback(() => {
+  const refreshScheduleSidebar = useCallback((options?: { silent?: boolean }) => {
     if (!user) return;
-    setTodayRaidStatus('loading');
+    const silent = options?.silent === true;
+    if (!silent) setTodayRaidStatus('loading');
     const viewStart = scheduleRangeStartMonday();
     scheduleService
       .getView(viewStart)
       .then((view) => {
+        setNextRaidLabel(formatNextRaidLabel(view));
         const today = todayLocalIso();
         const monday = mondayOfWeekIso(today);
         const week = view.weeks.find((w) => w.weekStartMonday === monday);
@@ -150,31 +155,60 @@ export const Sidebar: React.FC = () => {
           case ScheduleConsensus.Raiding:
             setTodayRaidStatus('raiding');
             break;
-          case ScheduleConsensus.MaybeRaiding:
-            setTodayRaidStatus('maybe');
-            break;
           case ScheduleConsensus.NotRaiding:
             setTodayRaidStatus('not');
             break;
+          case ScheduleConsensus.MaybeRaiding:
+            setTodayRaidStatus('maybe');
+            break;
           default:
-            setTodayRaidStatus('incomplete');
+            setTodayRaidStatus('maybe');
+            break;
         }
       })
-      .catch(() => setTodayRaidStatus('unknown'));
+      .catch(() => {
+        if (!silent) {
+          setTodayRaidStatus('unknown');
+          setNextRaidLabel(null);
+        }
+      });
   }, [user]);
 
   useEffect(() => {
     if (!user) {
+      scheduleStripLoadedRef.current = false;
       setTodayRaidStatus('idle');
+      setNextRaidLabel(null);
       return;
     }
-    refreshTodayRaidStatus();
-  }, [user, location.pathname, refreshTodayRaidStatus]);
+    const silent = scheduleStripLoadedRef.current;
+    scheduleStripLoadedRef.current = true;
+    refreshScheduleSidebar({ silent });
+  }, [user, location.pathname, refreshScheduleSidebar]);
+
+  useEffect(() => {
+    if (!user) return;
+    const id = window.setInterval(() => {
+      refreshScheduleSidebar({ silent: true });
+    }, 60_000);
+    return () => clearInterval(id);
+  }, [user, refreshScheduleSidebar]);
+
+  useEffect(() => {
+    if (!user) return;
+    const onVis = () => {
+      if (document.visibilityState === 'visible') {
+        refreshScheduleSidebar({ silent: true });
+      }
+    };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, [user, refreshScheduleSidebar]);
 
   useEffect(() => {
     if (!user) return;
     const onScheduleUpdated = () => {
-      refreshTodayRaidStatus();
+      refreshScheduleSidebar({ silent: true });
     };
     const connect = async () => {
       try {
@@ -188,7 +222,7 @@ export const Sidebar: React.FC = () => {
     return () => {
       signalRService.offScheduleUpdated(onScheduleUpdated);
     };
-  }, [user, refreshTodayRaidStatus]);
+  }, [user, refreshScheduleSidebar]);
 
   const navGroups: NavGroup[] = React.useMemo(() => {
     const lootItems: NavItem[] = [
@@ -261,26 +295,43 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {user && (
-        <div className="sidebar-today-raid" aria-live="polite">
-          <div className="sidebar-today-raid-label">Today</div>
-          {(todayRaidStatus === 'idle' || todayRaidStatus === 'loading') && (
-            <div className="sidebar-today-raid-value sidebar-today-raid-loading">Loading…</div>
-          )}
-          {todayRaidStatus === 'raiding' && (
-            <div className="sidebar-today-raid-value sidebar-today-raid-yes">Raiding</div>
-          )}
-          {todayRaidStatus === 'maybe' && (
-            <div className="sidebar-today-raid-value sidebar-today-raid-maybe">Maybe Raiding</div>
-          )}
-          {todayRaidStatus === 'not' && (
-            <div className="sidebar-today-raid-value sidebar-today-raid-no">Not Raiding</div>
-          )}
-          {todayRaidStatus === 'incomplete' && (
-            <div className="sidebar-today-raid-value sidebar-today-raid-incomplete">Incomplete</div>
-          )}
-          {todayRaidStatus === 'unknown' && (
-            <div className="sidebar-today-raid-value sidebar-today-raid-unknown">—</div>
-          )}
+        <div className="sidebar-schedule-strip" aria-live="polite">
+          <div className="sidebar-schedule-strip-col">
+            <div className="sidebar-today-raid-label">Today</div>
+            {(todayRaidStatus === 'idle' || todayRaidStatus === 'loading') && (
+              <div className="sidebar-today-raid-value sidebar-today-raid-loading">Loading…</div>
+            )}
+            {todayRaidStatus === 'raiding' && (
+              <div className="sidebar-today-raid-value sidebar-today-raid-yes">Raiding</div>
+            )}
+            {todayRaidStatus === 'maybe' && (
+              <div className="sidebar-today-raid-value sidebar-today-raid-maybe">Maybe Raiding</div>
+            )}
+            {todayRaidStatus === 'not' && (
+              <div className="sidebar-today-raid-value sidebar-today-raid-no">Not Raiding</div>
+            )}
+            {todayRaidStatus === 'unknown' && (
+              <div className="sidebar-today-raid-value sidebar-today-raid-unknown">—</div>
+            )}
+          </div>
+          <div className="sidebar-schedule-strip-col">
+            <div className="sidebar-today-raid-label">Next raid</div>
+            {nextRaidLabel != null ? (
+              <div
+                className="sidebar-today-raid-value sidebar-next-raid"
+                title={`Full yes consensus; start 19:30 ${RAID_WALL_CLOCK_TIMEZONE} (shown in your local time)`}
+              >
+                {nextRaidLabel}
+              </div>
+            ) : (
+              <div
+                className="sidebar-today-raid-value sidebar-today-raid-unknown"
+                title="No upcoming day in view where everyone answered yes"
+              >
+                —
+              </div>
+            )}
+          </div>
         </div>
       )}
 
