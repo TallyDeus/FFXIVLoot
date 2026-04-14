@@ -50,6 +50,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.28.6",
+    "@tailwindcss/container-queries": "^0.1.1",
     "autoprefixer": "^10.4.27",
     "gh-pages": "^6.1.1",
     "postcss": "^8.5.8",

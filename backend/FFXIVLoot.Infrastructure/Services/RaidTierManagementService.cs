@@ -763,6 +763,8 @@ public sealed class RaidTierManagementService : IRaidTierManagement
             IsActive = source.IsActive,
             MainSpecBisJobAbbrev = source.MainSpecBisJobAbbrev,
             MainSpecBisJobCategory = source.MainSpecBisJobCategory,
+            OffSpecBisJobAbbrev = source.OffSpecBisJobAbbrev,
+            OffSpecBisJobCategory = source.OffSpecBisJobCategory,
             XivGearLink = source.XivGearLink,
             BisItems = CloneGearItems(source.BisItems),
             OffSpecXivGearLink = source.OffSpecXivGearLink,

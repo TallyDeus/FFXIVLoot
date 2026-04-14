@@ -75,6 +75,8 @@ public class AuthenticationService : IAuthenticationService
             BisItems = member.BisItems.Select(MapGearItemToDto).ToList(),
             MainSpecBisJobCategory = member.MainSpecBisJobCategory,
             MainSpecBisJobAbbrev = member.MainSpecBisJobAbbrev,
+            OffSpecBisJobCategory = member.OffSpecBisJobCategory,
+            OffSpecBisJobAbbrev = member.OffSpecBisJobAbbrev,
             OffSpecXivGearLink = member.OffSpecXivGearLink,
             OffSpecFullCofferSet = member.OffSpecFullCofferSet,
             OffSpecBisItems = member.OffSpecBisItems.Select(MapGearItemToDto).ToList(),
@@ -150,7 +152,10 @@ public class AuthenticationService : IAuthenticationService
         var memberRepository = scope.ServiceProvider.GetRequiredService<IMemberRepository>();
 
         var member = await memberRepository.GetByIdAsync(session.MemberId);
-        if (member != null)
+        // After a tier switch, the same Guid can refer to a different person in members.json.
+        // Only trust GetById when the roster row still matches the name we authenticated with.
+        if (member != null &&
+            member.Name.Equals(session.AuthenticatedMemberName, StringComparison.OrdinalIgnoreCase))
         {
             return member;
         }

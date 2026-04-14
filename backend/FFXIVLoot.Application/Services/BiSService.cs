@@ -15,6 +15,7 @@ public class BiSService : IBiSService
 {
     private readonly IMemberRepository _memberRepository;
     private readonly IXivGearClient _xivGearClient;
+    private readonly IWikiWeaponJobResolver _wikiWeaponJobResolver;
     private readonly ILootAssignmentRepository _assignmentRepository;
     private readonly IWeekRepository _weekRepository;
     private readonly IUpdatesBroadcaster? _updatesBroadcaster;
@@ -22,14 +23,24 @@ public class BiSService : IBiSService
     /// <summary>
     /// Initializes a new instance of BiSService
     /// </summary>
-    public BiSService(IMemberRepository memberRepository, IXivGearClient xivGearClient, ILootAssignmentRepository assignmentRepository, IWeekRepository weekRepository, IUpdatesBroadcaster? updatesBroadcaster = null)
+    public BiSService(
+        IMemberRepository memberRepository,
+        IXivGearClient xivGearClient,
+        IWikiWeaponJobResolver wikiWeaponJobResolver,
+        ILootAssignmentRepository assignmentRepository,
+        IWeekRepository weekRepository,
+        IUpdatesBroadcaster? updatesBroadcaster = null)
     {
         _memberRepository = memberRepository ?? throw new ArgumentNullException(nameof(memberRepository));
         _xivGearClient = xivGearClient ?? throw new ArgumentNullException(nameof(xivGearClient));
+        _wikiWeaponJobResolver = wikiWeaponJobResolver ?? throw new ArgumentNullException(nameof(wikiWeaponJobResolver));
         _assignmentRepository = assignmentRepository ?? throw new ArgumentNullException(nameof(assignmentRepository));
         _weekRepository = weekRepository ?? throw new ArgumentNullException(nameof(weekRepository));
         _updatesBroadcaster = updatesBroadcaster;
     }
+
+    private static GearItem? FindWeaponForJobInference(IReadOnlyList<GearItem> gearItems) =>
+        gearItems.FirstOrDefault(g => g.Slot == GearSlot.Weapon && !string.IsNullOrWhiteSpace(g.ItemName));
 
     /// <summary>
     /// Imports a best-in-slot list from a xivgear link
@@ -68,16 +79,63 @@ public class BiSService : IBiSService
             // Update off spec only - explicitly preserve main spec data
             member.OffSpecXivGearLink = request.XivGearLink;
             member.OffSpecBisItems = gearItems;
+            var offResolved = false;
+            if (BisJobSlugHelper.TryNormalize(importResult.ImportedJobSlug, out var offAbbrev, out var offCat))
+            {
+                member.OffSpecBisJobAbbrev = offAbbrev;
+                member.OffSpecBisJobCategory = offCat;
+                offResolved = true;
+            }
+
+            if (!offResolved)
+            {
+                var weapon = FindWeaponForJobInference(gearItems);
+                if (weapon != null)
+                {
+                    var (wikiOk, wikiAb, wikiCat) =
+                        await _wikiWeaponJobResolver.TryResolveJobAsync(weapon.ItemName, CancellationToken.None);
+                    if (wikiOk)
+                    {
+                        member.OffSpecBisJobAbbrev = wikiAb;
+                        member.OffSpecBisJobCategory = wikiCat;
+                    }
+                }
+            }
+
             // CRITICAL: Explicitly restore main spec data to prevent overwrite
             member.XivGearLink = preservedMainSpecLink;
             member.BisItems = preservedMainSpecItems;
-            
         }
         else
         {
             // Update main spec only - explicitly preserve off spec data
             member.XivGearLink = request.XivGearLink;
             member.BisItems = gearItems;
+            var mainResolved = false;
+            if (BisJobSlugHelper.TryNormalize(importResult.ImportedJobSlug, out var mainAbbrev, out var mainCat))
+            {
+                member.MainSpecBisJobAbbrev = mainAbbrev;
+                member.MainSpecBisJobCategory = mainCat;
+                member.Role = BisJobSlugHelper.MemberRoleFromCategory(mainCat);
+                mainResolved = true;
+            }
+
+            if (!mainResolved)
+            {
+                var weapon = FindWeaponForJobInference(gearItems);
+                if (weapon != null)
+                {
+                    var (wikiOk, wikiAb, wikiCat) =
+                        await _wikiWeaponJobResolver.TryResolveJobAsync(weapon.ItemName, CancellationToken.None);
+                    if (wikiOk)
+                    {
+                        member.MainSpecBisJobAbbrev = wikiAb;
+                        member.MainSpecBisJobCategory = wikiCat;
+                        member.Role = BisJobSlugHelper.MemberRoleFromCategory(wikiCat);
+                    }
+                }
+            }
+
             // CRITICAL: Explicitly restore off spec data to prevent overwrite
             member.OffSpecXivGearLink = preservedOffSpecLink;
             member.OffSpecBisItems = preservedOffSpecItems;
@@ -102,6 +160,8 @@ public class BiSService : IBiSService
             }).ToList(),
             MainSpecBisJobCategory = updatedMember.MainSpecBisJobCategory,
             MainSpecBisJobAbbrev = updatedMember.MainSpecBisJobAbbrev,
+            OffSpecBisJobCategory = updatedMember.OffSpecBisJobCategory,
+            OffSpecBisJobAbbrev = updatedMember.OffSpecBisJobAbbrev,
             OffSpecXivGearLink = updatedMember.OffSpecXivGearLink,
             OffSpecFullCofferSet = updatedMember.OffSpecFullCofferSet,
             OffSpecBisItems = updatedMember.OffSpecBisItems.Select(item => new GearItemDto
@@ -114,7 +174,8 @@ public class BiSService : IBiSService
                 UpgradeMaterialAcquired = item.UpgradeMaterialAcquired
             }).ToList(),
             PermissionRole = updatedMember.PermissionRole,
-            ProfileImageUrl = updatedMember.ProfileImageUrl
+            ProfileImageUrl = updatedMember.ProfileImageUrl,
+            IsActive = updatedMember.IsActive
         };
     }
 

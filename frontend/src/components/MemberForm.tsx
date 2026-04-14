@@ -9,7 +9,6 @@ import {
 } from '../types/member';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from './Button';
-import { RoleTag } from './Tag';
 import { memberService } from '../services/api/memberService';
 import { GearSlotTooltip } from './GearSlotTooltip';
 import './MemberForm.css';
@@ -29,13 +28,14 @@ interface MemberFormProps {
  * Component for adding or editing a raid member
  */
 export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel, isOpen, onValidationError, existingMembers = [] }) => {
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
   const [name, setName] = useState(member?.name || '');
   const [permissionRole, setPermissionRole] = useState<PermissionRole>(member?.permissionRole ?? PermissionRole.User);
   const [xivGearLink, setXivGearLink] = useState(member?.xivGearLink || '');
   const [offSpecXivGearLink, setOffSpecXivGearLink] = useState(member?.offSpecXivGearLink || '');
   const [offSpecFullCofferSet, setOffSpecFullCofferSet] = useState(member?.offSpecFullCofferSet ?? false);
   const [mainSpecBisJobAbbrev, setMainSpecBisJobAbbrev] = useState(member?.mainSpecBisJobAbbrev ?? '');
+  const [offSpecBisJobAbbrev, setOffSpecBisJobAbbrev] = useState(member?.offSpecBisJobAbbrev ?? '');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(member?.profileImageUrl || null);
   const [uploading, setUploading] = useState(false);
@@ -48,6 +48,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
       setOffSpecXivGearLink(member.offSpecXivGearLink || '');
       setOffSpecFullCofferSet(member.offSpecFullCofferSet ?? false);
       setMainSpecBisJobAbbrev(member.mainSpecBisJobAbbrev ?? '');
+      setOffSpecBisJobAbbrev(member.offSpecBisJobAbbrev ?? '');
       setImagePreview(member.profileImageUrl || null);
     } else {
       setName('');
@@ -56,6 +57,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
       setOffSpecXivGearLink('');
       setOffSpecFullCofferSet(false);
       setMainSpecBisJobAbbrev('');
+      setOffSpecBisJobAbbrev('');
       setImagePreview(null);
     }
     setSelectedFile(null);
@@ -163,13 +165,18 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
       return;
     }
 
-    const canEditRole = user && user.permissionRole === PermissionRole.Administrator;
+    const canEditRole = user && hasPermission(PermissionRole.Administrator);
 
     const mainAbbr = mainSpecBisJobAbbrev.trim().toUpperCase();
     const mainSpecBisJobCategory = mainAbbr
       ? bisJobCategoryFromAbbrev(mainAbbr)
       : BisJobCategory.Unknown;
     const role = memberRoleFromBisJobCategory(mainSpecBisJobCategory);
+
+    const offAbbr = offSpecBisJobAbbrev.trim().toUpperCase();
+    const offSpecBisJobCategory = offAbbr
+      ? bisJobCategoryFromAbbrev(offAbbr)
+      : BisJobCategory.Unknown;
 
     const memberData: MemberSavePayload = member
       ? { 
@@ -180,6 +187,8 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
           xivGearLink: xivGearLink.trim() || undefined,
           mainSpecBisJobCategory,
           mainSpecBisJobAbbrev: mainAbbr || undefined,
+          offSpecBisJobCategory,
+          offSpecBisJobAbbrev: offAbbr || undefined,
           offSpecFullCofferSet,
           offSpecXivGearLink: offSpecFullCofferSet ? undefined : offSpecXivGearLink.trim() || undefined,
         }
@@ -192,6 +201,8 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
           offSpecBisItems: [],
           mainSpecBisJobCategory,
           mainSpecBisJobAbbrev: mainAbbr || undefined,
+          offSpecBisJobCategory,
+          offSpecBisJobAbbrev: offAbbr || undefined,
           offSpecFullCofferSet,
           offSpecXivGearLink: offSpecFullCofferSet ? undefined : offSpecXivGearLink.trim() || undefined,
         };
@@ -220,8 +231,6 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
   };
 
   if (!isOpen) return null;
-
-  const derivedRaidRole = memberRoleFromBisJobCategory(bisJobCategoryFromAbbrev(mainSpecBisJobAbbrev));
 
   return (
     <div className="member-form-overlay">
@@ -309,26 +318,10 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
                   placeholder="Enter member name"
                 />
               </div>
-              <div className="form-group member-form-job-row">
-                <label htmlFor="mainSpecBisJobAbbrev">Current job *</label>
-                <div className="member-form-job-row-inner">
-                  <div className="member-form-job-picker-wrap">
-                    <BisJobAbbrevPicker
-                      id="mainSpecBisJobAbbrev"
-                      value={mainSpecBisJobAbbrev}
-                      onChange={setMainSpecBisJobAbbrev}
-                    />
-                  </div>
-                  <div className="member-form-derived-role" aria-live="polite">
-                    <span className="member-form-derived-role-label">Raid role</span>
-                    <RoleTag role={derivedRaidRole} />
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
 
-          {user && user.permissionRole === PermissionRole.Administrator && (
+          {user && hasPermission(PermissionRole.Administrator) && (
             <div className="form-group">
               <label htmlFor="permissionRole">Permission Role</label>
               <select
@@ -346,52 +339,86 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
           )}
 
           <div className="form-group">
-            <label htmlFor="xivGearLink">XivGear Link (Main Spec)</label>
-            <input
-              type="url"
-              id="xivGearLink"
-              value={xivGearLink}
-              onChange={(e) => setXivGearLink(e.target.value)}
-              placeholder="https://xivgear.app/?page=sl|..."
-            />
-            <small>Paste the xivgear link for this member's main spec best-in-slot list</small>
+            <span className="member-form-block-label">Main spec</span>
+            <div className="member-form-spec-with-job">
+              <div className="member-form-spec-link-col">
+                <label htmlFor="xivGearLink" className="member-form-sublabel">
+                  XivGear link
+                </label>
+                <input
+                  type="url"
+                  id="xivGearLink"
+                  value={xivGearLink}
+                  onChange={(e) => setXivGearLink(e.target.value)}
+                  placeholder="https://xivgear.app/?page=sl|..."
+                />
+              </div>
+              <div className="member-form-spec-job-col">
+                <label htmlFor="mainSpecBisJobAbbrev" className="member-form-sublabel">
+                  Current job *
+                </label>
+                <BisJobAbbrevPicker
+                  id="mainSpecBisJobAbbrev"
+                  value={mainSpecBisJobAbbrev}
+                  onChange={setMainSpecBisJobAbbrev}
+                />
+              </div>
+            </div>
+            <small>Paste the xivgear link for this member&apos;s main spec best-in-slot list.</small>
           </div>
 
           <div className="form-group">
-            <label htmlFor="offSpecXivGearLink">XivGear Link (Off Spec)</label>
-            <div className="offspec-link-row">
-              <input
-                type="url"
-                id="offSpecXivGearLink"
-                value={offSpecXivGearLink}
-                onChange={(e) => setOffSpecXivGearLink(e.target.value)}
-                placeholder="https://xivgear.app/?page=sl|..."
-                disabled={offSpecFullCofferSet}
-                className="offspec-link-input"
-              />
-              <GearSlotTooltip tooltip="Full set of coffers" place="bottom">
-                <button
-                  type="button"
-                  className={`offspec-coffer-toggle${offSpecFullCofferSet ? ' active' : ''}`}
-                  onClick={() => {
-                    if (!offSpecFullCofferSet) {
-                      setOffSpecFullCofferSet(true);
-                      setOffSpecXivGearLink('');
-                    } else {
-                      setOffSpecFullCofferSet(false);
-                    }
-                  }}
-                  aria-label="Full set of coffers"
-                  aria-pressed={offSpecFullCofferSet}
-                >
-                  <GiChest size={22} aria-hidden />
-                </button>
-              </GearSlotTooltip>
+            <span className="member-form-block-label">Off spec</span>
+            <div className="member-form-spec-with-job member-form-offspec-with-job">
+              <div className="member-form-offspec-link-wrap">
+                <label htmlFor="offSpecXivGearLink" className="member-form-sublabel">
+                  XivGear link
+                </label>
+                <div className="offspec-link-row">
+                  <input
+                    type="url"
+                    id="offSpecXivGearLink"
+                    value={offSpecXivGearLink}
+                    onChange={(e) => setOffSpecXivGearLink(e.target.value)}
+                    placeholder="https://xivgear.app/?page=sl|..."
+                    disabled={offSpecFullCofferSet}
+                    className="offspec-link-input"
+                  />
+                  <GearSlotTooltip tooltip="Full set of coffers" place="bottom">
+                    <button
+                      type="button"
+                      className={`offspec-coffer-toggle${offSpecFullCofferSet ? ' active' : ''}`}
+                      onClick={() => {
+                        if (!offSpecFullCofferSet) {
+                          setOffSpecFullCofferSet(true);
+                          setOffSpecXivGearLink('');
+                        } else {
+                          setOffSpecFullCofferSet(false);
+                        }
+                      }}
+                      aria-label="Full set of coffers"
+                      aria-pressed={offSpecFullCofferSet}
+                    >
+                      <GiChest size={22} aria-hidden />
+                    </button>
+                  </GearSlotTooltip>
+                </div>
+              </div>
+              <div className="member-form-spec-job-col">
+                <label htmlFor="offSpecBisJobAbbrev" className="member-form-sublabel">
+                  Off-spec job
+                </label>
+                <BisJobAbbrevPicker
+                  id="offSpecBisJobAbbrev"
+                  value={offSpecBisJobAbbrev}
+                  onChange={setOffSpecBisJobAbbrev}
+                />
+              </div>
             </div>
             <small>
               {offSpecFullCofferSet
-                ? 'Tracking off-spec as a full set of raid coffers plus one tomestone ring.'
-                : 'Paste the xivgear link for this member\'s off spec best-in-slot list'}
+                ? 'Tracking off-spec as a full set of raid coffers plus one tomestone ring. Job is optional; shown on the roster.'
+                : 'Paste the xivgear link for off spec, or set the job manually / via import.'}
             </small>
           </div>
 

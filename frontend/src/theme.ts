@@ -159,6 +159,27 @@ export const theme = createTheme({
         },
       },
     },
+    /** Match portal text tooltips (GearSlotTooltip / BiS matrix): surface, border, compact type */
+    MuiTooltip: {
+      defaultProps: {
+        arrow: false,
+      },
+      styleOverrides: {
+        tooltip: {
+          backgroundColor: 'var(--tc-bg-surface)',
+          color: 'var(--tc-text-main)',
+          border: '1px solid var(--tc-border)',
+          borderRadius: '4px',
+          padding: '6px 10px',
+          fontSize: '12px',
+          fontWeight: 500,
+          boxShadow: '0 2px 8px var(--tc-shadow)',
+          maxWidth: 'min(280px, 90vw)',
+          whiteSpace: 'normal',
+          lineHeight: 1.35,
+        },
+      },
+    },
   },
 });
 

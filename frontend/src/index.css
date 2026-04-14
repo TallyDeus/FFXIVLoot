@@ -65,3 +65,4 @@ body > [id^="react-tooltip"] {
   z-index: 999999 !important;
 }
 
+@tailwind utilities;

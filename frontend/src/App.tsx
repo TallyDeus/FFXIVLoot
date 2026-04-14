@@ -3,6 +3,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { HashRouter, BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { SelfProfileEditProvider } from './contexts/SelfProfileEditContext';
 import { LoginPage } from './pages/LoginPage';
 import { MembersPage } from './pages/MembersPage';
 import { BiSTrackerPage } from './pages/BiSTrackerPage';
@@ -71,7 +72,9 @@ function App() {
       <CssBaseline />
       <Router>
         <AuthProvider>
-          <AppContent />
+          <SelfProfileEditProvider>
+            <AppContent />
+          </SelfProfileEditProvider>
         </AuthProvider>
       </Router>
     </ThemeProvider>

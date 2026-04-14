@@ -6,6 +6,8 @@ interface GearSlotTooltipProps {
   tooltip: string;
   children: React.ReactElement;
   place?: 'left' | 'right' | 'top' | 'bottom';
+  /** Allow wrapping for long strings (default: single line like BiS matrix cells) */
+  multiline?: boolean;
 }
 
 /**
@@ -16,6 +18,7 @@ export const GearSlotTooltip: React.FC<GearSlotTooltipProps> = ({
   tooltip,
   children,
   place = 'bottom',
+  multiline = false,
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
@@ -127,7 +130,7 @@ export const GearSlotTooltip: React.FC<GearSlotTooltipProps> = ({
         createPortal(
           <div
             ref={tooltipRef}
-            className="gear-slot-tooltip-portal"
+            className={`app-text-tooltip${multiline ? ' app-text-tooltip--multiline' : ''}`}
             style={{
               position: 'fixed',
               top: `${position.top}px`,

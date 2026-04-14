@@ -27,8 +27,9 @@ public static class PermissionHelper
             return true;
         }
 
-        // User can only edit themselves
-        return currentUser.Id == targetMember.Id;
+        // User can only edit themselves (id and/or name — tier remaps may replace Guids; session is name-keyed).
+        return currentUser.Id == targetMember.Id
+            || string.Equals(currentUser.Name, targetMember.Name, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -56,8 +57,8 @@ public static class PermissionHelper
             return true;
         }
 
-        // User can only edit their own BiS
-        return currentUser.Id == targetMember.Id;
+        return currentUser.Id == targetMember.Id
+            || string.Equals(currentUser.Name, targetMember.Name, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>

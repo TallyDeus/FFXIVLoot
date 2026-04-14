@@ -9,6 +9,7 @@ import { ToastContainer } from '../components/Toast';
 import { useToast } from '../hooks/useToast';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/Button';
+import '../components/ImportingBiSOverlay.css';
 import './MembersPage.css';
 
 /**
@@ -27,19 +28,22 @@ export const MembersPage: React.FC = () => {
     onConfirm: () => void;
   } | null>(null);
   const { toasts, showToast, removeToast } = useToast();
-  const { hasPermission } = useAuth();
+  const { hasPermission, user: authUser, refreshSession } = useAuth();
 
   const loadMembers = useCallback(async (opts?: { silent?: boolean }) => {
     try {
       if (!opts?.silent) setLoading(true);
       const data = await memberService.getAllMembers();
       setMembers(data);
+      if (localStorage.getItem('authToken')) {
+        await refreshSession();
+      }
     } catch (error) {
       showToast('Failed to load members. Please try again.', 'error');
     } finally {
       if (!opts?.silent) setLoading(false);
     }
-  }, [showToast]);
+  }, [showToast, refreshSession]);
 
   useEffect(() => {
     loadMembers();
@@ -141,6 +145,9 @@ export const MembersPage: React.FC = () => {
       }
       
       await loadMembers({ silent: true });
+      if (authUser && savedMember.id === authUser.id) {
+        await refreshSession();
+      }
       setShowForm(false);
       setEditingMember(undefined);
       showToast(editingMember ? 'Member updated successfully!' : 'Member created successfully!');

@@ -71,7 +71,8 @@ public class XivGearClient : IXivGearClient
 
         return new XivGearImportResult
         {
-            GearItems = gearItems
+            GearItems = gearItems,
+            ImportedJobSlug = job
         };
     }
 

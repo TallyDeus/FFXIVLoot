@@ -5,8 +5,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 2.35rem;
+  min-width: 2.35rem;
   max-width: 100%;
-  padding: 4px 8px;
+  min-height: 26px;
+  padding: 4px 2px;
   border: 1px solid rgba(0, 0, 0, 0.28);
   border-radius: 4px;
   font-size: 11px;
@@ -21,8 +26,6 @@
   text-overflow: ellipsis;
   transition: all 0.2s ease;
   opacity: 0.9;
-  box-sizing: border-box;
-  min-height: 26px;
 }
 
 .bis-job-cat--tank {

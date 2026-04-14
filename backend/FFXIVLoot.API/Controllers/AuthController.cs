@@ -114,6 +114,8 @@ public class AuthController : ControllerBase
                 }).ToList(),
                 MainSpecBisJobCategory = member.MainSpecBisJobCategory,
                 MainSpecBisJobAbbrev = member.MainSpecBisJobAbbrev,
+                OffSpecBisJobCategory = member.OffSpecBisJobCategory,
+                OffSpecBisJobAbbrev = member.OffSpecBisJobAbbrev,
                 OffSpecXivGearLink = member.OffSpecXivGearLink,
                 OffSpecFullCofferSet = member.OffSpecFullCofferSet,
                 OffSpecBisItems = member.OffSpecBisItems.Select(item => new GearItemDto

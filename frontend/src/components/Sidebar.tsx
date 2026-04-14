@@ -1,14 +1,15 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useSelfProfileEdit } from '../contexts/SelfProfileEditContext';
 import { PinUpdateDialog } from './PinUpdateDialog';
+import { BisJobCategory, bisJobCategoryFromAbbrev, Member } from '../types/member';
+import { BisJobCategoryBadge } from './BisJobCategoryBadge';
 import { raidTierService } from '../services/api/raidTierService';
 import { scheduleService } from '../services/api/scheduleService';
 import { ScheduleConsensus } from '../types/schedule';
 import { formatNextRaidLabel, RAID_WALL_CLOCK_TIMEZONE } from '../utils/scheduleRaidDisplay';
 import { mondayOfWeekIso, scheduleRangeStartMonday, todayLocalIso } from '../utils/scheduleDates';
-import { PermissionRole } from '../types/member';
-import { PermissionRoleTag } from './Tag';
 import { Button } from './Button';
 import { signalRService } from '../services/signalrService';
 import './Sidebar.css';
@@ -103,6 +104,50 @@ const PresentationIcon = () => (
   </svg>
 );
 
+function sidebarMainSpecJob(user: Member): React.ReactNode {
+  const stored = user.mainSpecBisJobCategory;
+  const derived = bisJobCategoryFromAbbrev(user.mainSpecBisJobAbbrev);
+  const jobCat =
+    stored != null && stored !== BisJobCategory.Unknown ? stored : derived;
+  if (jobCat === BisJobCategory.Unknown) {
+    return <span className="sidebar-user-job-muted">—</span>;
+  }
+  return <BisJobCategoryBadge category={jobCat} abbrev={user.mainSpecBisJobAbbrev} />;
+}
+
+const SidebarFooterProfile: React.FC<{
+  user: Member;
+  onEditProfile: () => Promise<void>;
+}> = ({ user, onEditProfile }) => (
+  <div className="user-info">
+    <button
+      type="button"
+      className="sidebar-user-profile-btn"
+      onClick={() => void onEditProfile()}
+      aria-label={`Edit profile: ${user.name}`}
+    >
+      <img
+        src={
+          user.profileImageUrl
+            ? `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${user.profileImageUrl}`
+            : `${process.env.PUBLIC_URL}/ffxiv-logo.png`
+        }
+        alt=""
+        className="sidebar-user-avatar"
+        onError={(e) => {
+          if (user.profileImageUrl) {
+            (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/ffxiv-logo.png`;
+          }
+        }}
+      />
+      <div className="sidebar-user-meta">
+        <span className="user-name">{user.name}</span>
+        <div className="sidebar-user-main-job">{sidebarMainSpecJob(user)}</div>
+      </div>
+    </button>
+  </div>
+);
+
 /**
  * Sidebar navigation component styled similar to FFXIV Teamcraft
  */
@@ -110,6 +155,7 @@ export const Sidebar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { openSelfProfileEdit } = useSelfProfileEdit();
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['static', 'loot']));
   const [showPinDialog, setShowPinDialog] = useState(false);
   const [currentTierName, setCurrentTierName] = useState<string | null>(null);
@@ -388,14 +434,7 @@ export const Sidebar: React.FC = () => {
       )}
 
       <div className="sidebar-footer">
-        {user && (
-          <div className="user-info">
-            <span className="user-name-with-role">
-              <span className="user-name">{user.name}</span>
-              <PermissionRoleTag permissionRole={user.permissionRole ?? PermissionRole.User} />
-            </span>
-          </div>
-        )}
+        {user && <SidebarFooterProfile user={user} onEditProfile={openSelfProfileEdit} />}
         <Button 
           variant="outlined"
           size="small"

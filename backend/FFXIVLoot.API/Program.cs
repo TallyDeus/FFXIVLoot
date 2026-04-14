@@ -4,6 +4,7 @@ using FFXIVLoot.Domain.Interfaces;
 using FFXIVLoot.Infrastructure.Repositories;
 using FFXIVLoot.Infrastructure.Services;
 using FFXIVLoot.Infrastructure.XivGear;
+using FFXIVLoot.Infrastructure.GamerEscape;
 using FFXIVLoot.API.Middleware;
 using FFXIVLoot.API.Hubs;
 using FFXIVLoot.API.Services;
@@ -45,6 +46,12 @@ builder.Services.AddScoped<ILootAssignmentRepository, JsonLootAssignmentReposito
 builder.Services.AddScoped<IScheduleRepository, JsonScheduleRepository>();
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
 builder.Services.AddHttpClient<IXivGearClient, XivGearClient>();
+builder.Services.AddHttpClient<IWikiWeaponJobResolver, GamerEscapeWikiJobResolver>((_, client) =>
+{
+    client.BaseAddress = new Uri("https://ffxiv.gamerescape.com/");
+    client.Timeout = TimeSpan.FromSeconds(20);
+    client.DefaultRequestHeaders.UserAgent.ParseAdd("FFXIVLoot/1.0 (BiS job lookup)");
+});
 
 builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IMemberService, MemberService>();

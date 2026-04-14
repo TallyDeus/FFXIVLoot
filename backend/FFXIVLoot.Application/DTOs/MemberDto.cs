@@ -41,6 +41,16 @@ public class MemberDto
     public string? MainSpecBisJobAbbrev { get; set; }
 
     /// <summary>
+    /// Combat role category for the off-spec job.
+    /// </summary>
+    public Domain.Enums.BisJobCategory OffSpecBisJobCategory { get; set; } = Domain.Enums.BisJobCategory.Unknown;
+
+    /// <summary>
+    /// Job abbreviation for off spec (PLD, …), manual or from import.
+    /// </summary>
+    public string? OffSpecBisJobAbbrev { get; set; }
+
+    /// <summary>
     /// Link to the xivgear best-in-slot list for this member's off spec
     /// </summary>
     public string? OffSpecXivGearLink { get; set; }

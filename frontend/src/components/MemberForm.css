@@ -23,16 +23,41 @@
 
 .member-form-container {
   margin: 0;
-  padding: 24px;
+  padding: 28px;
   border: 1px solid var(--tc-border);
   border-radius: 8px;
   background-color: var(--tc-bg-card);
   box-shadow: 0 4px 12px var(--tc-shadow);
-  min-width: 500px;
-  max-width: 600px;
-  max-height: 90vh;
+  min-width: 560px;
+  max-width: 720px;
+  max-height: 92vh;
   overflow-y: auto;
   animation: slideUp 0.2s ease;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(111, 141, 174, 0.55) rgba(27, 31, 39, 0.85);
+}
+
+.member-form-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.member-form-container::-webkit-scrollbar-track {
+  background: rgba(27, 31, 39, 0.9);
+  border-radius: 8px;
+  margin: 4px 0;
+}
+
+.member-form-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(111, 141, 174, 0.55), rgba(111, 141, 174, 0.35));
+  border-radius: 8px;
+  border: 2px solid rgba(27, 31, 39, 0.9);
+  background-clip: padding-box;
+}
+
+.member-form-container::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(111, 141, 174, 0.8), rgba(111, 141, 174, 0.5));
+  border: 2px solid rgba(27, 31, 39, 0.9);
+  background-clip: padding-box;
 }
 
 @keyframes slideUp {
@@ -47,7 +72,7 @@
 }
 
 .member-form {
-  max-width: 500px;
+  max-width: 100%;
 }
 
 .member-form h3 {
@@ -108,11 +133,14 @@
 .member-form .form-group input,
 .member-form .form-group input[type="text"],
 .member-form .form-group input[type="url"] {
+  box-sizing: border-box;
   width: 100%;
-  padding: 8px 12px;
+  height: 42px;
+  padding: 0 12px;
   border: 2px solid rgba(111, 141, 174, 0.8) !important; /* More visible border using accent color */
   border-radius: 4px;
   font-size: 14px;
+  line-height: 1.25;
   background-color: rgba(42, 47, 56, 0.8) !important; /* More visible background */
   color: var(--tc-text-main) !important;
   transition: all 0.2s ease;
@@ -275,35 +303,60 @@
   margin-bottom: 15px;
 }
 
-.member-form-job-row-inner {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 10px;
+.member-form-block-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--tc-text-main);
+  font-size: 14px;
 }
 
-.member-form-job-picker-wrap {
-  width: 100%;
+.member-form-sublabel {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--tc-text-muted);
 }
 
-.member-form-derived-role {
+.member-form-spec-with-job {
   display: flex;
   flex-direction: row;
-  align-items: center;
-  gap: 10px;
+  align-items: flex-end;
+  gap: 12px;
   flex-wrap: wrap;
-  box-sizing: border-box;
-  padding: 2px 0 0;
 }
 
-.member-form-derived-role-label {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--tc-text-muted, #9aa5b5);
-  white-space: nowrap;
-  line-height: 1.2;
+.member-form-spec-link-col {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.member-form-offspec-link-wrap {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.member-form-spec-job-col {
+  flex: 0 0 9.5rem;
+  min-width: 8.5rem;
+}
+
+.member-form-offspec-with-job .offspec-link-row {
+  align-items: stretch;
+}
+
+/* Match job picker trigger height to XivGear inputs; wider/taller dropdown in this form */
+.member-form .bis-job-abbrev-picker-trigger {
+  box-sizing: border-box;
+  height: 42px;
+  min-height: 42px;
+  padding: 0 12px;
+}
+
+.member-form .offspec-coffer-toggle {
+  width: 42px;
+  height: 42px;
 }
 
 .profile-image-upload {

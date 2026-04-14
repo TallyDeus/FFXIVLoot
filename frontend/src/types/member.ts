@@ -166,6 +166,9 @@ export interface Member {
   /** Job abbreviation (PLD, GNB, …); set manually — shown on the BiS tracker. */
   mainSpecBisJobAbbrev?: string;
   offSpecXivGearLink?: string;
+  /** Job for off spec (manual or filled from XivGear import). */
+  offSpecBisJobCategory?: BisJobCategory;
+  offSpecBisJobAbbrev?: string;
   /** When true, off-spec BiS is tracked as raid coffers + one tomestone ring (no XivGear link). */
   offSpecFullCofferSet?: boolean;
   offSpecBisItems: GearItem[];

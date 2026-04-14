@@ -1,5 +1,6 @@
 import { apiRequest } from './apiClient';
 import { Member } from '../../types/member';
+import { normalizeMemberFromApi } from './memberNormalize';
 
 const API_ENDPOINT = '/api/members';
 
@@ -13,7 +14,8 @@ export const memberService = {
    */
   async getAllMembers(activeOnly?: boolean): Promise<Member[]> {
     const q = activeOnly ? '?activeOnly=true' : '';
-    return apiRequest<Member[]>(`${API_ENDPOINT}${q}`);
+    const list = await apiRequest<Member[]>(`${API_ENDPOINT}${q}`);
+    return list.map(normalizeMemberFromApi);
   },
 
   async setMemberActive(memberId: string, isActive: boolean): Promise<Member> {
