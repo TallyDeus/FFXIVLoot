@@ -9,7 +9,7 @@ import Box from '@mui/material/Box';
 /** Visible crop width (tuned vs RaidPlan layout). */
 const CANVAS_W = 1300;
 /** Tuned vs RaidPlan canvas; includes extra vertical extent if the crop was cutting off the bottom. */
-const CANVAS_H = 800.25;
+const CANVAS_H = 830.25;
 
 /** Emulated iframe layout width (desktop). Must exceed crop width + OFFSET_X. */
 const DOC_W = 1400;

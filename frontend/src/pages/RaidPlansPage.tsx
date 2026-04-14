@@ -214,6 +214,8 @@ function PlanCategorySection({
   onEditCategory,
   onDeleteCategory,
   headMode,
+  onAddPlan,
+  addPlanDisabled,
 }: {
   category: RaidPlanCategory;
   title: string;
@@ -226,6 +228,9 @@ function PlanCategorySection({
   onEditCategory: (c: RaidPlanCategory) => void;
   onDeleteCategory: (c: RaidPlanCategory) => void;
   headMode: 'none' | 'sub' | 'general';
+  /** When set (subcategories), shows + to create a plan in this category. */
+  onAddPlan?: (categoryId: string) => void;
+  addPlanDisabled?: boolean;
 }) {
   const isSubSortable = headMode === 'sub';
   const { active, over, collisions } = useDndContext();
@@ -288,6 +293,20 @@ function PlanCategorySection({
           </button>
           <h3 className="raid-plans-subcategory-title">{title}</h3>
           <div className="raid-plans-category-head-actions">
+            {onAddPlan && (
+              <Tooltip title="Add raidplan">
+                <span>
+                  <IconButton
+                    size="small"
+                    onClick={() => onAddPlan(category.id)}
+                    disabled={addPlanDisabled}
+                    aria-label={`Add raidplan to ${title}`}
+                  >
+                    <FiPlus />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            )}
             <Tooltip title="Rename">
               <IconButton size="small" onClick={() => onEditCategory(category)} aria-label={`Rename ${title}`}>
                 <FiEdit2 />
@@ -456,6 +475,8 @@ function FightColumn({
                 onRemove={onRemove}
                 onEditCategory={onEditCategory}
                 onDeleteCategory={onDeleteCategory}
+                onAddPlan={onAddPlan}
+                addPlanDisabled={addPlanDisabled}
               />
             ))}
           </SortableContext>

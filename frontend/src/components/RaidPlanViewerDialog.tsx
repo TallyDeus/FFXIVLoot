@@ -84,7 +84,7 @@ export const RaidPlanViewerDialog: React.FC<RaidPlanViewerDialogProps> = ({
       PaperProps={{
         sx: {
           width: 'min(99vw, 1820px)',
-          height: 'min(93vh, 1000px)',
+          height: 'min(93vh, 1050px)',
           maxHeight: 'none',
           display: 'flex',
           flexDirection: 'column',
