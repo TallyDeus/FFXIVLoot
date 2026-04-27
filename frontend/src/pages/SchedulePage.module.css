@@ -186,14 +186,38 @@
   font-size: 0.8125rem;
 }
 
-/* Logged-in member row: subtle tint + left accent (works over yes/maybe/no cell colors) */
-.trSelf > td {
-  box-shadow: inset 0 0 0 9999px rgba(111, 141, 174, 0.09);
+/* Logged-in member row: inner frame (inset shadows) + tint; name + days only, not comments */
+/* Drop internal vertical borders inside the strip so column lines don’t cut through the highlight */
+.trSelf > .tdMember {
+  border-right-color: transparent;
+  border-top-left-radius: 7px;
+  border-bottom-left-radius: 7px;
+  box-shadow:
+    inset 0 1px 0 0 rgba(111, 141, 174, 0.88),
+    inset 0 -1px 0 0 rgba(111, 141, 174, 0.88),
+    inset 1px 0 0 0 rgba(111, 141, 174, 0.92),
+    1px 0 8px rgba(0, 0, 0, 0.18),
+    inset 0 0 0 9999px rgba(111, 141, 174, 0.09);
 }
 
-.trSelf > td:first-child {
+.trSelf > .tdCell:not(.tdCellSelfRowEnd) {
+  border-left-color: transparent;
+  border-right-color: transparent;
   box-shadow:
-    inset 3px 0 0 0 rgba(111, 141, 174, 0.88),
+    inset 0 1px 0 0 rgba(111, 141, 174, 0.88),
+    inset 0 -1px 0 0 rgba(111, 141, 174, 0.88),
+    inset 0 0 0 9999px rgba(111, 141, 174, 0.09);
+}
+
+/* Last raid day — inner edge on the right; keep solid right border vs comments column */
+.trSelf > .tdCell.tdCellSelfRowEnd {
+  border-left-color: transparent;
+  border-top-right-radius: 7px;
+  border-bottom-right-radius: 7px;
+  box-shadow:
+    inset 0 1px 0 0 rgba(111, 141, 174, 0.88),
+    inset 0 -1px 0 0 rgba(111, 141, 174, 0.88),
+    inset -1px 0 0 0 rgba(111, 141, 174, 0.88),
     inset 0 0 0 9999px rgba(111, 141, 174, 0.09);
 }
 
@@ -212,7 +236,7 @@
   border: 1px solid var(--tc-border);
   background-color: var(--tc-bg-surface);
   font-weight: 600;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.18);
+  box-shadow: 1px 0 8px rgba(0, 0, 0, 0.18);
 }
 
 .thMember {
