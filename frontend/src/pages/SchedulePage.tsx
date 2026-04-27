@@ -13,13 +13,15 @@ import {
 } from '../types/schedule';
 import { PermissionRole } from '../types/member';
 import { useAuth } from '../contexts/AuthContext';
-import { FaComment, FaRegComment } from 'react-icons/fa';
+import { FaChevronLeft, FaChevronRight, FaComment, FaRegComment } from 'react-icons/fa';
 import { Button } from '../components/Button';
 import { ToastContainer } from '../components/Toast';
 import { useToast } from '../hooks/useToast';
 import { signalRService } from '../services/signalrService';
 import { ScheduleAvailabilityPicker } from '../components/schedule/ScheduleAvailabilityPicker';
 import { mondayOfWeekIso, scheduleRangeStartMonday, todayLocalIso } from '../utils/scheduleDates';
+import { usePhonePortraitLayout } from '../hooks/usePhonePortraitLayout';
+import { useScheduleMobileScroll } from '../contexts/ScheduleMobileScrollContext';
 import styles from './SchedulePage.module.css';
 
 const apiBase = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -101,6 +103,20 @@ function thConsensusText(c: ScheduleConsensusType): string {
   }
 }
 
+/** Mobile consensus row: circular pips using picker-style solid colors. */
+function consensusPipClass(c: ScheduleConsensusType): string {
+  switch (c) {
+    case ScheduleConsensus.Raiding:
+      return styles.pipRaiding;
+    case ScheduleConsensus.MaybeRaiding:
+      return styles.pipMaybe;
+    case ScheduleConsensus.NotRaiding:
+      return styles.pipNo;
+    default:
+      return styles.pipIncomplete;
+  }
+}
+
 function tdByValue(val: ScheduleAvailability | null): string {
   switch (val) {
     case 'yes':
@@ -157,10 +173,28 @@ function getWeekCommentDisplay(m: ScheduleMemberRow, week: ScheduleWeekBlock): s
   return legacyWeekCommentFallback(m, week);
 }
 
+/** Scroll position of `slide` within `wheel` (wheel is the overflow scroll container). */
+function scrollSlideToTopOfWheel(wheel: HTMLDivElement, slide: HTMLDivElement, behavior: ScrollBehavior) {
+  let y = 0;
+  let el: HTMLElement | null = slide;
+  while (el && el !== wheel) {
+    y += el.offsetTop;
+    el = el.offsetParent as HTMLElement | null;
+  }
+  if (el !== wheel) {
+    const w = wheel.getBoundingClientRect();
+    const s = slide.getBoundingClientRect();
+    y = s.top - w.top + wheel.scrollTop;
+  }
+  wheel.scrollTo({ top: Math.max(0, y), behavior });
+}
+
 export const SchedulePage: React.FC = () => {
   const { user, hasPermission } = useAuth();
   const { toasts, showToast, removeToast } = useToast();
   const canManageSchedule = hasPermission(PermissionRole.Manager);
+  const phonePortrait = usePhonePortraitLayout();
+  const { registerThisWeekScroll } = useScheduleMobileScroll();
 
   const rangeStartMonday = useMemo(() => scheduleRangeStartMonday(), []);
 
@@ -176,6 +210,13 @@ export const SchedulePage: React.FC = () => {
     weekStartMonday: string;
     text: string;
   } | null>(null);
+
+  /** Mobile: per-week toggle to show all members in a compact layout (default: self only). */
+  const [mobileFullScheduleWeeks, setMobileFullScheduleWeeks] = useState<Set<string>>(() => new Set());
+
+  /** Mobile: which week is shown (arrows); synced to calendar week on each new schedule load. */
+  const [phoneWeekIndex, setPhoneWeekIndex] = useState(0);
+  const phoneScheduleViewKeyRef = useRef<string | null>(null);
 
   const wheelRef = useRef<HTMLDivElement>(null);
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -232,24 +273,98 @@ export const SchedulePage: React.FC = () => {
   }, []);
 
   useLayoutEffect(() => {
-    if (!view || didInitialScroll.current) return;
-    didInitialScroll.current = true;
-    const wheel = wheelRef.current;
-    if (!wheel) return;
-    const idx = view.weeks.findIndex((w) => w.weekStartMonday === thisWeekMonday);
-    const slide = idx >= 0 ? slideRefs.current[idx] : slideRefs.current[0];
-    if (slide) wheel.scrollTop = slide.offsetTop;
+    if (phonePortrait) return;
+    if (loading) {
+      didInitialScroll.current = false;
+      return;
+    }
+    if (!view?.weeks.length || didInitialScroll.current) return;
+
+    const tryScroll = (): boolean => {
+      const wheel = wheelRef.current;
+      if (!wheel) return false;
+      let idx = view.weeks.findIndex((w) => w.weekStartMonday === thisWeekMonday);
+      if (idx < 0) {
+        const after = view.weeks.findIndex((w) => w.weekStartMonday > thisWeekMonday);
+        idx = after >= 0 ? after : 0;
+      }
+      const slide = slideRefs.current[idx] ?? slideRefs.current[0];
+      if (!slide) return false;
+      scrollSlideToTopOfWheel(wheel, slide, 'auto');
+      return true;
+    };
+
+    if (tryScroll()) {
+      didInitialScroll.current = true;
+      return;
+    }
+
+    const id = window.requestAnimationFrame(() => {
+      if (tryScroll()) didInitialScroll.current = true;
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [view, loading, thisWeekMonday, phonePortrait]);
+
+  /** Mobile: jump to the week that contains “today” (same index rules as desktop scroll). */
+  const goToThisWeekPhone = useCallback(() => {
+    if (!view?.weeks.length) return;
+    let idx = view.weeks.findIndex((w) => w.weekStartMonday === thisWeekMonday);
+    if (idx < 0) {
+      const after = view.weeks.findIndex((w) => w.weekStartMonday > thisWeekMonday);
+      idx = after >= 0 ? after : view.weeks.length - 1;
+    }
+    setPhoneWeekIndex(idx);
   }, [view, thisWeekMonday]);
 
-  const scrollToThisWeek = () => {
-    const wheel = wheelRef.current;
-    if (!view || !wheel) return;
-    const idx = view.weeks.findIndex((w) => w.weekStartMonday === thisWeekMonday);
-    if (idx < 0) return;
-    const slide = slideRefs.current[idx];
-    if (!slide) return;
-    wheel.scrollTo({ top: slide.offsetTop, behavior: 'smooth' });
-  };
+  useEffect(() => {
+    if (!phonePortrait || !view?.weeks.length) return;
+    const key = view.viewStartMonday;
+    if (phoneScheduleViewKeyRef.current !== key) {
+      phoneScheduleViewKeyRef.current = key;
+      let idx = view.weeks.findIndex((w) => w.weekStartMonday === thisWeekMonday);
+      if (idx < 0) {
+        const after = view.weeks.findIndex((w) => w.weekStartMonday > thisWeekMonday);
+        idx = after >= 0 ? after : view.weeks.length - 1;
+      }
+      setPhoneWeekIndex(idx);
+    } else {
+      setPhoneWeekIndex((i) => Math.max(0, Math.min(i, view.weeks.length - 1)));
+    }
+  }, [view, phonePortrait, thisWeekMonday]);
+
+  const scrollToThisWeek = useCallback(() => {
+    if (!view?.weeks.length) return;
+
+    const run = (): boolean => {
+      const wheel = wheelRef.current;
+      if (!wheel) return false;
+      let idx = view.weeks.findIndex((w) => w.weekStartMonday === thisWeekMonday);
+      if (idx < 0) {
+        const after = view.weeks.findIndex((w) => w.weekStartMonday > thisWeekMonday);
+        idx = after >= 0 ? after : view.weeks.length - 1;
+      }
+      const slide = slideRefs.current[idx] ?? slideRefs.current[0];
+      if (!slide) return false;
+      scrollSlideToTopOfWheel(wheel, slide, 'smooth');
+      return true;
+    };
+
+    if (!run()) {
+      window.requestAnimationFrame(() => {
+        run();
+      });
+    }
+  }, [view, thisWeekMonday]);
+
+  useEffect(() => {
+    if (!phonePortrait) {
+      registerThisWeekScroll(null, false);
+      return;
+    }
+    const ready = !loading && Boolean(view?.weeks.length);
+    registerThisWeekScroll(goToThisWeekPhone, ready);
+    return () => registerThisWeekScroll(null, false);
+  }, [phonePortrait, registerThisWeekScroll, goToThisWeekPhone, view, loading]);
 
   const handleCellChange = async (
     memberId: string,
@@ -324,6 +439,15 @@ export const SchedulePage: React.FC = () => {
     setCommentModal({ memberId, memberName, weekStartMonday, text: text ?? '' });
   };
 
+  const toggleMobileFullSchedule = (weekStartMonday: string) => {
+    setMobileFullScheduleWeeks((prev) => {
+      const next = new Set(prev);
+      if (next.has(weekStartMonday)) next.delete(weekStartMonday);
+      else next.add(weekStartMonday);
+      return next;
+    });
+  };
+
   const saveCommentModal = async () => {
     if (!commentModal || !view) return;
     const { memberId, weekStartMonday, text } = commentModal;
@@ -340,25 +464,288 @@ export const SchedulePage: React.FC = () => {
     }
   };
 
+  const phoneWeek =
+    !loading && view && phonePortrait && view.weeks.length > 0
+      ? view.weeks[Math.min(phoneWeekIndex, view.weeks.length - 1)]
+      : null;
+
   return (
-    <div className={styles.shell}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>Schedule</h1>
-        <div className={styles.headerActions}>
-          <Button variant="outlined" size="small" onClick={scrollToThisWeek} disabled={!view || !view.weeks.length}>
-            This week
-          </Button>
-          {canManageSchedule && (
-            <Button variant="outlined" size="small" onClick={openStandardDaysModal}>
-              Standard raid days…
+    <div className={cx(styles.shell, phonePortrait && styles.shellPortrait)}>
+      {!phonePortrait && (
+        <header className={styles.header}>
+          <h1 className={styles.title}>Schedule</h1>
+          <div className={styles.headerActions}>
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={scrollToThisWeek}
+              disabled={!view || !view.weeks.length}
+            >
+              This week
             </Button>
-          )}
-        </div>
-      </header>
+            {canManageSchedule && (
+              <Button variant="outlined" size="small" onClick={openStandardDaysModal}>
+                Standard raid days…
+              </Button>
+            )}
+          </div>
+        </header>
+      )}
 
       {loading && <div className={styles.loading}>Loading schedule…</div>}
 
-      {!loading && view && (
+      {phoneWeek && (
+        <div className={styles.phoneWeekShell}>
+          <div className={styles.phoneWeekNav}>
+            <Button
+              variant="outlined"
+              size="small"
+              className={styles.phoneWeekArrow}
+              disabled={phoneWeekIndex <= 0}
+              onClick={() => setPhoneWeekIndex((i) => Math.max(0, i - 1))}
+              aria-label="Previous week"
+            >
+              <FaChevronLeft aria-hidden />
+            </Button>
+            <div className={styles.phoneWeekNavCenter}>
+              <span className={styles.phoneWeekNavLabel}>Week of {formatWeekRange(phoneWeek.weekStartMonday)}</span>
+              {phoneWeek.weekStartMonday === thisWeekMonday && (
+                <span className={styles.thisWeekBadge}>This week</span>
+              )}
+            </div>
+            <Button
+              variant="outlined"
+              size="small"
+              className={styles.phoneWeekArrow}
+              disabled={phoneWeekIndex >= view!.weeks.length - 1}
+              onClick={() => setPhoneWeekIndex((i) => Math.min(view!.weeks.length - 1, i + 1))}
+              aria-label="Next week"
+            >
+              <FaChevronRight aria-hidden />
+            </Button>
+          </div>
+          <div className={styles.phoneWeekScroll}>
+            <div className={styles.weekSlide}>
+              <section
+                className={cx(
+                  styles.weekCard,
+                  phoneWeek.weekStartMonday === thisWeekMonday && styles.weekCardCurrent,
+                  phoneWeek.weekStartMonday !== thisWeekMonday &&
+                    phoneWeek.weekStartMonday < thisWeekMonday &&
+                    styles.weekCardPast,
+                  phoneWeek.weekStartMonday !== thisWeekMonday &&
+                    phoneWeek.weekStartMonday > thisWeekMonday &&
+                    styles.weekCardFuture
+                )}
+              >
+                <div className={styles.portraitWeekBody}>
+                  <div className={styles.portraitConsensusRow}>
+                    <div className={styles.portraitConsensusPips} aria-label="Team consensus by day">
+                      {phoneWeek.days.map((day) => (
+                        <div key={day.date} className={styles.portraitConsensusPipCol}>
+                          <span className={styles.portraitConsensusPipLetter} aria-hidden>
+                            {day.dayName.charAt(0)}
+                          </span>
+                          <Tooltip
+                            title={`${day.dayName} ${formatDateDdMm(day.date)} — ${consensusLabel(day.consensus)}`}
+                            placement="top"
+                            arrow
+                            enterDelay={200}
+                            slotProps={{
+                              tooltip: { sx: NOTE_TOOLTIP_SX },
+                              arrow: { sx: { color: 'var(--tc-bg-surface)' } },
+                            }}
+                          >
+                            <span
+                              className={cx(
+                                styles.portraitConsensusPip,
+                                consensusPipClass(day.consensus),
+                                day.isStandardRaidDay && styles.portraitConsensusPipStd
+                              )}
+                              aria-label={`${day.dayName}: ${consensusLabel(day.consensus)}`}
+                            />
+                          </Tooltip>
+                        </div>
+                      ))}
+                    </div>
+                    <div className={styles.portraitConsensusRowActions}>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => toggleMobileFullSchedule(phoneWeek.weekStartMonday)}
+                        aria-expanded={mobileFullScheduleWeeks.has(phoneWeek.weekStartMonday)}
+                      >
+                        {mobileFullScheduleWeeks.has(phoneWeek.weekStartMonday) ? 'My week only' : 'Full schedule'}
+                      </Button>
+                    </div>
+                  </div>
+                  <div
+                    className={cx(
+                      styles.portraitMemberList,
+                      mobileFullScheduleWeeks.has(phoneWeek.weekStartMonday) && styles.portraitMemberListCompact
+                    )}
+                  >
+                    {(() => {
+                      const showFullMobile = mobileFullScheduleWeeks.has(phoneWeek.weekStartMonday);
+                      const selfMembers = view!.members.filter((m) => m.id === user?.id);
+                      const membersToShow = showFullMobile ? view!.members : selfMembers;
+                      return (
+                        <>
+                          {!showFullMobile && selfMembers.length === 0 && (
+                            <p className={styles.portraitNoSelfHint}>
+                              You don’t have a row on this schedule. Use <strong>Full schedule</strong> to see the
+                              team.
+                            </p>
+                          )}
+                          {membersToShow.map((m) => {
+                            const isSelfRow = Boolean(user?.id && m.id === user.id);
+                            const canEditRow = canManageSchedule || m.id === user?.id;
+                            const avatarSrc = m.profileImageUrl
+                              ? `${apiBase}${m.profileImageUrl}`
+                              : `${process.env.PUBLIC_URL}/ffxiv-logo.png`;
+                            const weekNoteText = getWeekCommentDisplay(m, phoneWeek);
+                            const hasWeekNote = Boolean(weekNoteText?.trim());
+                            return (
+                              <section
+                                key={m.id}
+                                className={cx(
+                                  styles.portraitMemberCard,
+                                  isSelfRow && styles.portraitMemberCardSelf,
+                                  showFullMobile && styles.portraitMemberCardCompact
+                                )}
+                                aria-label={isSelfRow ? `Your availability — ${m.name}` : m.name}
+                              >
+                                <div className={styles.portraitMemberHeader}>
+                                  <div className={styles.portraitMemberIdentity}>
+                                    <div className={styles.avatarWrap}>
+                                      <img
+                                        className={styles.avatarImg}
+                                        src={avatarSrc}
+                                        alt=""
+                                        width={28}
+                                        height={28}
+                                        loading="lazy"
+                                        decoding="async"
+                                        onError={(e) => {
+                                          (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/ffxiv-logo.png`;
+                                        }}
+                                      />
+                                    </div>
+                                    <span className={styles.memberName}>{m.name}</span>
+                                  </div>
+                                  <div className={styles.portraitMemberCommentSlot}>
+                                    {hasWeekNote && (
+                                      <Tooltip
+                                        title={weekNoteText ?? ''}
+                                        placement="top"
+                                        arrow
+                                        enterDelay={200}
+                                        slotProps={{
+                                          tooltip: { sx: NOTE_TOOLTIP_SX },
+                                          arrow: { sx: { color: 'var(--tc-bg-surface)' } },
+                                        }}
+                                      >
+                                        <span className={styles.weekNotePreview}>
+                                          {truncateText(weekNoteText ?? '', 72)}
+                                        </span>
+                                      </Tooltip>
+                                    )}
+                                    {canEditRow && (
+                                      <Tooltip
+                                        title={hasWeekNote ? 'Edit comment' : 'Add comment'}
+                                        placement="top"
+                                        arrow
+                                        enterDelay={200}
+                                        slotProps={{
+                                          tooltip: { sx: NOTE_TOOLTIP_SX },
+                                          arrow: { sx: { color: 'var(--tc-bg-surface)' } },
+                                        }}
+                                      >
+                                        <button
+                                          type="button"
+                                          className={cx(
+                                            styles.weekNoteIconBtn,
+                                            hasWeekNote && styles.weekNoteIconBtnActive
+                                          )}
+                                          aria-label={hasWeekNote ? 'Edit comment' : 'Add comment'}
+                                          onClick={() =>
+                                            openWeekComment(
+                                              m.id,
+                                              m.name,
+                                              phoneWeek.weekStartMonday,
+                                              weekNoteText ?? ''
+                                            )
+                                          }
+                                        >
+                                          {hasWeekNote ? (
+                                            <FaComment className={styles.weekNoteIconSvg} aria-hidden />
+                                          ) : (
+                                            <FaRegComment className={styles.weekNoteIconSvg} aria-hidden />
+                                          )}
+                                        </button>
+                                      </Tooltip>
+                                    )}
+                                    {!canEditRow && !hasWeekNote && (
+                                      <span className={styles.commentsEmpty}>—</span>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className={styles.portraitDayList}>
+                                  {phoneWeek.days.map((day) => {
+                                    const { val, storedComment } = getCellDisplay(m, day);
+                                    return (
+                                      <div
+                                        key={day.date}
+                                        className={cx(
+                                          styles.portraitDayRow,
+                                          tdByValue(val),
+                                          day.isStandardRaidDay && styles.portraitDayRowStandard
+                                        )}
+                                      >
+                                        <div className={styles.portraitDayMeta}>
+                                          <span className={styles.portraitDayDow}>{day.dayName}</span>
+                                          <span className={styles.portraitDayDate}>{formatDateDdMm(day.date)}</span>
+                                        </div>
+                                        <ScheduleAvailabilityPicker
+                                          value={val}
+                                          canToggleOff={canToggleAvailabilityOff(m, day, val)}
+                                          disabled={!canEditRow}
+                                          ariaLabel={`${m.name}, ${formatDateDdMm(day.date)}`}
+                                          weekFillHint={canEditRow}
+                                          wide
+                                          onChange={(next, e) => {
+                                            if (e.shiftKey && canEditRow && next !== null) {
+                                              e.preventDefault();
+                                              void handleWeekFill(m.id, phoneWeek, next);
+                                            } else {
+                                              void handleCellChange(
+                                                m.id,
+                                                day.date,
+                                                next,
+                                                storedComment ?? undefined
+                                              );
+                                            }
+                                          }}
+                                        />
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </section>
+                            );
+                          })}
+                        </>
+                      );
+                    })()}
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {!loading && view && !phonePortrait && (
         <div ref={wheelRef} className={styles.weekWheel}>
           {view.weeks.map((week, weekIdx) => {
             const isThisWeek = week.weekStartMonday === thisWeekMonday;
@@ -380,8 +767,10 @@ export const SchedulePage: React.FC = () => {
                 )}
               >
                 <div className={styles.weekTitleRow}>
-                  <h2 className={styles.weekTitle}>Week of {formatWeekRange(week.weekStartMonday)}</h2>
-                  {isThisWeek && <span className={styles.thisWeekBadge}>This week</span>}
+                  <div className={styles.weekTitleCluster}>
+                    <h2 className={styles.weekTitle}>Week of {formatWeekRange(week.weekStartMonday)}</h2>
+                    {isThisWeek && <span className={styles.thisWeekBadge}>This week</span>}
+                  </div>
                 </div>
                 <div className={styles.tableScroll}>
                   <table className={styles.table}>

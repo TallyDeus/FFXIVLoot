@@ -10,6 +10,21 @@
   flex-shrink: 0;
 }
 
+.pickerWide {
+  min-width: 10.5rem;
+  max-width: 100%;
+  grid-template-columns: repeat(3, minmax(2.45rem, 1fr));
+}
+
+.pickerWide .btn {
+  min-height: 2.1rem;
+}
+
+.pickerWide .icon {
+  width: 13px;
+  height: 13px;
+}
+
 .pickerDisabled {
   opacity: 0.62;
 }

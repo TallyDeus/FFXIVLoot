@@ -28,6 +28,10 @@ export interface ScheduleAvailabilityPickerProps {
   ariaLabel: string;
   /** When true, button titles mention Shift+click to fill the whole week. */
   weekFillHint?: boolean;
+  /** Extra class on the group (e.g. wider layout on mobile). */
+  className?: string;
+  /** Larger hit targets / columns (mobile schedule). */
+  wide?: boolean;
 }
 
 /**
@@ -40,12 +44,14 @@ export const ScheduleAvailabilityPicker: React.FC<ScheduleAvailabilityPickerProp
   onChange,
   ariaLabel,
   weekFillHint = false,
+  className,
+  wide = false,
 }) => {
   return (
     <div
       role="group"
       aria-label={ariaLabel}
-      className={cx(styles.picker, disabled && styles.pickerDisabled)}
+      className={cx(styles.picker, wide && styles.pickerWide, disabled && styles.pickerDisabled, className)}
     >
       {OPTIONS.map(({ value: v, label, Icon, sel }) => {
         const selected = value === v;

@@ -130,6 +130,14 @@
   margin-bottom: 0.75rem;
 }
 
+.weekTitleCluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  min-width: 0;
+}
+
 .weekTitle {
   margin: 0;
   font-size: 1.05rem;
@@ -563,5 +571,313 @@
 }
 
 .textarea::placeholder {
+  color: var(--tc-text-muted);
+}
+
+/* —— Phone portrait (narrow): fills column under app chrome, scrolls week wheel —— */
+.shellPortrait {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  height: 100%;
+  max-height: 100%;
+  max-width: none;
+  padding-left: max(0.85rem, env(safe-area-inset-left, 0px));
+  padding-right: max(0.85rem, env(safe-area-inset-right, 0px));
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+}
+
+/* —— Mobile: one week at a time + arrow nav —— */
+.phoneWeekShell {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.phoneWeekNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  margin-bottom: 0.65rem;
+}
+
+.phoneWeekArrow {
+  flex-shrink: 0;
+  min-width: 44px;
+  min-height: 40px;
+  padding-left: 0.35rem;
+  padding-right: 0.35rem;
+}
+
+.phoneWeekNavCenter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem 0.5rem;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.phoneWeekNavLabel {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--tc-text-main);
+  text-align: center;
+  line-height: 1.25;
+}
+
+.phoneWeekScroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.portraitConsensusRow {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.65rem;
+  min-width: 0;
+}
+
+.portraitConsensusPips {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: 0.4rem;
+  padding: 0.1rem 0;
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.portraitConsensusPips::-webkit-scrollbar {
+  display: none;
+}
+
+.portraitConsensusPipCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.22rem;
+  flex-shrink: 0;
+}
+
+.portraitConsensusPipLetter {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--tc-text-muted);
+  text-transform: uppercase;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.portraitConsensusRowActions {
+  flex-shrink: 0;
+  align-self: flex-end;
+}
+
+.portraitConsensusPip {
+  display: block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+.portraitConsensusPipStd {
+  box-shadow:
+    0 0 0 2px rgba(111, 141, 174, 0.65),
+    0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+.pipRaiding {
+  background-color: #059669;
+  border-color: rgba(16, 185, 129, 0.85);
+}
+
+.pipMaybe {
+  background-color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.9);
+}
+
+.pipNo {
+  background-color: #dc2626;
+  border-color: rgba(239, 68, 68, 0.85);
+}
+
+.pipIncomplete {
+  background-color: rgba(42, 47, 56, 0.95);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.portraitNoSelfHint {
+  margin: 0 0 0.5rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--tc-border);
+  background: rgba(42, 47, 56, 0.55);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--tc-text-muted);
+}
+
+.portraitNoSelfHint strong {
+  color: var(--tc-text-main);
+  font-weight: 600;
+}
+
+.portraitWeekBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.portraitMemberList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.portraitMemberListCompact {
+  gap: 0.55rem;
+}
+
+.portraitMemberListCompact .portraitMemberHeader {
+  margin-bottom: 0.35rem;
+}
+
+.portraitMemberListCompact .portraitDayRow {
+  padding: 0.3rem 0.4rem;
+  gap: 0.4rem;
+}
+
+.portraitMemberListCompact .portraitDayDow {
+  font-size: 0.75rem;
+}
+
+.portraitMemberListCompact .portraitDayDate {
+  font-size: 0.68rem;
+}
+
+.portraitMemberListCompact .weekNotePreview {
+  max-width: 8rem;
+  font-size: 0.72rem;
+}
+
+.portraitMemberCard {
+  border-radius: 10px;
+  border: 1px solid var(--tc-border);
+  background: rgba(42, 47, 56, 0.55);
+  padding: 0.65rem 0.75rem;
+  min-width: 0;
+}
+
+.portraitMemberCardSelf {
+  border-color: rgba(111, 141, 174, 0.75);
+  box-shadow: 0 0 0 1px rgba(111, 141, 174, 0.2);
+}
+
+.portraitMemberCardCompact {
+  padding: 0.45rem 0.55rem;
+}
+
+.portraitMemberCardCompact .avatarWrap {
+  width: 24px;
+  height: 24px;
+}
+
+.portraitMemberCardCompact .avatarImg {
+  width: 24px;
+  height: 24px;
+}
+
+.portraitMemberCardCompact .memberName {
+  font-size: 0.875rem;
+}
+
+.portraitMemberHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.55rem;
+}
+
+.portraitMemberIdentity {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.portraitMemberIdentity .memberName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.portraitMemberCommentSlot {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  max-width: 48%;
+}
+
+.portraitDayList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.portraitDayRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  min-width: 0;
+}
+
+.portraitDayRowStandard {
+  border-color: rgba(111, 141, 174, 0.35);
+}
+
+.portraitDayMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.portraitDayDow {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--tc-text-main);
+}
+
+.portraitDayDate {
+  font-size: 0.72rem;
   color: var(--tc-text-muted);
 }

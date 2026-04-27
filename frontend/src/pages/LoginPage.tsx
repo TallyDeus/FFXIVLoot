@@ -77,11 +77,17 @@ export const LoginPage: React.FC = () => {
             <label htmlFor="pin">PIN</label>
             <input
               id="pin"
-              type="password"
+              type="text"
+              className="login-pin-input"
               value={pin}
               onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
               placeholder="Enter 4-digit PIN"
+              inputMode="numeric"
+              pattern="[0-9]*"
               autoComplete="current-password"
+              autoCorrect="off"
+              autoCapitalize="none"
+              spellCheck={false}
               maxLength={4}
               disabled={loading}
             />

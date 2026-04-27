@@ -3,18 +3,22 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
+  min-height: 100dvh;
   background: var(--tc-bg-main);
-  padding: 20px;
+  padding: max(20px, env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-right, 0px))
+    max(20px, env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px));
+  box-sizing: border-box;
 }
 
 .login-container {
   background: var(--tc-bg-surface);
   border: 1px solid var(--tc-border);
   border-radius: 8px;
-  padding: 40px;
+  padding: clamp(24px, 5vw, 40px);
   width: 100%;
-  max-width: 400px;
+  max-width: min(400px, 100%);
   box-shadow: 0 4px 12px var(--tc-shadow);
+  box-sizing: border-box;
 }
 
 .login-header {
@@ -62,7 +66,9 @@
 }
 
 .form-group input {
-  padding: 12px;
+  padding: 14px 12px;
+  min-height: 48px;
+  box-sizing: border-box;
   border: 1px solid var(--tc-border);
   border-radius: 4px;
   font-size: 16px;
@@ -76,13 +82,22 @@
   border-color: var(--tc-primary);
 }
 
+/**
+ * PIN: numeric keypad on mobile (inputMode + pattern). iOS often ignores those on type=password,
+ * so we use type=text and mask like a password where supported.
+ */
+.login-pin-input {
+  -webkit-text-security: disc;
+}
+
 .form-group input:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
 .login-button {
-  padding: 10px 20px;
+  padding: 14px 20px;
+  min-height: 48px;
   background-color: var(--tc-accent-primary);
   color: white;
   border: 1px solid var(--tc-accent-primary);
@@ -93,6 +108,7 @@
   transition: all 0.2s ease;
   margin-top: 8px;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .login-button:hover:not(:disabled) {

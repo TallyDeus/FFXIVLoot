@@ -4,6 +4,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { HashRouter, BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { SelfProfileEditProvider } from './contexts/SelfProfileEditContext';
+import { ScheduleMobileScrollProvider } from './contexts/ScheduleMobileScrollContext';
 import { LoginPage } from './pages/LoginPage';
 import { MembersPage } from './pages/MembersPage';
 import { BiSTrackerPage } from './pages/BiSTrackerPage';
@@ -13,6 +14,8 @@ import { RaidTiersPage } from './pages/RaidTiersPage';
 import { RaidPlansPage } from './pages/RaidPlansPage';
 import { SchedulePage } from './pages/SchedulePage';
 import { Sidebar } from './components/Sidebar';
+import { PhoneScheduleChrome } from './components/PhoneScheduleChrome';
+import { usePhonePortraitLayout } from './hooks/usePhonePortraitLayout';
 import { theme } from './theme';
 import './App.css';
 
@@ -34,7 +37,8 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
  */
 function AppContent() {
   const { isAuthenticated } = useAuth();
-  
+  const phonePortrait = usePhonePortraitLayout();
+
   if (!isAuthenticated) {
     return (
       <Routes>
@@ -44,21 +48,44 @@ function AppContent() {
     );
   }
 
+  const scheduleRoute = (
+    <Route path="/schedule" element={<ProtectedRoute><SchedulePage /></ProtectedRoute>} />
+  );
+
+  const desktopRoutes = (
+    <>
+      <Route path="/members" element={<ProtectedRoute><MembersPage /></ProtectedRoute>} />
+      <Route path="/raid-tiers" element={<ProtectedRoute><RaidTiersPage /></ProtectedRoute>} />
+      {scheduleRoute}
+      <Route path="/bis" element={<ProtectedRoute><BiSTrackerPage /></ProtectedRoute>} />
+      <Route path="/loot" element={<ProtectedRoute><LootDistributionPage /></ProtectedRoute>} />
+      <Route path="/history" element={<ProtectedRoute><LootHistoryPage /></ProtectedRoute>} />
+      <Route path="/raid-plans" element={<ProtectedRoute><RaidPlansPage /></ProtectedRoute>} />
+    </>
+  );
+
   return (
     <div className="App">
-      <Sidebar />
-      <main className="App-main">
-        <Routes>
-          <Route path="/" element={<Navigate to="/schedule" replace />} />
-          <Route path="/members" element={<ProtectedRoute><MembersPage /></ProtectedRoute>} />
-          <Route path="/raid-tiers" element={<ProtectedRoute><RaidTiersPage /></ProtectedRoute>} />
-          <Route path="/schedule" element={<ProtectedRoute><SchedulePage /></ProtectedRoute>} />
-          <Route path="/bis" element={<ProtectedRoute><BiSTrackerPage /></ProtectedRoute>} />
-          <Route path="/loot" element={<ProtectedRoute><LootDistributionPage /></ProtectedRoute>} />
-          <Route path="/history" element={<ProtectedRoute><LootHistoryPage /></ProtectedRoute>} />
-          <Route path="/raid-plans" element={<ProtectedRoute><RaidPlansPage /></ProtectedRoute>} />
-          <Route path="*" element={<Navigate to="/schedule" replace />} />
-        </Routes>
+      {!phonePortrait && <Sidebar />}
+      <main className={`App-main${phonePortrait ? ' App-main--phonePortrait' : ''}`}>
+        <ScheduleMobileScrollProvider>
+          {phonePortrait && <PhoneScheduleChrome />}
+          {phonePortrait ? (
+            <div className="App-mainRoute">
+              <Routes>
+                <Route path="/" element={<Navigate to="/schedule" replace />} />
+                {scheduleRoute}
+                <Route path="*" element={<Navigate to="/schedule" replace />} />
+              </Routes>
+            </div>
+          ) : (
+            <Routes>
+              <Route path="/" element={<Navigate to="/schedule" replace />} />
+              {desktopRoutes}
+              <Route path="*" element={<Navigate to="/schedule" replace />} />
+            </Routes>
+          )}
+        </ScheduleMobileScrollProvider>
       </main>
     </div>
   );
