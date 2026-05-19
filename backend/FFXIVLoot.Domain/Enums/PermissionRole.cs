@@ -18,7 +18,12 @@ public enum PermissionRole
     /// <summary>
     /// Administrator with full access
     /// </summary>
-    Administrator = 2
+    Administrator = 2,
+
+    /// <summary>
+    /// Read-only guest: can view app data but cannot edit; excluded from BiS tracker and schedule roster.
+    /// </summary>
+    Guest = 3
 }
 
 

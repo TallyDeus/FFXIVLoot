@@ -1,6 +1,7 @@
 using FFXIVLoot.Application.DTOs;
 using FFXIVLoot.Application.Helpers;
 using FFXIVLoot.Application.Interfaces;
+using FFXIVLoot.Domain.Enums;
 using FFXIVLoot.Domain.Interfaces;
 using Microsoft.Extensions.Configuration;
 
@@ -30,7 +31,11 @@ public class MemberService : IMemberService
     {
         var members = await _memberRepository.GetAllAsync();
         if (activeOnly)
-            members = members.Where(m => m.IsActive).ToList();
+        {
+            members = members
+                .Where(m => m.IsActive && m.PermissionRole != PermissionRole.Guest)
+                .ToList();
+        }
 
         foreach (var m in members)
         {

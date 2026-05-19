@@ -4,6 +4,7 @@ import { Switch, Tooltip } from '@mui/material';
 import { FiEdit2, FiExternalLink, FiTrash2 } from 'react-icons/fi';
 import { BisJobCategory, bisJobCategoryFromAbbrev, Member, MemberRole, PermissionRole } from '../types/member';
 import { BisJobCategoryBadge } from './BisJobCategoryBadge';
+import { PermissionRoleTag } from './Tag';
 import { useAuth } from '../contexts/AuthContext';
 import { ProfileImageTooltip } from './ProfileImageTooltip';
 
@@ -46,6 +47,13 @@ const cardShell =
  */
 const cardGrid =
   'grid w-full min-w-0 grid-cols-1 gap-3 @roster:grid-cols-[15rem_minmax(0,1fr)_minmax(0,1fr)_auto] @roster:items-center @roster:gap-x-4 @roster:gap-y-0';
+
+const guestCardGrid =
+  'grid w-full min-w-0 grid-cols-1 gap-3 @roster:grid-cols-[minmax(0,1fr)_auto] @roster:items-center @roster:gap-x-4 @roster:gap-y-0';
+
+function isGuestMember(member: Member): boolean {
+  return member.permissionRole === PermissionRole.Guest;
+}
 
 /** Soft chip-style row actions — same shape, hue matches intent (accent vs. danger). */
 const rowActionIconBase =
@@ -109,14 +117,18 @@ export const MemberList: React.FC<MemberListProps> = ({ members, onEdit, onDelet
     );
   };
 
-  const { dpsMembers, supportMembers } = React.useMemo(() => {
-    const dps = members
+  const { dpsMembers, supportMembers, guestMembers } = React.useMemo(() => {
+    const raid = members.filter((m) => !isGuestMember(m));
+    const guests = members
+      .filter(isGuestMember)
+      .sort((a, b) => a.name.localeCompare(b.name));
+    const dps = raid
       .filter((m) => m.role === MemberRole.DPS)
       .sort((a, b) => a.name.localeCompare(b.name));
-    const support = members
+    const support = raid
       .filter((m) => m.role === MemberRole.Support)
       .sort((a, b) => a.name.localeCompare(b.name));
-    return { dpsMembers: dps, supportMembers: support };
+    return { dpsMembers: dps, supportMembers: support, guestMembers: guests };
   }, [members]);
 
   const renderSpecJob = (
@@ -131,6 +143,111 @@ export const MemberList: React.FC<MemberListProps> = ({ members, onEdit, onDelet
       return <span className="text-[0.68rem] italic text-[var(--tc-text-muted)]">{emptyLabel}</span>;
     }
     return <BisJobCategoryBadge category={jobCat} abbrev={abbrev} />;
+  };
+
+  const renderMemberRowActions = (member: Member, showRosterToggle: boolean) => (
+    <div className="flex w-full flex-wrap items-center justify-between gap-2 border-t border-white/[0.06] pt-2 @roster:w-auto @roster:flex-nowrap @roster:justify-end @roster:justify-self-end @roster:border-t-0 @roster:pt-0">
+      <div className="relative z-[2] flex items-center gap-1">
+        {(staffMayEditAll || selfMayEdit(member)) && (
+          <Tooltip title="Edit member">
+            <span className="inline-flex leading-none">
+              <IconButton
+                size="small"
+                onClick={() => onEdit(member)}
+                color="inherit"
+                aria-label={`Edit ${member.name}`}
+                className={editIconBtn}
+              >
+                <FiEdit2 />
+              </IconButton>
+            </span>
+          </Tooltip>
+        )}
+        {staffMayDelete && (
+          <Tooltip title="Delete member">
+            <span className="inline-flex leading-none">
+              <IconButton
+                size="small"
+                color="inherit"
+                onClick={() => onDelete(member.id)}
+                aria-label={`Delete ${member.name}`}
+                className={deleteIconBtn}
+              >
+                <FiTrash2 />
+              </IconButton>
+            </span>
+          </Tooltip>
+        )}
+      </div>
+      {showRosterToggle && canToggleActive && onActiveChange && (
+        <Tooltip
+          title={
+            member.isActive === false
+              ? 'Inactive — hidden from roster views (BiS, schedule, loot, raid tiers)'
+              : 'Active — shown on roster views'
+          }
+          placement="top"
+        >
+          <div className="flex shrink-0 items-center gap-1">
+            <span className="text-[0.68rem] font-medium text-[var(--tc-text-muted)]">Roster</span>
+            <Switch
+              checked={member.isActive !== false}
+              onChange={(_, checked) => onActiveChange(member, checked)}
+              size="small"
+              color="primary"
+              inputProps={{
+                'aria-label': `${member.isActive === false ? 'Inactive' : 'Active'} — ${member.name}`,
+              }}
+            />
+          </div>
+        </Tooltip>
+      )}
+    </div>
+  );
+
+  const renderGuestMemberRow = (member: Member) => {
+    const imageUrl = memberImageUrl(member);
+
+    return (
+      <article
+        key={member.id}
+        role="listitem"
+        className={cardShell}
+        aria-label={`${member.name}, guest`}
+      >
+        <div className={guestCardGrid}>
+          <div className="flex min-w-0 items-center gap-2.5">
+            <ProfileImageTooltip imageUrl={imageUrl} alt={member.name} place="right">
+              <img
+                src={imageUrl}
+                alt=""
+                className="h-10 w-10 shrink-0 cursor-pointer rounded-full border border-[var(--tc-border)] bg-[var(--tc-bg-surface)] object-cover shadow-sm"
+                onError={(e) => {
+                  if (member.profileImageUrl) {
+                    (e.target as HTMLImageElement).src = `${process.env.PUBLIC_URL}/ffxiv-logo.png`;
+                  }
+                }}
+              />
+            </ProfileImageTooltip>
+            <div className="min-w-0 flex-1">
+              <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                <span
+                  className="min-w-0 truncate text-[0.92rem] font-semibold leading-tight text-[var(--tc-text-main)]"
+                  title={member.name}
+                >
+                  {member.name}
+                </span>
+                <PermissionRoleTag permissionRole={PermissionRole.Guest} />
+              </div>
+              <p className="m-0 mt-0.5 text-[0.72rem] text-[var(--tc-text-muted)]">
+                Read-only access — not on BiS tracker or schedule
+              </p>
+            </div>
+          </div>
+          {renderMemberRowActions(member, false)}
+        </div>
+      </article>
+    );
   };
 
   const renderMemberRow = (member: Member) => {
@@ -233,69 +350,17 @@ export const MemberList: React.FC<MemberListProps> = ({ members, onEdit, onDelet
             </span>
           </div>
 
-          <div className="flex w-full flex-wrap items-center justify-between gap-2 border-t border-white/[0.06] pt-2 @roster:w-auto @roster:flex-nowrap @roster:justify-end @roster:justify-self-end @roster:border-t-0 @roster:pt-0">
-            <div className="relative z-[2] flex items-center gap-1">
-              {(staffMayEditAll || selfMayEdit(member)) && (
-                <Tooltip title="Edit member">
-                  <span className="inline-flex leading-none">
-                    <IconButton
-                      size="small"
-                      onClick={() => onEdit(member)}
-                      color="inherit"
-                      aria-label={`Edit ${member.name}`}
-                      className={editIconBtn}
-                    >
-                      <FiEdit2 />
-                    </IconButton>
-                  </span>
-                </Tooltip>
-              )}
-              {staffMayDelete && (
-                <Tooltip title="Delete member">
-                  <span className="inline-flex leading-none">
-                    <IconButton
-                      size="small"
-                      color="inherit"
-                      onClick={() => onDelete(member.id)}
-                      aria-label={`Delete ${member.name}`}
-                      className={deleteIconBtn}
-                    >
-                      <FiTrash2 />
-                    </IconButton>
-                  </span>
-                </Tooltip>
-              )}
-            </div>
-            {canToggleActive && onActiveChange && (
-              <Tooltip
-                title={
-                  inactive
-                    ? 'Inactive — hidden from roster views (BiS, schedule, loot, raid tiers)'
-                    : 'Active — shown on roster views'
-                }
-                placement="top"
-              >
-                <div className="flex shrink-0 items-center gap-1">
-                  <span className="text-[0.68rem] font-medium text-[var(--tc-text-muted)]">Roster</span>
-                  <Switch
-                    checked={!inactive}
-                    onChange={(_, checked) => onActiveChange(member, checked)}
-                    size="small"
-                    color="primary"
-                    inputProps={{
-                      'aria-label': `${inactive ? 'Inactive' : 'Active'} — ${member.name}`,
-                    }}
-                  />
-                </div>
-              </Tooltip>
-            )}
-          </div>
+          {renderMemberRowActions(member, true)}
         </div>
       </article>
     );
   };
 
-  const renderSection = (title: string, list: Member[]) => {
+  const renderSection = (
+    title: string,
+    list: Member[],
+    renderRow: (member: Member) => React.ReactNode = renderMemberRow
+  ) => {
     if (list.length === 0) return null;
     const sectionId = `roster-${title.replace(/\s+/g, '-').toLowerCase()}`;
     return (
@@ -307,7 +372,7 @@ export const MemberList: React.FC<MemberListProps> = ({ members, onEdit, onDelet
           </span>
         </h3>
         <div className="grid w-full min-w-0 grid-cols-1 gap-3" role="list">
-          {list.map(renderMemberRow)}
+          {list.map(renderRow)}
         </div>
       </section>
     );
@@ -319,14 +384,19 @@ export const MemberList: React.FC<MemberListProps> = ({ members, onEdit, onDelet
       {members.length === 0 ? (
         <p className="m-0 text-[0.95rem] text-[var(--tc-text-muted)]">No members added yet. Add your first member using the button above.</p>
       ) : (
-        <div
-          className={cx(
-            'grid min-w-0 max-w-full gap-x-7 gap-y-5',
-            stackRoleGroups ? 'grid-cols-1' : 'grid-cols-2',
+        <div className="flex min-w-0 max-w-full flex-col gap-7">
+          {(dpsMembers.length > 0 || supportMembers.length > 0) && (
+            <div
+              className={cx(
+                'grid min-w-0 max-w-full gap-x-7 gap-y-5',
+                stackRoleGroups ? 'grid-cols-1' : 'grid-cols-2',
+              )}
+            >
+              {renderSection('DPS', dpsMembers)}
+              {renderSection('Support', supportMembers)}
+            </div>
           )}
-        >
-          {renderSection('DPS', dpsMembers)}
-          {renderSection('Support', supportMembers)}
+          {renderSection('Guests', guestMembers, renderGuestMemberRow)}
         </div>
       )}
     </div>

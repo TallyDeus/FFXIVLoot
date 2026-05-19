@@ -311,6 +311,17 @@
   font-size: 14px;
 }
 
+.member-form-guest-hint {
+  margin: 0 0 1rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 6px;
+  border: 1px solid var(--tc-border);
+  background: rgba(127, 140, 141, 0.12);
+  color: var(--tc-text-muted);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
 .member-form-sublabel {
   display: block;
   margin-bottom: 5px;

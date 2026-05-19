@@ -3,8 +3,9 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useSelfProfileEdit } from '../contexts/SelfProfileEditContext';
 import { PinUpdateDialog } from './PinUpdateDialog';
-import { BisJobCategory, bisJobCategoryFromAbbrev, Member } from '../types/member';
+import { BisJobCategory, bisJobCategoryFromAbbrev, Member, PermissionRole } from '../types/member';
 import { BisJobCategoryBadge } from './BisJobCategoryBadge';
+import { PermissionRoleTag } from './Tag';
 import { raidTierService } from '../services/api/raidTierService';
 import { scheduleService } from '../services/api/scheduleService';
 import { ScheduleConsensus } from '../types/schedule';
@@ -115,10 +116,18 @@ function sidebarMainSpecJob(user: Member): React.ReactNode {
   return <BisJobCategoryBadge category={jobCat} abbrev={user.mainSpecBisJobAbbrev} />;
 }
 
+function sidebarUserTag(user: Member, isGuest: boolean): React.ReactNode {
+  if (isGuest) {
+    return <PermissionRoleTag permissionRole={PermissionRole.Guest} />;
+  }
+  return sidebarMainSpecJob(user);
+}
+
 const SidebarFooterProfile: React.FC<{
   user: Member;
+  isGuest: boolean;
   onEditProfile: () => Promise<void>;
-}> = ({ user, onEditProfile }) => (
+}> = ({ user, isGuest, onEditProfile }) => (
   <div className="user-info">
     <button
       type="button"
@@ -142,7 +151,7 @@ const SidebarFooterProfile: React.FC<{
       />
       <div className="sidebar-user-meta">
         <span className="user-name">{user.name}</span>
-        <div className="sidebar-user-main-job">{sidebarMainSpecJob(user)}</div>
+        <div className="sidebar-user-main-job">{sidebarUserTag(user, isGuest)}</div>
       </div>
     </button>
   </div>
@@ -154,7 +163,7 @@ const SidebarFooterProfile: React.FC<{
 export const Sidebar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { user, logout, isGuest } = useAuth();
   const { openSelfProfileEdit } = useSelfProfileEdit();
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['static', 'loot']));
   const [showPinDialog, setShowPinDialog] = useState(false);
@@ -434,7 +443,7 @@ export const Sidebar: React.FC = () => {
       )}
 
       <div className="sidebar-footer">
-        {user && <SidebarFooterProfile user={user} onEditProfile={openSelfProfileEdit} />}
+        {user && <SidebarFooterProfile user={user} isGuest={isGuest} onEditProfile={openSelfProfileEdit} />}
         <Button 
           variant="outlined"
           size="small"

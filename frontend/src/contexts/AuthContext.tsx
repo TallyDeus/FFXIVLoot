@@ -9,6 +9,8 @@ interface AuthContextType {
   login: (memberName: string, pin: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
+  /** True when the signed-in account is a read-only guest. */
+  isGuest: boolean;
   hasPermission: (requiredRole: PermissionRole) => boolean;
   isSelf: (memberId: string) => boolean;
   canEditMember: (targetMember: Member) => boolean;
@@ -35,12 +37,15 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-/** API / JSON may send enum as number, numeric string, or name — normalize for comparisons. */
+/** API / JSON may send enum as number, numeric string, or name — normalize to PermissionRole. */
 function permissionLevel(role: unknown): PermissionRole {
   if (role === undefined || role === null) {
     return PermissionRole.User;
   }
   if (typeof role === 'number' && !Number.isNaN(role)) {
+    if (role === PermissionRole.Guest) {
+      return PermissionRole.Guest;
+    }
     if (role >= PermissionRole.Administrator) {
       return PermissionRole.Administrator;
     }
@@ -52,6 +57,9 @@ function permissionLevel(role: unknown): PermissionRole {
   if (typeof role === 'string') {
     const n = Number(role);
     if (!Number.isNaN(n)) {
+      if (n === PermissionRole.Guest) {
+        return PermissionRole.Guest;
+      }
       if (n >= PermissionRole.Administrator) {
         return PermissionRole.Administrator;
       }
@@ -67,11 +75,30 @@ function permissionLevel(role: unknown): PermissionRole {
     if (s === 'manager') {
       return PermissionRole.Manager;
     }
+    if (s === 'guest') {
+      return PermissionRole.Guest;
+    }
     if (s === 'user') {
       return PermissionRole.User;
     }
   }
   return PermissionRole.User;
+}
+
+/** Privilege order for comparisons (Guest &lt; User &lt; Manager &lt; Administrator). */
+function permissionRank(role: PermissionRole): number {
+  switch (permissionLevel(role)) {
+    case PermissionRole.Guest:
+      return 0;
+    case PermissionRole.User:
+      return 1;
+    case PermissionRole.Manager:
+      return 2;
+    case PermissionRole.Administrator:
+      return 3;
+    default:
+      return 1;
+  }
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
@@ -143,8 +170,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const hasPermission = (requiredRole: PermissionRole): boolean => {
     if (!user) return false;
-    return permissionLevel(user.permissionRole) >= requiredRole;
+    return (
+      permissionRank(permissionLevel(user.permissionRole)) >= permissionRank(requiredRole)
+    );
   };
+
+  const isGuestUser =
+    user != null && permissionLevel(user.permissionRole) === PermissionRole.Guest;
 
   const canonicalMemberId = (s: string | undefined): string | undefined => {
     if (s == null) return undefined;
@@ -170,6 +202,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const canEditMember = (targetMember: Member): boolean => {
     if (!user) return false;
+    if (permissionLevel(user.permissionRole) === PermissionRole.Guest) return false;
     if (hasPermission(PermissionRole.Manager)) return true;
     if (sameMemberId(user.id, targetMember.id)) return true;
     if (!hasPermission(PermissionRole.Manager) && sameDisplayName(user.name, targetMember.name)) {
@@ -185,6 +218,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const canEditBiS = (targetMember: Member): boolean => {
     if (!user) return false;
+    if (permissionLevel(user.permissionRole) === PermissionRole.Guest) return false;
+    if (permissionLevel(targetMember.permissionRole) === PermissionRole.Guest) return false;
     if (hasPermission(PermissionRole.Manager)) return true;
     if (sameMemberId(user.id, targetMember.id)) return true;
     if (!hasPermission(PermissionRole.Manager) && sameDisplayName(user.name, targetMember.name)) {
@@ -221,6 +256,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         login,
         logout,
         isAuthenticated: !!user,
+        isGuest: isGuestUser,
         hasPermission,
         isSelf,
         canEditMember,

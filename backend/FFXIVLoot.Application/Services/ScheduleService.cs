@@ -36,16 +36,42 @@ public sealed class ScheduleService : IScheduleService
         };
     }
 
-    public async Task<ScheduleViewDto> GetViewAsync(DateOnly viewStartMonday, CancellationToken cancellationToken = default)
+    public async Task<ScheduleViewDto> GetViewAsync(
+        DateOnly viewStartMonday,
+        Member? viewerForRedaction = null,
+        CancellationToken cancellationToken = default)
     {
         viewStartMonday = GetMondayOfWeek(viewStartMonday);
         var file = await _scheduleRepository.LoadAsync(cancellationToken) ?? new ScheduleFileData();
         NormalizeFile(file);
         var members = (await _memberRepository.GetAllAsync() ?? new List<Member>())
-            .Where(m => m.IsActive)
+            .Where(m => m.IsActive && m.PermissionRole != PermissionRole.Guest)
             .ToList();
         members.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
-        return BuildView(file, members, viewStartMonday);
+        var view = BuildView(file, members, viewStartMonday);
+        if (viewerForRedaction?.PermissionRole == PermissionRole.Guest)
+            RedactCommentsForGuestViewer(view);
+        return view;
+    }
+
+    private static void RedactCommentsForGuestViewer(ScheduleViewDto view)
+    {
+        foreach (var row in view.Members)
+        {
+            foreach (var key in row.CellsByDate.Keys.ToList())
+            {
+                var c = row.CellsByDate[key];
+                row.CellsByDate[key] = new ScheduleCellDto
+                {
+                    Status = c.Status,
+                    Comment = null,
+                    IsManuallyEdited = c.IsManuallyEdited
+                };
+            }
+
+            foreach (var key in row.WeekCommentsByWeekStart.Keys.ToList())
+                row.WeekCommentsByWeekStart[key] = null;
+        }
     }
 
     public async Task<ScheduleViewDto> UpsertResponseAsync(
@@ -54,6 +80,9 @@ public sealed class ScheduleService : IScheduleService
         ScheduleResponseUpsertDto dto,
         CancellationToken cancellationToken = default)
     {
+        if (currentUser.PermissionRole == PermissionRole.Guest)
+            throw new UnauthorizedAccessException("Guests cannot edit the schedule.");
+
         if (!DateOnly.TryParse(dto.Date, out var day))
             throw new ArgumentException("Invalid date (use yyyy-MM-dd).", nameof(dto));
 
@@ -70,6 +99,8 @@ public sealed class ScheduleService : IScheduleService
         var memberExists = await _memberRepository.GetByIdAsync(targetMemberId);
         if (memberExists == null)
             throw new InvalidOperationException("Member not found.");
+        if (memberExists.PermissionRole == PermissionRole.Guest)
+            throw new InvalidOperationException("Schedule availability is not tracked for guest members.");
 
         var file = await _scheduleRepository.LoadAsync(cancellationToken) ?? new ScheduleFileData();
         NormalizeFile(file);
@@ -80,7 +111,7 @@ public sealed class ScheduleService : IScheduleService
         {
             file.Responses.RemoveAll(r => r.MemberId == targetMemberId && r.Date == dto.Date);
             await _scheduleRepository.SaveAsync(file, cancellationToken);
-            return await GetViewAsync(GetMondayOfWeek(viewStartMonday), cancellationToken);
+            return await GetViewAsync(GetMondayOfWeek(viewStartMonday), null, cancellationToken);
         }
 
         if (!TryParseAvailability(dto.Status ?? string.Empty, out var status))
@@ -94,7 +125,7 @@ public sealed class ScheduleService : IScheduleService
         {
             file.Responses.RemoveAll(r => r.MemberId == targetMemberId && r.Date == dto.Date);
             await _scheduleRepository.SaveAsync(file, cancellationToken);
-            return await GetViewAsync(GetMondayOfWeek(viewStartMonday), cancellationToken);
+            return await GetViewAsync(GetMondayOfWeek(viewStartMonday), null, cancellationToken);
         }
 
         var existing = file.Responses.Find(r => r.MemberId == targetMemberId && r.Date == dto.Date);
@@ -118,7 +149,7 @@ public sealed class ScheduleService : IScheduleService
 
         await _scheduleRepository.SaveAsync(file, cancellationToken);
 
-        return await GetViewAsync(GetMondayOfWeek(viewStartMonday), cancellationToken);
+        return await GetViewAsync(GetMondayOfWeek(viewStartMonday), null, cancellationToken);
     }
 
     public async Task<ScheduleViewDto> UpsertWeekResponsesBulkAsync(
@@ -127,6 +158,9 @@ public sealed class ScheduleService : IScheduleService
         ScheduleWeekResponseBulkUpsertDto dto,
         CancellationToken cancellationToken = default)
     {
+        if (currentUser.PermissionRole == PermissionRole.Guest)
+            throw new UnauthorizedAccessException("Guests cannot edit the schedule.");
+
         if (string.IsNullOrWhiteSpace(dto.WeekStartMonday) || !DateOnly.TryParse(dto.WeekStartMonday, out var weekMon))
             throw new ArgumentException("Invalid week (use yyyy-MM-dd for the week's Monday).", nameof(dto));
 
@@ -145,6 +179,8 @@ public sealed class ScheduleService : IScheduleService
         var memberExists = await _memberRepository.GetByIdAsync(targetMemberId);
         if (memberExists == null)
             throw new InvalidOperationException("Member not found.");
+        if (memberExists.PermissionRole == PermissionRole.Guest)
+            throw new InvalidOperationException("Schedule availability is not tracked for guest members.");
 
         if (string.IsNullOrWhiteSpace(dto.Status) || !TryParseAvailability(dto.Status, out var status))
             throw new ArgumentException("Status must be yes, no, or maybe.", nameof(dto));
@@ -194,7 +230,7 @@ public sealed class ScheduleService : IScheduleService
 
         await _scheduleRepository.SaveAsync(file, cancellationToken);
 
-        return await GetViewAsync(GetMondayOfWeek(viewStartMonday), cancellationToken);
+        return await GetViewAsync(GetMondayOfWeek(viewStartMonday), null, cancellationToken);
     }
 
     public async Task<ScheduleViewDto> UpdateStandardDaysAsync(
@@ -223,7 +259,7 @@ public sealed class ScheduleService : IScheduleService
 
         await _scheduleRepository.SaveAsync(file, cancellationToken);
 
-        return await GetViewAsync(GetMondayOfWeek(viewStartMonday), cancellationToken);
+        return await GetViewAsync(GetMondayOfWeek(viewStartMonday), null, cancellationToken);
     }
 
     public async Task<ScheduleViewDto> UpsertWeekCommentAsync(
@@ -232,6 +268,9 @@ public sealed class ScheduleService : IScheduleService
         ScheduleWeekCommentUpsertDto dto,
         CancellationToken cancellationToken = default)
     {
+        if (currentUser.PermissionRole == PermissionRole.Guest)
+            throw new UnauthorizedAccessException("Guests cannot edit schedule comments.");
+
         if (string.IsNullOrWhiteSpace(dto.WeekStartMonday) || !DateOnly.TryParse(dto.WeekStartMonday, out var weekMon))
             throw new ArgumentException("Invalid week (use yyyy-MM-dd for the week's Monday).", nameof(dto));
 
@@ -251,6 +290,8 @@ public sealed class ScheduleService : IScheduleService
         var memberExists = await _memberRepository.GetByIdAsync(targetMemberId);
         if (memberExists == null)
             throw new InvalidOperationException("Member not found.");
+        if (memberExists.PermissionRole == PermissionRole.Guest)
+            throw new InvalidOperationException("Week comments are not used for guest members.");
 
         var file = await _scheduleRepository.LoadAsync(cancellationToken) ?? new ScheduleFileData();
         NormalizeFile(file);
@@ -279,7 +320,7 @@ public sealed class ScheduleService : IScheduleService
 
         await _scheduleRepository.SaveAsync(file, cancellationToken);
 
-        return await GetViewAsync(GetMondayOfWeek(viewStartMonday), cancellationToken);
+        return await GetViewAsync(GetMondayOfWeek(viewStartMonday), null, cancellationToken);
     }
 
     private static void NormalizeFile(ScheduleFileData file)

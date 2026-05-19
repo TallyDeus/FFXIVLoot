@@ -56,7 +56,9 @@ export enum SpecType {
 export enum PermissionRole {
   User = 0,
   Manager = 1,
-  Administrator = 2
+  Administrator = 2,
+  /** Read-only: view data but no edits; excluded from BiS tracker / schedule roster. */
+  Guest = 3
 }
 
 /**

@@ -190,9 +190,10 @@ function scrollSlideToTopOfWheel(wheel: HTMLDivElement, slide: HTMLDivElement, b
 }
 
 export const SchedulePage: React.FC = () => {
-  const { user, hasPermission } = useAuth();
+  const { user, hasPermission, isGuest } = useAuth();
   const { toasts, showToast, removeToast } = useToast();
   const canManageSchedule = hasPermission(PermissionRole.Manager);
+  const canSeeScheduleComments = !isGuest;
   const phonePortrait = usePhonePortraitLayout();
   const { registerThisWeekScroll } = useScheduleMobileScroll();
 
@@ -633,6 +634,7 @@ export const SchedulePage: React.FC = () => {
                                     </div>
                                     <span className={styles.memberName}>{m.name}</span>
                                   </div>
+                                  {canSeeScheduleComments && (
                                   <div className={styles.portraitMemberCommentSlot}>
                                     {hasWeekNote && (
                                       <Tooltip
@@ -689,6 +691,7 @@ export const SchedulePage: React.FC = () => {
                                       <span className={styles.commentsEmpty}>—</span>
                                     )}
                                   </div>
+                                  )}
                                 </div>
                                 <div className={styles.portraitDayList}>
                                   {phoneWeek.days.map((day) => {
@@ -793,7 +796,9 @@ export const SchedulePage: React.FC = () => {
                             </span>
                           </th>
                         ))}
+                        {canSeeScheduleComments && (
                         <th className={styles.thComments}>Comments</th>
+                        )}
                       </tr>
                     </thead>
                     <tbody>
@@ -867,6 +872,7 @@ export const SchedulePage: React.FC = () => {
                                 </td>
                               );
                             })}
+                            {canSeeScheduleComments && (
                             <td
                               className={cx(
                                 styles.tdComments,
@@ -925,6 +931,7 @@ export const SchedulePage: React.FC = () => {
                                 )}
                               </div>
                             </td>
+                            )}
                           </tr>
                         );
                       })}

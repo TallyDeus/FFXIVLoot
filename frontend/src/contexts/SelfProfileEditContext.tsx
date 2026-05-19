@@ -23,7 +23,7 @@ export function useSelfProfileEdit(): SelfProfileEditContextValue {
 }
 
 export const SelfProfileEditProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { user, refreshSession } = useAuth();
+  const { user, refreshSession, isGuest } = useAuth();
   const { toasts, showToast, removeToast } = useToast();
   const [formOpen, setFormOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | undefined>();
@@ -70,6 +70,10 @@ export const SelfProfileEditProvider: React.FC<{ children: ReactNode }> = ({ chi
 
   const openSelfProfileEdit = useCallback(async () => {
     if (!user?.id) return;
+    if (isGuest) {
+      showToast('Guest accounts cannot edit their profile.', 'error');
+      return;
+    }
     try {
       const [me, all] = await Promise.all([
         memberService.getMemberById(user.id),
@@ -81,7 +85,7 @@ export const SelfProfileEditProvider: React.FC<{ children: ReactNode }> = ({ chi
     } catch {
       showToast('Failed to load your profile.', 'error');
     }
-  }, [user?.id, showToast]);
+  }, [user?.id, showToast, isGuest]);
 
   const handleClose = () => {
     setFormOpen(false);

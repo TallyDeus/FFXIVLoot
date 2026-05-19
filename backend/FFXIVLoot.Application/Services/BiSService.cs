@@ -53,6 +53,9 @@ public class BiSService : IBiSService
             throw new InvalidOperationException($"Member with ID {request.MemberId} not found");
         }
 
+        if (member.PermissionRole == PermissionRole.Guest)
+            throw new InvalidOperationException("Guest accounts are not included in the BiS tracker.");
+
         // CRITICAL: Explicitly preserve the other spec's data before updating
         // Create deep copies to ensure we don't lose data
         var preservedMainSpecLink = member.XivGearLink;

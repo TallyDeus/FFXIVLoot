@@ -4,7 +4,6 @@ import {
   GearSlot,
   GearSlotNames,
   ItemType,
-  PermissionRole,
 } from '../types/member';
 import { bisService } from '../services/api/bisService';
 import { ToastContainer } from './Toast';
@@ -44,13 +43,7 @@ export const BiSMatrix: React.FC<BiSMatrixProps> = ({ members, onUpdate, onMembe
   const [updating, setUpdating] = useState<Set<string>>(new Set());
   const [profileModalMember, setProfileModalMember] = useState<Member | null>(null);
   const { toasts, showToast, removeToast } = useToast();
-  const { currentUser, hasPermission, isSelf } = useAuth();
-
-  const canEditBiS = (member: Member): boolean => {
-    if (!currentUser) return false;
-    if (hasPermission(PermissionRole.Manager)) return true;
-    return isSelf(member.id);
-  };
+  const { canEditBiS } = useAuth();
 
   const sortedMembers = React.useMemo(() => {
     return [...members].sort((a, b) => a.name.localeCompare(b.name));

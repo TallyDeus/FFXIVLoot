@@ -57,7 +57,7 @@ public class ScheduleController : ControllerBase
                 anchor = ScheduleService.GetMondayOfWeek(anchor);
             }
 
-            var view = await _scheduleService.GetViewAsync(anchor, cancellationToken);
+            var view = await _scheduleService.GetViewAsync(anchor, currentUser, cancellationToken);
             return Ok(view);
         }
         catch (Exception ex)

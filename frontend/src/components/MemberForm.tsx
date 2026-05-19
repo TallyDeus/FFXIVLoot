@@ -122,6 +122,32 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
     }
   };
 
+  const isAdministrator = Boolean(user && hasPermission(PermissionRole.Administrator));
+  const isManagerOnly = Boolean(user && hasPermission(PermissionRole.Manager) && !isAdministrator);
+  const canAssignAnyRole = isAdministrator;
+  const canAssignUserOrGuestOnly = isManagerOnly;
+  const showPermissionRoleSelect =
+    canAssignAnyRole ||
+    (canAssignUserOrGuestOnly &&
+      (!member ||
+        member.permissionRole === PermissionRole.User ||
+        member.permissionRole === PermissionRole.Guest));
+
+  const isGuestForm = permissionRole === PermissionRole.Guest;
+
+  const resolvePermissionRoleForSave = (): PermissionRole => {
+    if (canAssignAnyRole) return permissionRole;
+    if (
+      canAssignUserOrGuestOnly &&
+      (!member ||
+        member.permissionRole === PermissionRole.User ||
+        member.permissionRole === PermissionRole.Guest)
+    ) {
+      return permissionRole;
+    }
+    return member?.permissionRole ?? PermissionRole.User;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -151,29 +177,30 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
       return;
     }
 
-    if (xivGearLink && !validateXivGearLink(xivGearLink)) {
+    if (!isGuestForm && xivGearLink && !validateXivGearLink(xivGearLink)) {
       if (onValidationError) {
         onValidationError('Invalid URL. It has to be a XivGear Short Link. If the link contains multiple sets, you have to click export selected set and generate a link for it.');
       }
       return;
     }
 
-    if (!offSpecFullCofferSet && offSpecXivGearLink && !validateXivGearLink(offSpecXivGearLink)) {
+    if (!isGuestForm && !offSpecFullCofferSet && offSpecXivGearLink && !validateXivGearLink(offSpecXivGearLink)) {
       if (onValidationError) {
         onValidationError('Invalid URL. It has to be a XivGear Short Link. If the link contains multiple sets, you have to click export selected set and generate a link for it.');
       }
       return;
     }
 
-    const canEditRole = user && hasPermission(PermissionRole.Administrator);
+    const pr = resolvePermissionRoleForSave();
+    const savingAsGuest = pr === PermissionRole.Guest;
 
-    const mainAbbr = mainSpecBisJobAbbrev.trim().toUpperCase();
+    const mainAbbr = savingAsGuest ? '' : mainSpecBisJobAbbrev.trim().toUpperCase();
     const mainSpecBisJobCategory = mainAbbr
       ? bisJobCategoryFromAbbrev(mainAbbr)
       : BisJobCategory.Unknown;
-    const role = memberRoleFromBisJobCategory(mainSpecBisJobCategory);
+    const role = savingAsGuest ? member?.role ?? 0 : memberRoleFromBisJobCategory(mainSpecBisJobCategory);
 
-    const offAbbr = offSpecBisJobAbbrev.trim().toUpperCase();
+    const offAbbr = savingAsGuest ? '' : offSpecBisJobAbbrev.trim().toUpperCase();
     const offSpecBisJobCategory = offAbbr
       ? bisJobCategoryFromAbbrev(offAbbr)
       : BisJobCategory.Unknown;
@@ -183,28 +210,36 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
           ...member, 
           name: trimmedName, 
           role,
-          permissionRole: canEditRole ? permissionRole : member.permissionRole,
-          xivGearLink: xivGearLink.trim() || undefined,
-          mainSpecBisJobCategory,
-          mainSpecBisJobAbbrev: mainAbbr || undefined,
-          offSpecBisJobCategory,
-          offSpecBisJobAbbrev: offAbbr || undefined,
-          offSpecFullCofferSet,
-          offSpecXivGearLink: offSpecFullCofferSet ? undefined : offSpecXivGearLink.trim() || undefined,
+          permissionRole: pr,
+          xivGearLink: savingAsGuest ? undefined : xivGearLink.trim() || undefined,
+          mainSpecBisJobCategory: savingAsGuest ? BisJobCategory.Unknown : mainSpecBisJobCategory,
+          mainSpecBisJobAbbrev: savingAsGuest ? undefined : mainAbbr || undefined,
+          offSpecBisJobCategory: savingAsGuest ? BisJobCategory.Unknown : offSpecBisJobCategory,
+          offSpecBisJobAbbrev: savingAsGuest ? undefined : offAbbr || undefined,
+          offSpecFullCofferSet: savingAsGuest ? false : offSpecFullCofferSet,
+          offSpecXivGearLink: savingAsGuest
+            ? undefined
+            : offSpecFullCofferSet
+              ? undefined
+              : offSpecXivGearLink.trim() || undefined,
         }
       : { 
           name: trimmedName, 
           role,
-          permissionRole: canEditRole ? permissionRole : PermissionRole.User,
-          xivGearLink: xivGearLink.trim() || undefined, 
+          permissionRole: pr,
+          xivGearLink: savingAsGuest ? undefined : xivGearLink.trim() || undefined, 
           bisItems: [],
           offSpecBisItems: [],
-          mainSpecBisJobCategory,
-          mainSpecBisJobAbbrev: mainAbbr || undefined,
-          offSpecBisJobCategory,
-          offSpecBisJobAbbrev: offAbbr || undefined,
-          offSpecFullCofferSet,
-          offSpecXivGearLink: offSpecFullCofferSet ? undefined : offSpecXivGearLink.trim() || undefined,
+          mainSpecBisJobCategory: savingAsGuest ? BisJobCategory.Unknown : mainSpecBisJobCategory,
+          mainSpecBisJobAbbrev: savingAsGuest ? undefined : mainAbbr || undefined,
+          offSpecBisJobCategory: savingAsGuest ? BisJobCategory.Unknown : offSpecBisJobCategory,
+          offSpecBisJobAbbrev: savingAsGuest ? undefined : offAbbr || undefined,
+          offSpecFullCofferSet: savingAsGuest ? false : offSpecFullCofferSet,
+          offSpecXivGearLink: savingAsGuest
+            ? undefined
+            : offSpecFullCofferSet
+              ? undefined
+              : offSpecXivGearLink.trim() || undefined,
         };
 
     if (selectedFile && member?.id) {
@@ -321,7 +356,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
             </div>
           </div>
 
-          {user && hasPermission(PermissionRole.Administrator) && (
+          {showPermissionRoleSelect && (
             <div className="form-group">
               <label htmlFor="permissionRole">Permission Role</label>
               <select
@@ -330,14 +365,38 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
                 onChange={(e) => setPermissionRole(Number(e.target.value) as PermissionRole)}
                 className="permission-role-select"
               >
-                <option value={PermissionRole.User}>User</option>
-                <option value={PermissionRole.Manager}>Manager</option>
-                <option value={PermissionRole.Administrator}>Administrator</option>
+                {canAssignAnyRole ? (
+                  <>
+                    <option value={PermissionRole.User}>User</option>
+                    <option value={PermissionRole.Manager}>Manager</option>
+                    <option value={PermissionRole.Administrator}>Administrator</option>
+                    <option value={PermissionRole.Guest}>Guest (read-only)</option>
+                  </>
+                ) : (
+                  <>
+                    <option value={PermissionRole.User}>User</option>
+                    <option value={PermissionRole.Guest}>Guest (read-only)</option>
+                  </>
+                )}
               </select>
-              <small>Only Administrators can change permission roles</small>
+              <small>
+                {canAssignAnyRole
+                  ? 'Administrators can assign any role.'
+                  : 'Managers can set Full member (User) or Guest (read-only).'}{' '}
+                Staff raid roles (Manager / Administrator) are Administrator-only.
+              </small>
             </div>
           )}
 
+          {isGuestForm && (
+            <p className="member-form-guest-hint">
+              Guests have read-only access and are not shown on the BiS tracker or schedule. Only name and profile
+              image are needed.
+            </p>
+          )}
+
+          {!isGuestForm && (
+          <>
           <div className="form-group">
             <span className="member-form-block-label">Main spec</span>
             <div className="member-form-spec-with-job">
@@ -421,6 +480,8 @@ export const MemberForm: React.FC<MemberFormProps> = ({ member, onSave, onCancel
                 : 'Paste the xivgear link for off spec, or set the job manually / via import.'}
             </small>
           </div>
+          </>
+          )}
 
           <div className="form-actions">
             <Button type="submit" variant="contained" color="primary">

@@ -20,6 +20,7 @@ export enum TagType {
   PermissionAdministrator = 'permission-administrator',
   PermissionManager = 'permission-manager',
   PermissionUser = 'permission-user',
+  PermissionGuest = 'permission-guest',
 }
 
 /**
@@ -97,6 +98,11 @@ const TAG_CONFIGS: Record<TagType, TagConfig> = {
     className: 'tag-permission tag-permission-user',
     variant: 'badge',
   },
+  [TagType.PermissionGuest]: {
+    label: 'Guest',
+    className: 'tag-permission tag-permission-guest',
+    variant: 'badge',
+  },
 };
 
 /**
@@ -127,6 +133,8 @@ export const tagHelpers = {
         return TagType.PermissionAdministrator;
       case PermissionRole.Manager:
         return TagType.PermissionManager;
+      case PermissionRole.Guest:
+        return TagType.PermissionGuest;
       default:
         return TagType.PermissionUser;
     }

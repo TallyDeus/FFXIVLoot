@@ -206,6 +206,13 @@
   opacity: 0.85;
 }
 
+.tag-permission-guest {
+  background-color: #7f8c8d;
+  color: white;
+  border-color: #7f8c8d;
+  opacity: 0.85;
+}
+
 /* Tooltip support */
 .tag-tooltip {
   position: relative;

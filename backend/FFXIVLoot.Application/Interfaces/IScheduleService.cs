@@ -6,7 +6,11 @@ namespace FFXIVLoot.Application.Interfaces;
 
 public interface IScheduleService
 {
-    Task<ScheduleViewDto> GetViewAsync(DateOnly viewStartMonday, CancellationToken cancellationToken = default);
+    /// <param name="viewerForRedaction">When set to a guest, per-cell and week comments are omitted from the response.</param>
+    Task<ScheduleViewDto> GetViewAsync(
+        DateOnly viewStartMonday,
+        Member? viewerForRedaction = null,
+        CancellationToken cancellationToken = default);
 
     Task<ScheduleViewDto> UpsertResponseAsync(
         Member currentUser,

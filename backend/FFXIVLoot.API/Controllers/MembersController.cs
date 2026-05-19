@@ -105,6 +105,13 @@ public class MembersController : ControllerBase
                 return Forbid();
             }
 
+            if (currentUser.PermissionRole == Domain.Enums.PermissionRole.Manager &&
+                memberDto.PermissionRole != Domain.Enums.PermissionRole.User &&
+                memberDto.PermissionRole != Domain.Enums.PermissionRole.Guest)
+            {
+                return Forbid();
+            }
+
             var createdMember = await _memberService.CreateMemberAsync(memberDto);
             return CreatedAtAction(nameof(GetMember), new { id = createdMember.Id }, createdMember);
         }
@@ -169,7 +176,7 @@ public class MembersController : ControllerBase
 
             if (memberDto.PermissionRole != targetMemberDto.PermissionRole)
             {
-                if (!PermissionHelper.CanEditPermissionRole(currentUser, targetEntity))
+                if (!PermissionHelper.CanAssignPermissionRole(currentUser, targetEntity, memberDto.PermissionRole))
                 {
                     return Forbid();
                 }

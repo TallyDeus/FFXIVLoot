@@ -9,11 +9,20 @@ namespace FFXIVLoot.Application.Helpers;
 public static class PermissionHelper
 {
     /// <summary>
+    /// Guests cannot edit any profile (including their own).
+    /// </summary>
+    public static bool IsGuest(Member? member) =>
+        member?.PermissionRole == PermissionRole.Guest;
+
+    /// <summary>
     /// Checks if a user can edit a member
     /// </summary>
     public static bool CanEditMember(Member? currentUser, Member targetMember)
     {
         if (currentUser == null) return false;
+
+        if (IsGuest(currentUser))
+            return false;
 
         // Administrator can edit anyone
         if (currentUser.PermissionRole == PermissionRole.Administrator)
@@ -33,6 +42,26 @@ public static class PermissionHelper
     }
 
     /// <summary>
+    /// Only administrators may assign Manager or Administrator roles.
+    /// Managers may switch a member between User and Guest only.
+    /// </summary>
+    public static bool CanAssignPermissionRole(Member? currentUser, Member targetMember, PermissionRole newRole)
+    {
+        if (currentUser == null) return false;
+
+        if (currentUser.PermissionRole == PermissionRole.Administrator)
+            return true;
+
+        if (currentUser.PermissionRole != PermissionRole.Manager)
+            return false;
+
+        if (targetMember.PermissionRole != PermissionRole.User && targetMember.PermissionRole != PermissionRole.Guest)
+            return false;
+
+        return newRole == PermissionRole.User || newRole == PermissionRole.Guest;
+    }
+
+    /// <summary>
     /// Checks if a user can edit a member's permission role
     /// </summary>
     public static bool CanEditPermissionRole(Member? currentUser, Member targetMember)
@@ -49,6 +78,12 @@ public static class PermissionHelper
     public static bool CanEditBiS(Member? currentUser, Member targetMember)
     {
         if (currentUser == null) return false;
+
+        if (IsGuest(currentUser))
+            return false;
+
+        if (IsGuest(targetMember))
+            return false;
 
         // Administrator and Manager can edit anyone's BiS
         if (currentUser.PermissionRole == PermissionRole.Administrator ||

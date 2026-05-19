@@ -99,9 +99,11 @@ export const MembersPage: React.FC = () => {
   const handleSave = async (memberData: MemberSavePayload) => {
     try {
       let savedMember: Member;
-      const xivGearLink = memberData.xivGearLink?.trim();
+      const isGuest =
+        memberData.permissionRole === PermissionRole.Guest;
+      const xivGearLink = isGuest ? undefined : memberData.xivGearLink?.trim();
       const previousLink = editingMember?.xivGearLink?.trim();
-      const offSpecXivGearLink = memberData.offSpecXivGearLink?.trim();
+      const offSpecXivGearLink = isGuest ? undefined : memberData.offSpecXivGearLink?.trim();
       const previousOffSpecLink = editingMember?.offSpecXivGearLink?.trim();
 
       if ('id' in memberData) {
@@ -112,9 +114,9 @@ export const MembersPage: React.FC = () => {
         };
         savedMember = await memberService.updateMember(updateData);
         
-        const mainSpecLink = xivGearLink && xivGearLink !== previousLink ? xivGearLink : undefined;
+        const mainSpecLink = !isGuest && xivGearLink && xivGearLink !== previousLink ? xivGearLink : undefined;
         const offSpecLink =
-          memberData.offSpecFullCofferSet
+          isGuest || memberData.offSpecFullCofferSet
             ? undefined
             : offSpecXivGearLink && offSpecXivGearLink !== previousOffSpecLink
               ? offSpecXivGearLink
@@ -138,8 +140,8 @@ export const MembersPage: React.FC = () => {
         
         await importBiSLists(
           savedMember.id,
-          xivGearLink,
-          memberData.offSpecFullCofferSet ? undefined : offSpecXivGearLink,
+          isGuest ? undefined : xivGearLink,
+          isGuest || memberData.offSpecFullCofferSet ? undefined : offSpecXivGearLink,
           false
         );
       }
